@@ -1,20 +1,20 @@
 {
-  "name": "luisbot",
+  "name": "chatbot-the-first",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "dependencies": {
-    "botbuilder": "^3.13.1",
-    "botbuilder-azure": "^3.0.4",
-    "restify": "^5.0.0"
-  },
-  "devDependencies": {
-    "request": "^2.81.0",
-    "zip-folder": "^1.0.0"
-  },
+  "description": "First node.js chatbot",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "test"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "yue",
+  "license": "ISC",
+  "dependencies": {
+    "api-ai-recognizer": "^1.1.1",
+    "apiai": "^4.0.3",
+    "botbuilder": "^3.14.0",
+    "botbuilder-mongodb": "^3.0.9",
+    "dotenv-extended": "^2.0.1",
+    "express": "^4.16.2",
+    "restify": "^6.3.4"
+  }
 }
