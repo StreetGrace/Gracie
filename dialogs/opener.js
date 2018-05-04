@@ -1,9 +1,9 @@
 var builder = require('botbuilder');
-var apiai = require('./apiai_recognizer');
-var utils = require('./utils');
-var utilsTime = require('./utils_time');
-var utilsService = require('./utils_service');
-var lib_router = require('./lib_router');
+var apiai = require('./../utils_bot/ApiaiRecognizer');
+var utils = require('./../utils_dialog/utils');
+// var utilsTime = require('./../utils_dialog/utils_Time');
+// var utilsService = require('./../utils_dialog/utils_Service');
+var lib_router = require('./../utils_bot/IntentRouter');
 
 var lib = new builder.Library('opener');
 lib.recognizer(apiai.recognizer);
@@ -16,10 +16,10 @@ lib.dialog('/', function(session, args, next){
 	lib_router.routeMessage(lib, session);
 })
 .beginDialogAction('openGreetingAction', '/intent.greeting', {matches: 'Intent.Greeting'})
-.beginDialogAction('openAvailAction', '/intent.availability', {matches: 'Intent.Availability'})
-.beginDialogAction('openServiceAction', '/intent.service_inquiry', {matches: 'Intent.Service_Inquiry'})
-.beginDialogAction('openLocationAction', '/intent.location_inquiry', {matches: 'Intent.Location_Inquiry'})
-.beginDialogAction('openPriceAction', '/intent.price_inquiry', {matches: 'Intent.Price_Inquiry'})
+// .beginDialogAction('openAvailAction', '/intent.availability', {matches: 'Intent.Availability'})
+// .beginDialogAction('openServiceAction', '/intent.service_inquiry', {matches: 'Intent.Service_Inquiry'})
+// .beginDialogAction('openLocationAction', '/intent.location_inquiry', {matches: 'Intent.Location_Inquiry'})
+// .beginDialogAction('openPriceAction', '/intent.price_inquiry', {matches: 'Intent.Price_Inquiry'})
 .cancelAction('cancelAction', '[Unindentified Intent, Directing to Main]', {matches: 'Default Fallback Intent'});
 
 /*

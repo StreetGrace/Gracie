@@ -20,6 +20,7 @@ module.exports.recognizer = {
                     entities: res.parameters                    
                 }
                 console.log('Result:\n%j', intent_result);
+                console.log('Result Raw:\n%j', res);
                 callback(null, intent_result);
             });
             request.on('error', function(error) {

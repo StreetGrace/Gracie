@@ -1,9 +1,10 @@
 /*-----------------------------------------------------------------------------
 A simple Language Understanding (LUIS) bot for the Microsoft Bot Framework. 
 -----------------------------------------------------------------------------*/
-
 var restify = require('restify');
 var builder = require('botbuilder');
+var apiai = require('./utils_bot/ApiaiRecognizer');
+var utils = require('./utils_dialog/utils');
 var botbuilder_azure = require("botbuilder-azure");
 
 // Setup Restify Server
@@ -35,49 +36,91 @@ var tableStorage = new botbuilder_azure.AzureBotStorage({ gzipData: false }, azu
 // Create your bot with a function to receive messages from the user
 // This default message handler is invoked if the user's utterance doesn't
 // match any intents handled by other dialogs.
-var bot = new builder.UniversalBot(connector, function (session, args) {
-    session.send('You reached the default message handler. You said \'%s\'.', session.message.text);
-});
 
+var bot = new builder.UniversalBot(connector, {});
 bot.set('storage', tableStorage);
 
-// Make sure you add code to validate these fields
-var luisAppId = process.env.LuisAppId;
-var luisAPIKey = process.env.LuisAPIKey;
-var luisAPIHostName = process.env.LuisAPIHostName || 'westus.api.cognitive.microsoft.com';
 
-const LuisModelUrl = 'https://' + luisAPIHostName + '/luis/v2.0/apps/' + luisAppId + '?subscription-key=' + luisAPIKey;
+bot.dialog('/', [
+	function (session, args, next){
+		session.send('[Start Root Dialog]');
+		session.userData.profile = session.userData.profile || initialProfile;
+	//Begin Dialog Opener		
+		session.beginDialog('opener:/');
+	},
+	function (session, args, next){
+		// session.beginDialog('main:/');
+		session.send('[Start Main Dialog]');
+	}
+]);
+
+bot.library(require('./dialogs/opener').createLibrary());
+
+const initialProfile = {
+	default: {
+		model: 'Gina',
+		neighborhood: 'Rome'
+	},
+	appointment: {
+		'exact-time': [],
+		'relative-time': [],
+		service: [],
+		price: [],
+		location: [],	
+		model: ''
+	},
+	demographic: {
+		name: ''
+	},
+	confirmation: {
+		time: {
+			hour: null, minute: null, date: null, complete: 0
+		},
+		location: {
+			neighborhood: '', site: '', address: '', complete: 0
+		},
+		service: {
+			inout: '', duration: '', addon: '', complete: 0
+		}
+	}
+};
+// Make sure you add code to validate these fields
+// var luisAppId = process.env.LuisAppId;
+// var luisAPIKey = process.env.LuisAPIKey;
+// var luisAPIHostName = process.env.LuisAPIHostName || 'westus.api.cognitive.microsoft.com';
+
+// const LuisModelUrl = 'https://' + luisAPIHostName + '/luis/v2.0/apps/' + luisAppId + '?subscription-key=' + luisAPIKey;
 
 // Create a recognizer that gets intents from LUIS, and add it to the bot
-var recognizer = new builder.LuisRecognizer(LuisModelUrl);
-bot.recognizer(recognizer);
+// var recognizer = new builder.LuisRecognizer(LuisModelUrl);
+// bot.recognizer(recognizer);
 
 // Add a dialog for each intent that the LUIS app recognizes.
 // See https://docs.microsoft.com/en-us/bot-framework/nodejs/bot-builder-nodejs-recognize-intent-luis 
-bot.dialog('GreetingDialog',
-    (session) => {
-        session.send('You reached the Greeting intent. You said \'%s\'.', session.message.text);
-        session.endDialog();
-    }
-).triggerAction({
-    matches: 'Greeting'
-})
+// bot.dialog('GreetingDialog',
+//     (session) => {
+//         session.send('You reached the Greeting intent. You said \'%s\'.', session.message.text);
+//         session.endDialog();
+//     }
+// ).triggerAction({
+//     matches: 'Greeting'
+// })
 
-bot.dialog('HelpDialog',
-    (session) => {
-        session.send('You reached the Help intent. You said \'%s\'.', session.message.text);
-        session.endDialog();
-    }
-).triggerAction({
-    matches: 'Help'
-})
+// bot.dialog('HelpDialog',
+//     (session) => {
+//         session.send('You reached the Help intent. You said \'%s\'.', session.message.text);
+//         session.endDialog();
+//     }
+// ).triggerAction({
+//     matches: 'Help'
+// })
 
-bot.dialog('CancelDialog',
-    (session) => {
-        session.send('You reached the Cancel intent. You said \'%s\'.', session.message.text);
-        session.endDialog();
-    }
-).triggerAction({
-    matches: 'Cancel'
-})
+// bot.dialog('CancelDialog',
+//     (session) => {
+//         session.send('You reached the Cancel intent. You said \'%s\'.', session.message.text);
+//         session.endDialog();
+//     }
+// ).triggerAction({
+//     matches: 'Cancel'
+// })
 
