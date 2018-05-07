@@ -39,6 +39,8 @@ var memoryStorage = new builder.MemoryBotStorage();;
 
 var bot = new builder.UniversalBot(connector, {});
 bot.set('storage', memoryStorage);
+// var bot = new builder.UniversalBot(connector, {});
+// bot.set('storage', tableStorage);
 
 
 bot.dialog('/', [
