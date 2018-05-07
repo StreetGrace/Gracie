@@ -37,7 +37,7 @@ var memoryStorage = new builder.MemoryBotStorage();;
 // This default message handler is invoked if the user's utterance doesn't
 // match any intents handled by other dialogs.
 
-var bot = new builder.UniversalBot(connector, {});
+// var bot = new builder.UniversalBot(connector, {});
 bot.set('storage', memoryStorage);
 // var bot = new builder.UniversalBot(connector, {});
 // bot.set('storage', tableStorage);
