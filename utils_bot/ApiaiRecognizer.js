@@ -1,5 +1,5 @@
 var apiai = require('apiai'); 
-var app = apiai('e53beed6c05a4dd3a1492226e9dc2264'); 
+var app = apiai('95f0b71700704fac9c60319c677545e8'); 
 
 module.exports.recognizer = {
 	recognize: function(context, callback) {

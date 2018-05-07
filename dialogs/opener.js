@@ -1,8 +1,8 @@
 var builder = require('botbuilder');
 var apiai = require('./../utils_bot/ApiaiRecognizer');
 var utils = require('./../utils_dialog/utils');
-// var utilsTime = require('./../utils_dialog/utils_Time');
-// var utilsService = require('./../utils_dialog/utils_Service');
+var utilsTime = require('./../utils_dialog/utils_Time');
+var utilsService = require('./../utils_dialog/utils_Service');
 var lib_router = require('./../utils_bot/IntentRouter');
 
 var lib = new builder.Library('opener');
@@ -16,16 +16,29 @@ lib.dialog('/', function(session, args, next){
 	lib_router.routeMessage(lib, session);
 })
 .beginDialogAction('openGreetingAction', '/intent.greeting', {matches: 'Intent.Greeting'})
-// .beginDialogAction('openAvailAction', '/intent.availability', {matches: 'Intent.Availability'})
-// .beginDialogAction('openServiceAction', '/intent.service_inquiry', {matches: 'Intent.Service_Inquiry'})
-// .beginDialogAction('openLocationAction', '/intent.location_inquiry', {matches: 'Intent.Location_Inquiry'})
-// .beginDialogAction('openPriceAction', '/intent.price_inquiry', {matches: 'Intent.Price_Inquiry'})
-.cancelAction('cancelAction', '[Unindentified Intent, Directing to Main]', {matches: 'Default Fallback Intent'});
+.beginDialogAction('openGreetingAction', '/intent.greeting', {matches: 'Intent.GiveName'})
+.beginDialogAction('openAvailAction', '/intent.availability', {matches: 'Intent.Availability'})
+.beginDialogAction('openServiceAction', '/intent.service_inquiry', {matches: 'Intent.Service_Inquiry'})
+.beginDialogAction('openLocationAction', '/intent.location_inquiry', {matches: 'Intent.Location_Inquiry'})
+.beginDialogAction('openPriceAction', '/intent.price_inquiry', {matches: 'Intent.Price_Inquiry'})
+.beginDialogAction('openUnhandled', '/intent.unhandled', {matches: 'Default Fallback Intent'})
+.beginDialogAction('openUnhandled', '/intent.unhandled', {matches: /.*/i});
+
+
+/*
+*	1. Try to start conversation
+*/
+lib.dialog('/intent.unhandled', [
+	function (session, args, next) {
+		var reply = 'Hey....not sure what u mean. wahtever r u looking 4 a good time together?';
+		session.endDialog(reply);
+	}
+]);
+
 
 /*
 *	1. Refer user by name if name is provided.
-*	2. If model name is mentioned, and different from default, correct user. (maybe only correct if they are too different)
-*	3. Ask if user want to meet and end dialog. (maybe jump to service dialog, maybe to main dialog with another navigator.)
+*	2. Ask if user want to meet and end dialog. (maybe jump to service dialog, maybe to main dialog with another navigator.)
 */
 lib.dialog('/intent.greeting', [
 	function(session, args, next ){
@@ -34,16 +47,12 @@ lib.dialog('/intent.greeting', [
 		var entities = args.intent.entities;
 		utils.fillProfile(session, 'Greeting', entities);
 		
-		var appt = session.userData.profile.appointment;
+		var appt = session.userData.profile.appointment; 
 		var demo = session.userData.profile.demographic;
 
 		var name = demo.name || '';
 		var modelName = session.userData.profile.default.model;
 		var reply = `hey ${name}.....`;
-
-		if (appt.model && appt.model != modelName) {
-			reply += `it is ${modelName} lol...`
-		}
 
 		reply += 'so are you looking 4 a good time?'
 
@@ -53,11 +62,10 @@ lib.dialog('/intent.greeting', [
 
 /*
 *	1. Comfirm availability.
-*	2. If model name is mentioned, and different from default, correct user. (maybe only correct if they are too different)
-*	3. if location is metioned and is different from default location, tell them default location and incall only.
-*	4. if asked 'when' but no time mentioned, suggest 'tonight' and begin confirmTime (can stop when any time is given or user ask about location)
-*	5. if service entities are mentioned: outcall --> incall only, not old enough to drive; bare -- don't like it don't want to be 14 and pregnant.
-*	6. Begin dialog confirmSerivce.
+*	2. if location is metioned and is different from default location, tell them default location and incall only.
+*	3. if asked 'when' but no time mentioned, suggest 'tonight' and begin confirmTime (can stop when any time is given or user ask about location)
+*	4. if service entities are mentioned: outcall --> incall only, not old enough to drive; bare -- don't like it don't want to be 14 and pregnant.
+*	5. Begin dialog confirmSerivce.
 */
 lib.dialog('/intent.availability', [
 	function(session, args, next){
@@ -72,15 +80,11 @@ lib.dialog('/intent.availability', [
 		var name = demo.name || '';
 		var modelName = session.userData.profile.default.model;
 		var reply = `hey ${name}..ready for fun...`;		
-		var outcall_flag = 0;
-
-		if (appt.model && appt.model != modelName) {
-			reply += `it is ${modelName} lol...`
-		}
+		var flag_rejectOut = 0;
 
 		var givenTime = utilsTime.fillTime(appt['exact-time'], appt['relative-time']);
 		if (givenTime.complete || givenTime.partial) {
-			reply += " free around that time.";
+			reply += " and i'm free at that time.";
 		}
 
 		if (appt.location) {
@@ -88,12 +92,12 @@ lib.dialog('/intent.availability', [
 			var neighborhood = session.userData.profile.default.neighborhood;
 			if (apptLocation['atlanta-neighborhood']) {
 				if (apptLocation['atlanta-neighborhood'] == neighborhood) {
-					reply += `yeah im in ${neighborhood}, incall only cuz im not old enough to drive lol.`
+					reply += ` incall only cuz im not old enough to drive lol.`
 				}
 				else {
-					reply += `nah i only do incall in ${neighborhood}, not old enough to drive.`;
+					reply += ` nah i only do incall in ${neighborhood}, not old enough to drive.`;
 				}
-				outcall_flag = 1;
+				flag_rejectOut = 1;
 			}	
 		}
 		
@@ -111,11 +115,11 @@ lib.dialog('/intent.availability', [
 			var neighborhood = session.userData.profile.default.neighborhood;
 			if ('inout' in apptService && apptService.inout == 'outcall' && !outcall_flag) {
 				reply += `i only do incall in ${neighborhood}. not old enough to drive.`
-				outcall_flag = 1;
+				flag_rejectOut = 1;
 			}
 			if ('addon' in apptService) {
 				if (apptService.addon == 'raw') {
-					reply += "bare only if u . dont want to be 14 and pregnant....";
+					reply += "only if ur clean and dd free. also need plan b pill cuz dont want to be 14 and pregnant....ur dd free right?";
 				}
 				else if (apptService.addon == 'bdsm') {
 					reply += "im mean im open minded.. fetishes are 50 extra... just dont want you to hurt me lol"
@@ -127,7 +131,7 @@ lib.dialog('/intent.availability', [
 					reply += "im mean im open minded.. fetishes are 50 extra... "
 				}
 			}	
-			data.outcall_flag = outcall_flag;
+			data.flag_rejectOut = flag_rejectOut;
 			session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});					
 		}	
 		else {
@@ -141,11 +145,10 @@ lib.dialog('/intent.availability', [
 
 /*
 *	1. Greet user.
-*	2. If model name is mentioned, and different from default, correct user. (maybe only correct if they are too different)
-*	3. dialog confirmService.
+*	2. dialog confirmService.
 */
 lib.dialog('/intent.service_inquiry', [
-	function(session, args, next){		
+	function (session, args, next){		
 		session.send('[Start Service Inquiry Dialog]');
 		var entities = args.intent.entities;
 		utils.fillProfile(session, 'Service', entities);
@@ -157,23 +160,39 @@ lib.dialog('/intent.service_inquiry', [
 		var modelName = session.userData.profile.default.model;
 		var reply = `hey ${name}.....`;
 
-		if (appt.model && appt.model != modelName) {
-			reply += `it is ${modelName} lol...`
-		}
-
 		session.send(reply);
+		reply = '';
 
 		var apptService = utils.getEntity('service', appt.service);
 		var data = utilsService.fillService(apptService);
 
-		session.beginDialog('confirmService:/', {data: data, reprompt: 0});
+		var neighborhood = session.userData.profile.default.neighborhood;
+		if ('inout' in apptService && apptService.inout == 'outcall') {
+			reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+			var flag_rejectOut = 1;
+		}
+		if ('addon' in apptService) {
+			if (apptService.addon == 'raw') {
+				reply += "only if ur clean and dd free. also need plan b pill cuz dont want to be 14 and pregnant....ur dd free right?";
+			}
+			else if (apptService.addon == 'bdsm') {
+				reply += "im mean im open minded.. fetishes are 50 extra... just dont want you to hurt me lol"
+			}
+			else if (apptService.addon == 'girlfriend experience') {
+				reply += "yeah why not lol. still have to pay $"
+			}
+			else {
+				reply += "im mean im open minded.. fetishes are 50 extra... "
+			}
+		}
+		data.flag_rejectOut = flag_rejectOut;
+		session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
 	}
 ]);
 
 /*
 *	1. Greet user.
-*	2. If model name is mentioned, and different from default, correct user. (maybe only correct if they are too different)
-*	3. dialog confirmPrice.
+*	2. dialog confirmPrice.
 */
 lib.dialog('/intent.price_inquiry', [
 	function(session, args, next){
@@ -189,23 +208,24 @@ lib.dialog('/intent.price_inquiry', [
 		var modelName = session.userData.profile.default.model;
 		var reply = `hey ${name}.....`;
 
-		if (appt.model && appt.model != modelName) {
-			reply += `it is ${modelName} lol...`
-		}
-
 		session.send(reply);
+		reply = '';
 
 		var apptService = utils.getEntity('service', appt.service);
 		var data = utilsService.fillService(apptService);
 
+		if ('inout' in apptService && apptService.inout == 'outcall') {
+			reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+			var flag_rejectOut = 1;
+		}
+		data.flag_rejectOut = flag_rejectOut;
 		session.beginDialog('confirmPrice:/', {data: data, reprompt: 0});	
 	}
 ]);
 
 /*
 *	1. Greet user.
-*	2. If model name is mentioned, and different from default, correct user. (maybe only correct if they are too different)
-*	3. dialog confirmPrice.
+*	2. Give neighbourhood and switch to Service.
 */
 lib.dialog('/intent.location_inquiry', [
 	function(session, args, next){
@@ -220,23 +240,17 @@ lib.dialog('/intent.location_inquiry', [
 		var modelName = session.userData.profile.default.model;
 		var reply = `hey ${name}.....`;
 
-		if (appt.model && appt.model != modelName) {
-			reply += `it is ${modelName} lol...`
-		}
+		session.send(reply);
+		reply = '';
 
 		var apptLocation = utils.getEntity('location', appt.location);
+		var apptService = utils.getEntity('service', appt.service);
+		var data = utilsService.fillService(apptService);
 		var neighborhood = session.userData.profile.default.neighborhood;
-		if (apptLocation['atlanta-neighborhood']) {
-			if (apptLocation['atlanta-neighborhood'] == neighborhood) {
-				reply += `yeah im in ${neighborhood}, incall only cuz im not old enough to drive lol.`
-			}
-			else {
-				reply += `nah i only do incall in ${neighborhood}, im not old enough to drive.`;
-			}
-		}	
-		else {
-			reply += `im doing incall only in ${neighborhood}, not old enough to drvie lol.`
-		}
+
+		reply += `im in ${neighborhood}, incall only cuz im not old enough to drive lol.`;
+		data.flag_rejectOut = flag_rejectOut;
+		session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
 	}
 ]);
 

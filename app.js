@@ -5,7 +5,7 @@ var restify = require('restify');
 var builder = require('botbuilder');
 var apiai = require('./utils_bot/ApiaiRecognizer');
 var utils = require('./utils_dialog/utils');
-var botbuilder_azure = require("botbuilder-azure");
+// var botbuilder_azure = require("botbuilder-azure");
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -30,15 +30,15 @@ server.post('/api/messages', connector.listen());
 * ---------------------------------------------------------------------------------------- */
 
 var tableName = 'botdata';
-var azureTableClient = new botbuilder_azure.AzureTableClient(tableName, process.env['AzureWebJobsStorage']);
-var tableStorage = new botbuilder_azure.AzureBotStorage({ gzipData: false }, azureTableClient);
-
+// var azureTableClient = new botbuilder_azure.AzureTableClient(tableName, process.env['AzureWebJobsStorage']);
+// var tableStorage = new botbuilder_azure.AzureBotStorage({ gzipData: false }, azureTableClient);
+var memoryStorage = new builder.MemoryBotStorage();;
 // Create your bot with a function to receive messages from the user
 // This default message handler is invoked if the user's utterance doesn't
 // match any intents handled by other dialogs.
 
 var bot = new builder.UniversalBot(connector, {});
-bot.set('storage', tableStorage);
+bot.set('storage', memoryStorage);
 
 
 bot.dialog('/', [

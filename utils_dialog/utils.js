@@ -6,7 +6,7 @@ exports.saveDialogData = saveDialogData;
 
 const availEntity = {
 	Availability: ['exact-location', 'service', 'exact-time', 'relative-time', 'entity-name', 'self-reference'],
-	Service: ['service', 'price', 'self-reference','entity-name'],
+	Service: ['exact-location', 'service', 'price', 'self-reference','entity-name'],
 	Location: ['exact-location', 'service', 'exact-time', 'relative-time', 'self-reference','entity-name'],
 	Price: ['service', 'self-reference','entity-name'],
 	Greeting: ['entity-name', 'self-reference']

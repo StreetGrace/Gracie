@@ -1,7 +1,7 @@
 var builder = require('botbuilder');
-var apiai = require('./apiai_recognizer');
-var utils = require('./utils');
-var utilsService = require('./utils_service');
+var apiai = require('./../utils_bot/ApiaiRecognizer');
+var utils = require('./../utils_dialog/utils');
+var utilsService = require('./../utils_dialog/utils_Service');
 
 var lib = new builder.Library('confirmService');
 
@@ -24,11 +24,11 @@ lib.dialog('/', [
             var reply = "u wasting my time, drop off my number.";
             session.endConversation(reply);            
         }
-        else if (args.reply && args.outcall_flag) {
+        else if (args.reply && args.flag_rejectOut) {
             session.replaceDialog('/confirmIncall', args);
         }
-        else if () {
-            
+        else if (data.addon) {
+            session.replaceDialog('/confirmAddon', args);
         }
         else if (args.data.has_inout && !args.data.has_duration) {
             var reply = 'How long are you looking for';

@@ -4,9 +4,9 @@
 *   2. add Intent givenNoTimeSlot and handle when user provide time window when they are unavailable
 */
 var builder = require('botbuilder');
-var apiai = require('./apiai_recognizer');
-var utils = require('./utils');
-var utilsTime = require('./utils_time');
+var apiai = require('./../utils_bot/ApiaiRecognizer');
+var utils = require('./../utils_dialog/utils');
+var utilsTime = require('./../utils_dialog/utils_Time');
 
 var lib = new builder.Library('confirmTime');
 
