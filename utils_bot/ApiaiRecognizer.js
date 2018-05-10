@@ -15,7 +15,7 @@ module.exports.recognizer = {
             request.on('response', function(response) {
                 var res = response.result; 
                 var intent_result = {
-                    score: res.score,
+                    score: 1,
                     intent: res.metadata.intentName,
                     entities: res.parameters                    
                 }

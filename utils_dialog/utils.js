@@ -26,8 +26,8 @@ const entityDict = {
 	'service-in-out': 'inout'
 };
 
-function fillProfile (session, intent, entities){
-	availEntity[intent].forEach( (entity) => {
+function fillProfile (session, Intent, entities){
+	availEntity[Intent].forEach( (entity) => {
 		if (entities.hasOwnProperty(entity) && entities[entity]){
 			switch(entity) {
 				case 'entity-name':
@@ -85,12 +85,13 @@ function getEntity (entity_type, response) {
 exports.getEntity = getEntity;
 
 const priceTable = {
-	'15min': '$50',
-	'30min': '$100',
-	'1 hour': '$200',
-	'2 hour': '$400',
-	'overnight': '$1500'
-};
+	'15min': '65',
+	'30min': '100',
+	'1 hour': '150',
+    '2 hours': '300',
+    'overnight': '1000'
+}
+
 exports.priceTable = priceTable;
 
 var givenTime_default = {
@@ -100,3 +101,18 @@ var givenTime_default = {
     exactTime: {},
     relativeTme: {'time-relative': 'after', time: '03:00:00'}
 };
+
+var IntentList_nonOpen = [
+	'Intent.AskAge',
+	'Intent.AskProof',
+	'Intent.Confirmation_No',
+	'Intent.confirmation_Yes',
+	'Intent.Ensure',
+	'Intent.Negotiate_Price',
+	'Intent.Offer_Transportation',
+	'Intent.Police',
+	'Intent.Pregnant',
+	'Intent.QuestionAge'
+];
+
+exports.IntentList_nonOpen = IntentList_nonOpen;

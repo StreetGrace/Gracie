@@ -1,17 +1,22 @@
 var async = require("async");
 
 function routeMessage(lib, session, done){
-    //Add Routeing logging later
+    // Add Routeing logging later
     var context = session.toRecognizeContext();
     lib.recognize(context, function(err, topIntent){
         // console.log('%j', topIntent);
         context.intent = topIntent;
         context.libraryName = lib.name;
+        console.log('===========');
+        console.log('%j', lib.name);
+        console.log('===========');
         var results = addRouteResult({score: 0.0, libraryName: lib.name});
         async.each(lib.libraryList(), function (lib_sub, cb){
-            // console.log('%j', lib_sub);
             lib_sub.findRoutes(context, function(err, routes){
                 if (!err && routes) {
+                    console.log('===========');
+                    console.log('%j', routes);
+                    console.log('===========');
                     routes.forEach(function (r) { return results = addRouteResult(r, results);});
                 }
                 cb(err);    
@@ -22,11 +27,13 @@ function routeMessage(lib, session, done){
                 var disambiguateRoute = function (session, routes) {
                     var route = bestRouteResult(results, session.dialogStack(), lib.name);
                     if (route) {
-                        // console.log('%j', route);
                         console.log('to selected Route');
+                        console.log('%j', route);
+                        console.log('===========');
                         lib.library(route.libraryName).selectRoute(session, route);
                     }
                     else {
+                        console.log('===========');
                         console.log('to active dialog');
                         session.routeToActiveDialog();
                     }

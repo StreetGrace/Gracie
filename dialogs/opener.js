@@ -11,30 +11,25 @@ lib.recognizer(apiai.recognizer);
 /*
 *	Route incoming message to sub-dialogs based on detected intent
 */
-lib.dialog('/', function(session, args, next){
+lib.dialog('/', function(session, args, next){	
 	session.send('[Start Opener Dialog]');   
-	lib_router.routeMessage(lib, session);
+	lib_router.routeMessage(lib, session);	
 })
 .beginDialogAction('openGreetingAction', '/intent.greeting', {matches: 'Intent.Greeting'})
-.beginDialogAction('openGreetingAction', '/intent.greeting', {matches: 'Intent.GiveName'})
+.beginDialogAction('openGreetingAction_givename', '/intent.greeting', {matches: 'Intent.GiveName'})
+.beginDialogAction('openGreetingAction_flattery', '/intent.greeting', {matches: 'Intent.Flattery'})
+.beginDialogAction('openGreetingAction_getpic', '/intent.greeting', {matches: 'Intent.Get_Pic'})
+
 .beginDialogAction('openAvailAction', '/intent.availability', {matches: 'Intent.Availability'})
-.beginDialogAction('openServiceAction', '/intent.service_inquiry', {matches: 'Intent.Service_Inquiry'})
+.beginDialogAction('openAvailAction_time', '/intent.availability', {matches: 'Intent.Give_TimeSlot'})
 .beginDialogAction('openLocationAction', '/intent.location_inquiry', {matches: 'Intent.Location_Inquiry'})
 .beginDialogAction('openPriceAction', '/intent.price_inquiry', {matches: 'Intent.Price_Inquiry'})
+.beginDialogAction('openServiceAction', '/intent.service_inquiry', {matches: 'Intent.Service_Inquiry'})
+.beginDialogAction('openServiceAction_giveloc', '/intent.service_inquiry', {matches: 'Intent.Give_Location'})
+
 .beginDialogAction('openUnhandled', '/intent.unhandled', {matches: 'Default Fallback Intent'})
-.beginDialogAction('openUnhandled', '/intent.unhandled', {matches: /.*/i});
-
-
-/*
-*	1. Try to start conversation
-*/
-lib.dialog('/intent.unhandled', [
-	function (session, args, next) {
-		var reply = 'Hey....not sure what u mean. wahtever r u looking 4 a good time together?';
-		session.endDialog(reply);
-	}
-]);
-
+.beginDialogAction('openUnhandled_any', '/intent.unhandled', {matches: utils.intentList_nonOpen})
+;
 
 /*
 *	1. Refer user by name if name is provided.
@@ -55,8 +50,13 @@ lib.dialog('/intent.greeting', [
 		var reply = `hey ${name}.....`;
 
 		reply += 'so are you looking 4 a good time?'
+		session.send(reply);
 
-		session.endDialog(reply);		
+		var neighborhood = session.userData.profile.default.neighborhood;
+		var data = null;
+		data = utilsService.fillService(data);
+		reply = `incall only in ${neighborhood}, not old enough to drive..`
+		session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
 	}
 ]);
 
@@ -80,14 +80,17 @@ lib.dialog('/intent.availability', [
 		var name = demo.name || '';
 		var modelName = session.userData.profile.default.model;
 		var reply = `hey ${name}..ready for fun...`;		
-		var flag_rejectOut = 0;
 
 		var givenTime = utilsTime.fillTime(appt['exact-time'], appt['relative-time']);
 		if (givenTime.complete || givenTime.partial) {
 			reply += " and i'm free at that time.";
 		}
 
+		session.send(reply);
+		reply = '';
+
 		if (appt.location) {
+			session.send('%j', appt.location);
 			var apptLocation = utils.getEntity('location', appt.location);
 			var neighborhood = session.userData.profile.default.neighborhood;
 			if (apptLocation['atlanta-neighborhood']) {
@@ -95,51 +98,36 @@ lib.dialog('/intent.availability', [
 					reply += ` incall only cuz im not old enough to drive lol.`
 				}
 				else {
-					reply += ` nah i only do incall in ${neighborhood}, not old enough to drive.`;
-				}
-				flag_rejectOut = 1;
+					reply += ` buuut incall only in ${neighborhood}, not old enough to drive.`;
+				}				
 			}	
 		}
-		
-		session.send(reply);
 
 		if (!givenTime.complete && !givenTime.partial && 'when' in session.message.text) {
-			reply = 'tonight is good....or u have time in mind?'
-			session.beginDialog('confirmTime:/', {data: givenTime, reply: reply, reprompt: 0});
+			reply += 'i am available today lol....'
 		}
 		
-		reply = '';
 		if (appt.service) {
 			var apptService = utils.getEntity('service', appt.service);
 			var data = utilsService.fillService(apptService);
 			var neighborhood = session.userData.profile.default.neighborhood;
-			if ('inout' in apptService && apptService.inout == 'outcall' && !outcall_flag) {
+			
+			if (!appt.location.length && data.inout != 'incall') {
+				var neighborhood = session.userData.profile.default.neighborhood;
 				reply += `i only do incall in ${neighborhood}. not old enough to drive.`
-				flag_rejectOut = 1;
 			}
-			if ('addon' in apptService) {
-				if (apptService.addon == 'raw') {
-					reply += "only if ur clean and dd free. also need plan b pill cuz dont want to be 14 and pregnant....ur dd free right?";
-				}
-				else if (apptService.addon == 'bdsm') {
-					reply += "im mean im open minded.. fetishes are 50 extra... just dont want you to hurt me lol"
-				}
-				else if (apptService.addon == 'girlfriend experience') {
-					reply += "yeah why not lol. still have to pay $"
-				}
-				else {
-					reply += "im mean im open minded.. fetishes are 50 extra... "
-				}
-			}	
-			data.flag_rejectOut = flag_rejectOut;
+			
 			session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});					
 		}	
 		else {
-			next();
+			var data = null;
+			data = utilsService.fillService(data);				
+			if (!appt.location.length) {
+				var neighborhood = session.userData.profile.default.neighborhood;
+				reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+			}
+			session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
 		}
-	},
-	function (session, args, next) {
-		session.endDialog();
 	}
 ]);
 
@@ -169,23 +157,8 @@ lib.dialog('/intent.service_inquiry', [
 		var neighborhood = session.userData.profile.default.neighborhood;
 		if ('inout' in apptService && apptService.inout == 'outcall') {
 			reply += `i only do incall in ${neighborhood}. not old enough to drive.`
-			var flag_rejectOut = 1;
-		}
-		if ('addon' in apptService) {
-			if (apptService.addon == 'raw') {
-				reply += "only if ur clean and dd free. also need plan b pill cuz dont want to be 14 and pregnant....ur dd free right?";
-			}
-			else if (apptService.addon == 'bdsm') {
-				reply += "im mean im open minded.. fetishes are 50 extra... just dont want you to hurt me lol"
-			}
-			else if (apptService.addon == 'girlfriend experience') {
-				reply += "yeah why not lol. still have to pay $"
-			}
-			else {
-				reply += "im mean im open minded.. fetishes are 50 extra... "
-			}
-		}
-		data.flag_rejectOut = flag_rejectOut;
+		}		
+	
 		session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
 	}
 ]);
@@ -214,12 +187,32 @@ lib.dialog('/intent.price_inquiry', [
 		var apptService = utils.getEntity('service', appt.service);
 		var data = utilsService.fillService(apptService);
 
-		if ('inout' in apptService && apptService.inout == 'outcall') {
+		if (data) {
+            if (!session.userData.profile.confirmation.price.priceListGiven) {
+                reply += 'donations are 100 for HH, 150 for H. ';
+                session.userData.profile.confirmation.price.priceListGiven = 1;
+                session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
+                session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
+            }
+            if (data.has_duration && data.duration != '30min' && data.duration != '1 hour') {
+                reply += utils.priceTable[data.duration] + ' for ' + data.duration + '.';
+                session.userData.profile.confirmation.price.priceGiven[data.duration] = 1;
+            }
+            if (data.has_inout && data.inout == 'outcall') {
+                reply += "you'll need to call uber or lyft to pick me. ";
+                session.userData.profile.confirmation.price.priceGiven.inout = 1;
+                session.dialogData.givenService.flag_rejectOut = 0;
+            }
+            if (data.has_addon) {
+                reply += 'any fetish thing is 50 extra..';
+                session.userData.profile.confirmation.price.priceGiven.addon = 1;
+			}
+		}		
+		if (data.has_inout && data.inout != 'incall') {
 			reply += `i only do incall in ${neighborhood}. not old enough to drive.`
-			var flag_rejectOut = 1;
 		}
-		data.flag_rejectOut = flag_rejectOut;
-		session.beginDialog('confirmPrice:/', {data: data, reprompt: 0});	
+
+		session.beginDialog('confirmService:/', {data: data, reprompt: 0});	
 	}
 ]);
 
@@ -249,7 +242,21 @@ lib.dialog('/intent.location_inquiry', [
 		var neighborhood = session.userData.profile.default.neighborhood;
 
 		reply += `im in ${neighborhood}, incall only cuz im not old enough to drive lol.`;
-		data.flag_rejectOut = flag_rejectOut;
+		
+		session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+	}
+]);
+
+/*
+*	1. Try to start conversation
+*/
+lib.dialog('/intent.unhandled', [
+	function (session, args, next) {
+		var neighborhood = session.userData.profile.default.neighborhood;
+		var data = utilsService.fillService(null);
+		var reply = 'Hey....not sure what u mean. wahtever r u looking 4 a good time together?';
+		session.send(reply);
+		reply = `incall only in ${neighborhood}, not old enough to drive lol` ;
 		session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
 	}
 ]);

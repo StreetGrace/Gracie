@@ -1,11 +1,8 @@
-/*-----------------------------------------------------------------------------
-A simple Language Understanding (LUIS) bot for the Microsoft Bot Framework. 
------------------------------------------------------------------------------*/
 var restify = require('restify');
 var builder = require('botbuilder');
 var apiai = require('./utils_bot/ApiaiRecognizer');
 var utils = require('./utils_dialog/utils');
-// var botbuilder_azure = require("botbuilder-azure");
+var botbuilder_mongo=require('botbuilder-mongodb')
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -22,41 +19,38 @@ var connector = new builder.ChatConnector({
 
 // Listen for messages from users 
 server.post('/api/messages', connector.listen());
+const mongoOptions = {
+    ip: '18.234.8.122',
+    port: '27017',
+    database: 'gracie',
+    collection: 'state_data',
+    username: 'adclaimsuser@bbdo.com',
+    password: 'Bbdoatl1',
+    queryString: 'gracie'
+}
 
-/*----------------------------------------------------------------------------------------
-* Bot Storage: This is a great spot to register the private state storage for your bot. 
-* We provide adapters for Azure Table, CosmosDb, SQL Azure, or you can implement your own!
-* For samples and documentation, see: https://github.com/Microsoft/BotBuilder-Azure
-* ---------------------------------------------------------------------------------------- */
+mongoStorage=botbuilder_mongo.GetMongoDBLayer(mongoOptions)
 
-var tableName = 'botdata';
-// var azureTableClient = new botbuilder_azure.AzureTableClient(tableName, process.env['AzureWebJobsStorage']);
-// var tableStorage = new botbuilder_azure.AzureBotStorage({ gzipData: false }, azureTableClient);
-var memoryStorage = new builder.MemoryBotStorage();;
-// Create your bot with a function to receive messages from the user
-// This default message handler is invoked if the user's utterance doesn't
-// match any intents handled by other dialogs.
+// var memoryStorage = new builder.MemoryBotStorage();
 
-// var bot = new builder.UniversalBot(connector, {});
-bot.set('storage', memoryStorage);
-// var bot = new builder.UniversalBot(connector, {});
-// bot.set('storage', tableStorage);
+var bot = new builder.UniversalBot(connector, {});
+// bot.set('storage', memoryStorage);
+bot.set('storage', mongoStorage);
 
 
 bot.dialog('/', [
 	function (session, args, next){
 		session.send('[Start Root Dialog]');
 		session.userData.profile = session.userData.profile || initialProfile;
-	//Begin Dialog Opener		
-		session.beginDialog('opener:/');
-	},
-	function (session, args, next){
-		// session.beginDialog('main:/');
-		session.send('[Start Main Dialog]');
+	
+		session.beginDialog('main:/', {complete_open: 0});
 	}
 ]);
 
+bot.library(require('./dialogs/main').createLibrary());
 bot.library(require('./dialogs/opener').createLibrary());
+bot.library(require('./dialogs/confirmService').createLibrary());
+bot.library(require('./dialogs/confirmTime').createLibrary());
 
 const initialProfile = {
 	default: {
@@ -82,47 +76,21 @@ const initialProfile = {
 			neighborhood: '', site: '', address: '', complete: 0
 		},
 		service: {
-			inout: '', duration: '', addon: '', complete: 0
+			inout: 'incall', duration: '', addon: '', complete: 0
+		},
+		price: {
+			priceListGiven: 0,
+			priceGiven: {
+				'30min': 0,
+				'1 hour': 0,
+				'15min': 0,
+				'addon': 0,
+				'2 hours': 0,
+				'overnight': 0,
+				'addon': 0,
+				'inout': 0
+			}
 		}
-	}
+	},
+	
 };
-// Make sure you add code to validate these fields
-// var luisAppId = process.env.LuisAppId;
-// var luisAPIKey = process.env.LuisAPIKey;
-// var luisAPIHostName = process.env.LuisAPIHostName || 'westus.api.cognitive.microsoft.com';
-
-// const LuisModelUrl = 'https://' + luisAPIHostName + '/luis/v2.0/apps/' + luisAppId + '?subscription-key=' + luisAPIKey;
-
-// Create a recognizer that gets intents from LUIS, and add it to the bot
-// var recognizer = new builder.LuisRecognizer(LuisModelUrl);
-// bot.recognizer(recognizer);
-
-// Add a dialog for each intent that the LUIS app recognizes.
-// See https://docs.microsoft.com/en-us/bot-framework/nodejs/bot-builder-nodejs-recognize-intent-luis 
-// bot.dialog('GreetingDialog',
-//     (session) => {
-//         session.send('You reached the Greeting intent. You said \'%s\'.', session.message.text);
-//         session.endDialog();
-//     }
-// ).triggerAction({
-//     matches: 'Greeting'
-// })
-
-// bot.dialog('HelpDialog',
-//     (session) => {
-//         session.send('You reached the Help intent. You said \'%s\'.', session.message.text);
-//         session.endDialog();
-//     }
-// ).triggerAction({
-//     matches: 'Help'
-// })
-
-// bot.dialog('CancelDialog',
-//     (session) => {
-//         session.send('You reached the Cancel intent. You said \'%s\'.', session.message.text);
-//         session.endDialog();
-//     }
-// ).triggerAction({
-//     matches: 'Cancel'
-// })
-
