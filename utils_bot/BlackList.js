@@ -4,16 +4,16 @@ const options = {
 	ip: '18.234.8.122',
 	port: '27017',
 	database: 'gracie',
-	collection: 'chat_buffer',
+	collection: 'user_logging',
 	username: 'adclaimsuser@bbdo.com',
 	password: 'Bbdoatl1',
 	queryString: 'gracie'
 }
 
-function find (conversation_id, cb) {
+function find (user_id, cb) {
     var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
     var conditions = {
-        'conversation_id': conversation_id
+        'user_id': user_id
     }    
     
 	var connectOptions = {};
@@ -38,13 +38,12 @@ function find (conversation_id, cb) {
 function insert (data) {
 	var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
 	var conditions = {
-		'conversation_id': data.conversation_id
+		'user_id': data.user_id
 	};
 	var update = {
 		'$set': { 
-			'conversation_id': data.conversation_id,
-			'msg': data.msg,
-			'timestamp': data.timestamp
+			'user_id': data.user_id,
+			'user_name': data.user_name
 		} 
 	};	
 	var connectOptions = {};
@@ -66,45 +65,13 @@ function insert (data) {
 		})
 		.catch(err => {
 		  database.close(true);
-		  console.log('Error updating log: ' + err.toString());
+		  console.log('Error inserting user id: ' + err.toString());
 		  throw err;
 		});
 	});
   }
 
-function del_msg (conversation_id) {
-	var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
-	var conditions = {
-		'conversation_id': conversation_id
-	};
-		
-	var connectOptions = {};
-	if (options.username && options.password) {
-		connectOptions.auth = {};
-		connectOptions.auth.user = options.username;
-		connectOptions.auth.password = options.password;
-	}	
-	
-	var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
-	  return database
-		.db(options.database)
-		.collection(options.collection)
-		.deleteOne(conditions)
-		.then(() => {
-		  database.close(true);
-		})
-		.catch(err => {
-		  database.close(true);
-		  console.log('Error deleting log: ' + err.toString());
-		  throw err;
-		});
-	});
-}
-
-
 module.exports = {
 	find: find,
-	insert: insert,
-	del_msg: del_msg
+	insert: insert
 };
