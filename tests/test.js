@@ -13,3 +13,13 @@ var _ = require('underscore');
 r = _.isEqual(x1, x2);
 
 console.log(r);
+
+
+var x = null;
+
+if (x == 'yes') {
+	console.log('Y')
+}
+else {
+	console.log('N')
+}

@@ -1,14 +1,14 @@
 var mongodb= require("mongodb");
-var utils = require('./utils');
+var utils = require('./../utils_dialog/utils_Time');
 
 const options = {
-    ip: 'ds161713.mlab.com',
-    port: '61713',
-    database: 'sg_state',
-    collection: 'test_chatLog',
-    username: 'ray',
+    ip: '18.234.8.122',
+    port: '27017',
+    database: 'gracie',
+    collection: 'chat_logging',
+    username: 'adclaimsuser@bbdo.com',
     password: 'Bbdoatl1',
-    queryString: 'sg_state'
+    queryString: 'gracie'
 }
 
 function insert(data) {
@@ -56,11 +56,13 @@ module.exports = {
 			user_name: message.user.name,
 			bot_id: message.address.bot.id,
 			bot_name: message.address.bot.name,
-			text: message.text,
-			timestamp: message.localTimestamp,
+			text: message.text
 		};
-	var db = insert(entry);
-	next();
+		var now = new Date();
+		var timestamp = utils.toIsoString(now);		
+		entry.timestamp = timestamp;		
+		var db = insert(entry);
+		next();
 	},
 	logOutgoingMessage: function (event, next) {
 		var message = event;
@@ -72,14 +74,15 @@ module.exports = {
 			source: message.source,
 			user_id: message.address.user.id,
 			user_name: message.address.user.name,
-			bot_id: message.address.bot.it,
+			bot_id: message.address.bot.id,
 			bot_name: message.address.bot.name,
 			text: message.text,
 		};		
+
 		var now = new Date();
 		var timestamp = utils.toIsoString(now);		
-		entry.timestamp = timestamp;
+		entry.timestamp = timestamp;				
 		var db = insert(entry);		
-	next();
+		next();
 	}
 };

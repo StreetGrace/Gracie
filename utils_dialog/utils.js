@@ -20,7 +20,7 @@ const entityDict = {
 	'price': 'price',
 	'entity-name': 'name',
 	'self-reference': 'modelName',
-	'service-addon': 'addon',
+	'service_addon': 'addon',
 	'service-cardate': 'cardate',
 	'service-duration': 'duration',
 	'service-in-out': 'inout'
@@ -53,7 +53,7 @@ exports.fillProfile = fillProfile;
 const entityCategory = {
 	'exact-time': ['date', 'time', 'time-period', 'date-period'],
 	'relative-time': ['time-relative', 'date', 'time', 'time-period', 'date-period', 'duration'],
-	service: ['service-in-out', 'service-duration', 'service-addon', 'service-cardate', 'service-booking'],
+	service: ['service-in-out', 'service-duration', 'service_addon', 'service-cardate', 'service-booking'],
 	location: ['atlanta-neighborhood']
 };
 

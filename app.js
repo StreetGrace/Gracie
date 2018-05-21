@@ -2,7 +2,10 @@ var restify = require('restify');
 var builder = require('botbuilder');
 var apiai = require('./utils_bot/ApiaiRecognizer');
 var utils = require('./utils_dialog/utils');
-var botbuilder_mongo=require('botbuilder-mongodb')
+var myMiddleware = require('./utils_bot/MiddlewareLogging.js');
+var botbuilder_mongo=require('botbuilder-mongodb');
+var buffer = require('./utils_bot/MessageBuffer');
+var blacklist = require('./utils_bot/Blacklist');
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -18,8 +21,10 @@ var connector = new builder.ChatConnector({
 });
 
 // Listen for messages from users 
-
-server.post('/api/messages', connector.listen());
+server.post('/api/messages', [
+    filteruser(), 
+    concatMsg(), 
+    connector.listen()]);
 
 const mongoOptions = {
     ip: '18.234.8.122',
@@ -39,13 +44,27 @@ var bot = new builder.UniversalBot(connector, {});
 // bot.set('storage', memoryStorage);
 bot.set('storage', mongoStorage);
 
+bot.use({
+	botbuilder: function (session, next) {
+		myMiddleware.logIncomingMessage(session, next);
+	},
+	send: function (event, next) {
+		myMiddleware.logOutgoingMessage(event, next);
+	}
+});	
 
 bot.dialog('/', [
 	function (session, args, next){
-		session.send('[Start Root Dialog]');
+		// session.send('[Start Root Dialog]');
 		session.userData.profile = session.userData.profile || initialProfile;
-	
-		session.beginDialog('main:/', {complete_open: 0});
+		try {
+			session.beginDialog('main:/', {complete_open: 0});
+		}
+		catch (err) {
+            var reply = 'sry got to go, text u later';
+            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+            session.endConversation(reply);
+		}
 	}
 ]);
 
@@ -57,7 +76,7 @@ bot.library(require('./dialogs/confirmTime').createLibrary());
 const initialProfile = {
 	default: {
 		model: 'Gina',
-		neighborhood: 'Rome'
+		neighborhood: 'buckhead'
 	},
 	appointment: {
 		'exact-time': [],
@@ -90,9 +109,108 @@ const initialProfile = {
 				'2 hours': 0,
 				'overnight': 0,
 				'addon': 0,
-				'inout': 0
+                'inout': 0,
+                'bare': 0
 			}
 		}
 	},
 	
 };
+
+function concatMsg () {
+    // now = new Date();
+    return function (req, res, next) {
+        try {
+            if (req.body.type != 'message') {
+                next();
+            }
+            else {
+                var time_stored;
+                var time_received = new Date().getTime();    
+                buffer.find(req.body.conversation.id, function (result) {
+                    if (result) {
+                        // console.log(result);
+                        req.body.text = result.msg + ' ' + req.body.text;
+                    }
+                    console.log('Text: %j', req.body);
+                    data = {
+                        conversation_id: req.body.conversation.id,
+                        msg: req.body.text,
+                        timestamp: time_received
+                    };
+                    buffer.insert(data);
+                });     
+                // res.status(202);
+                setTimeout(function () {
+                    var now = new Date().getTime();
+                    buffer.find(req.body.conversation.id, function (result) {
+                        if (result && result.timestamp) {
+                            time_stored = result.timestamp;
+                        }
+                        else {
+                            time_stored = time_received;
+                        }
+                        if (now - time_stored > 15000) {
+                            buffer.del_msg(req.body.conversation.id);
+                            // console.log('Complete Msg: ' + req.body.text)
+                            // console.log('Complete Now: ' + now);
+                            // console.log('Complete time_stored: ' + time_stored);
+                            // console.log('Complete Diff: ' + (now - time_stored));                                
+                            next();
+                        }
+                        else {
+                            // console.log('Msg: ' + req.body.text)
+                            // console.log('Now: ' + now);
+                            // console.log('time_stored: ' + time_stored);
+                            // console.log('Diff: ' + (now - time_stored));  
+                            res.status(202);
+                            res.end();
+                        }
+                    });
+                }, 15);
+
+            }              
+        }
+        catch (err) {
+            console.error('Custom Handler: receive - invalid request data received.');
+            res.send(400);
+            res.end();
+            return;
+        }
+    }
+}
+
+function filteruser () {
+    // now = new Date();
+    return function (req, res, next) {
+        if (req.body) {
+            next();
+        }
+        else {
+            var requestData = '';
+            req.on('data', function (chunk) {
+                requestData += chunk;
+            });
+            req.on('end', function () {
+                try {
+                    req.body = JSON.parse(requestData);
+                    blacklist.find(req.body.from.id, function (result) {
+                        if (result) {
+                            res.status(202);
+                            res.end();                           
+                        }
+                        else {
+                            next();
+                        }
+                    })         
+                }
+                catch (err) {
+                    console.error('Custom Handler: receive - invalid request data received.');
+                    res.send(400);
+                    res.end();
+                    return;
+                }
+            });
+        }
+    };
+}

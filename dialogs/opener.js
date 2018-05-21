@@ -4,6 +4,7 @@ var utils = require('./../utils_dialog/utils');
 var utilsTime = require('./../utils_dialog/utils_Time');
 var utilsService = require('./../utils_dialog/utils_Service');
 var lib_router = require('./../utils_bot/IntentRouter');
+var blacklist = require('./../utils_bot/Blacklist');
 
 var lib = new builder.Library('opener');
 lib.recognizer(apiai.recognizer);
@@ -12,8 +13,15 @@ lib.recognizer(apiai.recognizer);
 *	Route incoming message to sub-dialogs based on detected intent
 */
 lib.dialog('/', function(session, args, next){	
-	session.send('[Start Opener Dialog]');   
-	lib_router.routeMessage(lib, session);	
+	// session.send('[Start Opener Dialog]');   
+	try {
+		lib_router.routeMessage(lib, session);	
+	}
+	catch (err) {
+		var reply = 'sry got to go, text u later';
+		blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+		session.endConversation(reply);
+	}
 })
 .beginDialogAction('openGreetingAction', '/intent.greeting', {matches: 'Intent.Greeting'})
 .beginDialogAction('openGreetingAction_givename', '/intent.greeting', {matches: 'Intent.GiveName'})
@@ -37,26 +45,37 @@ lib.dialog('/', function(session, args, next){
 */
 lib.dialog('/intent.greeting', [
 	function(session, args, next ){
-		session.send('[Start Greeting Dialog]');
-		
-		var entities = args.intent.entities;
-		utils.fillProfile(session, 'Greeting', entities);
-		
-		var appt = session.userData.profile.appointment; 
-		var demo = session.userData.profile.demographic;
+		try {
+			// session.send('[Start Greeting Dialog]');
+			var entities = args.intent.entities;
+			utils.fillProfile(session, 'Greeting', entities);
+			
+			var appt = session.userData.profile.appointment; 
+			var demo = session.userData.profile.demographic;
+	
+			var name = demo.name || '';
+			var modelName = session.userData.profile.default.model;
+			var reply = `hey ${name}.....`;
+	
+			reply += 'so are you looking 4 a good time?'
+			session.send(reply);
+	
+			var neighborhood = session.userData.profile.default.neighborhood;
+			var data = null;
+			data = utilsService.fillService(data);
+			reply = `incall only in ${neighborhood}, not old enough to drive..`
 
-		var name = demo.name || '';
-		var modelName = session.userData.profile.default.model;
-		var reply = `hey ${name}.....`;
-
-		reply += 'so are you looking 4 a good time?'
-		session.send(reply);
-
-		var neighborhood = session.userData.profile.default.neighborhood;
-		var data = null;
-		data = utilsService.fillService(data);
-		reply = `incall only in ${neighborhood}, not old enough to drive..`
-		session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
+			setTimeout(function(){
+				session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+			}, 2500);
+		}
+		catch (err) {
+			setTimeout(function(){
+				var reply = 'sry got to go, text u later';
+				blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+				session.endConversation(reply);	
+			}, 2500);
+		}
 	}
 ]);
 
@@ -69,97 +88,128 @@ lib.dialog('/intent.greeting', [
 */
 lib.dialog('/intent.availability', [
 	function(session, args, next){
-		session.send('[Start Availability Dialog]');
-		console.log(session.message.text);
-		var entities = args.intent.entities;
-		utils.fillProfile(session, 'Availability', entities);
-		session.send('Updated Profile: %j', session.userData.profile);		
-		var appt = session.userData.profile.appointment;
-		var demo = session.userData.profile.demographic;
-
-		var name = demo.name || '';
-		var modelName = session.userData.profile.default.model;
-		var reply = `hey ${name}..ready for fun...`;		
-
-		var givenTime = utilsTime.fillTime(appt['exact-time'], appt['relative-time']);
-		if (givenTime.complete || givenTime.partial) {
-			reply += " and i'm free at that time.";
-		}
-
-		session.send(reply);
-		reply = '';
-
-		if (appt.location) {
-			session.send('%j', appt.location);
-			var apptLocation = utils.getEntity('location', appt.location);
-			var neighborhood = session.userData.profile.default.neighborhood;
-			if (apptLocation['atlanta-neighborhood']) {
-				if (apptLocation['atlanta-neighborhood'] == neighborhood) {
-					reply += ` incall only cuz im not old enough to drive lol.`
+		// try {
+			// session.send('[Start Availability Dialog]');
+			console.log(session.message.text);
+			var entities = args.intent.entities;
+			utils.fillProfile(session, 'Availability', entities);
+			// session.send('Updated Profile: %j', session.userData.profile);		
+			var appt = session.userData.profile.appointment;
+			var demo = session.userData.profile.demographic;
+	
+			var name = demo.name || '';
+			var modelName = session.userData.profile.default.model;
+			var reply = `hey ${name}..i'm ready for fun lol...`;		
+	
+			var givenTime = utilsTime.fillTime(appt['exact-time'], appt['relative-time']);
+			if (givenTime.complete || givenTime.partial) {
+				if (givenTime.time == 'now') {
+					reply += "and i have time now. first cum first serve. "
 				}
 				else {
-					reply += ` buuut incall only in ${neighborhood}, not old enough to drive.`;
-				}				
+					reply += " and i'm free at that time ";
+				}
+				
+			}
+	
+			session.send(reply);
+			reply = '';
+	
+			if (appt.location) {
+				// session.send('%j', appt.location);
+				var apptLocation = utils.getEntity('location', appt.location);
+				var neighborhood = session.userData.profile.default.neighborhood;
+				if (apptLocation['atlanta-neighborhood']) {
+					if (apptLocation['atlanta-neighborhood'] == neighborhood) {
+						reply += ` incall only cuz im not old enough to drive lol.`
+					}
+					else {
+						reply += ` buuut incall only in ${neighborhood}, not old enough to drive.`;
+					}				
+				}	
+			}
+	
+			if (!givenTime.complete && !givenTime.partial && session.message.text.toLowerCase().indexOf('when') > -1) {
+				reply += 'i am available today lol....'
+			}
+			
+			if (appt.service) {
+				var apptService = utils.getEntity('service', appt.service);
+				var data = utilsService.fillService(apptService);
+				var neighborhood = session.userData.profile.default.neighborhood;
+				
+				if (!appt.location.length && data.inout != 'incall') {
+					var neighborhood = session.userData.profile.default.neighborhood;
+					reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+				}
+				
+				setTimeout(function() {
+					session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});					
+				}, 2500);
 			}	
-		}
-
-		if (!givenTime.complete && !givenTime.partial && 'when' in session.message.text) {
-			reply += 'i am available today lol....'
-		}
-		
-		if (appt.service) {
-			var apptService = utils.getEntity('service', appt.service);
-			var data = utilsService.fillService(apptService);
-			var neighborhood = session.userData.profile.default.neighborhood;
-			
-			if (!appt.location.length && data.inout != 'incall') {
-				var neighborhood = session.userData.profile.default.neighborhood;
-				reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+			else {
+				var data = null;
+				data = utilsService.fillService(data);				
+				if (!appt.location.length) {
+					var neighborhood = session.userData.profile.default.neighborhood;
+					reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+				}
+				setTimeout(function() {
+					session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+				}, 2500);				
 			}
-			
-			session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});					
-		}	
-		else {
-			var data = null;
-			data = utilsService.fillService(data);				
-			if (!appt.location.length) {
-				var neighborhood = session.userData.profile.default.neighborhood;
-				reply += `i only do incall in ${neighborhood}. not old enough to drive.`
-			}
-			session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-		}
+		// }
+		// catch (err) {
+		// 	setTimeout(function() {
+		// 		var reply = 'sry got to go, text u later';
+		// 		blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+		// 		session.endConversation(reply);
+		// 	}, 2500);			
+		// }
 	}
 ]);
+
 
 /*
 *	1. Greet user.
 *	2. dialog confirmService.
 */
 lib.dialog('/intent.service_inquiry', [
-	function (session, args, next){		
-		session.send('[Start Service Inquiry Dialog]');
-		var entities = args.intent.entities;
-		utils.fillProfile(session, 'Service', entities);
-		session.send('%j', session.userData.profile);		
-		var appt = session.userData.profile.appointment;
-		var demo = session.userData.profile.demographic;
-		
-		var name = demo.name || '';
-		var modelName = session.userData.profile.default.model;
-		var reply = `hey ${name}.....`;
+	function (session, args, next){	
+		try {
+			// session.send('[Start Service Inquiry Dialog]');
+			var entities = args.intent.entities;
+			utils.fillProfile(session, 'Service', entities);
+			// session.send('%j', session.userData.profile);		
+			var appt = session.userData.profile.appointment;
+			var demo = session.userData.profile.demographic;
+			
+			var name = demo.name || '';
+			var modelName = session.userData.profile.default.model;
+			var reply = `hey ${name}.....`;
 
-		session.send(reply);
-		reply = '';
+			session.send(reply);
+			reply = '';
 
-		var apptService = utils.getEntity('service', appt.service);
-		var data = utilsService.fillService(apptService);
+			var apptService = utils.getEntity('service', appt.service);
+			var data = utilsService.fillService(apptService);
 
-		var neighborhood = session.userData.profile.default.neighborhood;
-		if ('inout' in apptService && apptService.inout == 'outcall') {
-			reply += `i only do incall in ${neighborhood}. not old enough to drive.`
-		}		
-	
-		session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
+			var neighborhood = session.userData.profile.default.neighborhood;
+			if ('inout' in apptService && apptService.inout == 'outcall') {
+				reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+			}		
+
+			setTimeout(function() {
+				session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
+			}, 2500);
+		}	
+		catch (err) {
+			setTimeout(function() {
+				var reply = 'sry got to go, text u later';
+				blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+				session.endConversation(reply);
+			}, 2500);			
+		}
 	}
 ]);
 
@@ -169,50 +219,64 @@ lib.dialog('/intent.service_inquiry', [
 */
 lib.dialog('/intent.price_inquiry', [
 	function(session, args, next){
-		session.send('[Start Price Inquiry Dialog]');
-		var entities = args.intent.entities;
-		utils.fillProfile(session, 'Price', entities);
-		session.send('%j', session.userData.profile);			
+		// try {
+			// session.send('[Start Price Inquiry Dialog]');
+			var entities = args.intent.entities;
+			utils.fillProfile(session, 'Price', entities);
+			// session.send('%j', session.userData.profile);			
 
-		var appt = session.userData.profile.appointment;
-		var demo = session.userData.profile.demographic;	
-		
-		var name = demo.name || '';
-		var modelName = session.userData.profile.default.model;
-		var reply = `hey ${name}.....`;
+			var appt = session.userData.profile.appointment;
+			var demo = session.userData.profile.demographic;	
+			
+			var name = demo.name || '';
+			var modelName = session.userData.profile.default.model;
+			var reply = `hey ${name}.....`;
 
-		session.send(reply);
-		reply = '';
+			session.send(reply);
+			reply = '';
 
-		var apptService = utils.getEntity('service', appt.service);
-		var data = utilsService.fillService(apptService);
+			var apptService = utils.getEntity('service', appt.service);
+			var data = utilsService.fillService(apptService);
 
-		if (data) {
-            if (!session.userData.profile.confirmation.price.priceListGiven) {
-                reply += 'donations are 100 for HH, 150 for H. ';
-                session.userData.profile.confirmation.price.priceListGiven = 1;
-                session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
-                session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
-            }
-            if (data.has_duration && data.duration != '30min' && data.duration != '1 hour') {
-                reply += utils.priceTable[data.duration] + ' for ' + data.duration + '.';
-                session.userData.profile.confirmation.price.priceGiven[data.duration] = 1;
-            }
-            if (data.has_inout && data.inout == 'outcall') {
-                reply += "you'll need to call uber or lyft to pick me. ";
-                session.userData.profile.confirmation.price.priceGiven.inout = 1;
-                session.dialogData.givenService.flag_rejectOut = 0;
-            }
-            if (data.has_addon) {
-                reply += 'any fetish thing is 50 extra..';
-                session.userData.profile.confirmation.price.priceGiven.addon = 1;
+			if (data) {
+				if (!session.userData.profile.confirmation.price.priceListGiven) {
+					reply += 'donations are 100 for HH, 150 for H. ';
+					session.userData.profile.confirmation.price.priceListGiven = 1;
+					session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
+					session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
+				}
+				if (data.has_duration && data.duration != '30min' && data.duration != '1 hour') {
+					reply += utils.priceTable[data.duration] + ' for ' + data.duration + '.';
+					session.userData.profile.confirmation.price.priceGiven[data.duration] = 1;
+				}
+				if (data.has_inout && data.inout == 'outcall') {
+					reply += "you'll need to call uber or lyft to pick me. ";
+					session.userData.profile.confirmation.price.priceGiven.inout = 1;
+					session.dialogData.givenService.flag_rejectOut = 0;
+				}
+				if (data.has_addon) {
+					reply += 'any fetish thing is 50 extra..';
+					session.userData.profile.confirmation.price.priceGiven.addon = 1;
+				}
+			}		
+			if (!(data.has_inout && data.inout == 'incall')) {
+				var neighborhood = session.userData.profile.default.neighborhood;
+				reply += `i only do incall in ${neighborhood}. not old enough to drive.`
 			}
-		}		
-		if (data.has_inout && data.inout != 'incall') {
-			reply += `i only do incall in ${neighborhood}. not old enough to drive.`
-		}
-
-		session.beginDialog('confirmService:/', {data: data, reprompt: 0});	
+			// else {
+			// 	data.flag_rejectOut = 0;
+			// }
+			setTimeout(function() {
+				session.beginDialog('confirmService:/', {data: data, reprompt: 0, reply: reply});	
+			}, 2500);		
+		// }
+		// catch (err) {
+		// 	setTimeout(function() {
+		// 		var reply = 'sry got to go, text u later';
+		// 		blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+		// 		session.endConversation(reply);	
+		// 	}, 2500);
+		// }
 	}
 ]);
 
@@ -222,46 +286,68 @@ lib.dialog('/intent.price_inquiry', [
 */
 lib.dialog('/intent.location_inquiry', [
 	function(session, args, next){
-		session.send('[Start Location Inquiry Dialog]');
-		var entities = args.intent.entities;
-		utils.fillProfile(session, 'Location', entities);
-		session.send('%j', session.userData.profile);		
-		var appt = session.userData.profile.appointment;
-		var demo = session.userData.profile.demographic;	
-		
-		var name = demo.name || '';
-		var modelName = session.userData.profile.default.model;
-		var reply = `hey ${name}.....`;
+		try {
+			// session.send('[Start Location Inquiry Dialog]');
+			var entities = args.intent.entities;
+			utils.fillProfile(session, 'Location', entities);
+			// session.send('%j', session.userData.profile);		
+			var appt = session.userData.profile.appointment;
+			var demo = session.userData.profile.demographic;	
+			
+			var name = demo.name || '';
+			var modelName = session.userData.profile.default.model;
+			var reply = `hey ${name}.....`;
 
-		session.send(reply);
-		reply = '';
+			session.send(reply);
+			reply = '';
 
-		var apptLocation = utils.getEntity('location', appt.location);
-		var apptService = utils.getEntity('service', appt.service);
-		var data = utilsService.fillService(apptService);
-		var neighborhood = session.userData.profile.default.neighborhood;
+			var apptLocation = utils.getEntity('location', appt.location);
+			var apptService = utils.getEntity('service', appt.service);
+			var data = utilsService.fillService(apptService);
+			var neighborhood = session.userData.profile.default.neighborhood;
 
-		reply += `im in ${neighborhood}, incall only cuz im not old enough to drive lol.`;
-		
-		session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+			reply += `im in ${neighborhood}, incall only cuz im not old enough to drive lol.`;
+
+			setTimeout(function() {
+				session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+			}, 2500);
+			
+		}
+		catch (err) {
+            var reply = 'sry got to go, text u later';
+            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+            session.endConversation(reply);
+		}
 	}
 ]);
+
 
 /*
 *	1. Try to start conversation
 */
 lib.dialog('/intent.unhandled', [
 	function (session, args, next) {
-		var neighborhood = session.userData.profile.default.neighborhood;
-		var data = utilsService.fillService(null);
-		var reply = 'Hey....not sure what u mean. wahtever r u looking 4 a good time together?';
-		session.send(reply);
-		reply = `incall only in ${neighborhood}, not old enough to drive lol` ;
-		session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+		try {
+			var neighborhood = session.userData.profile.default.neighborhood;
+			var data = utilsService.fillService(null);
+			var reply = 'Hey....not sure what u mean. wahtever r u looking 4 a good time together?';
+			session.send(reply);
+			reply = `incall only in ${neighborhood}, not old enough to drive lol` ;
+			setTimeout(function() {
+				session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+			}, 2500);						
+		}
+		catch (err) {
+			setTimeout(function() {
+				var reply = 'sry got to go, text u later';
+				blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+				session.endConversation(reply);
+			}, 2500);
+
+		}
 	}
 ]);
 
 module.exports.createLibrary = function(){
     return lib.clone();
 };
-
