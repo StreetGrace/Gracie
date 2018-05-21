@@ -167,7 +167,7 @@ function concatMsg () {
                             res.end();
                         }
                     });
-                }, 15);
+                }, 15000);
 
             }              
         }
