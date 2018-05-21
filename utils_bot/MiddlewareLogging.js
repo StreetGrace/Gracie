@@ -1,14 +1,14 @@
 var mongodb= require("mongodb");
-var utils = require('./../utils_dialog/utils');
+var utils = require('./utils');
 
 const options = {
-    ip: '18.234.8.122',
-    port: '27017',
-    database: 'gracie',
-    collection: 'chat_logging',
-    username: 'adclaimsuser@bbdo.com',
+    ip: 'ds161713.mlab.com',
+    port: '61713',
+    database: 'sg_state',
+    collection: 'test_chatLog',
+    username: 'ray',
     password: 'Bbdoatl1',
-    queryString: 'gracie'
+    queryString: 'sg_state'
 }
 
 function insert(data) {
@@ -59,8 +59,8 @@ module.exports = {
 			text: message.text,
 			timestamp: message.localTimestamp,
 		};
-		var db = insert(entry);
-		next();
+	var db = insert(entry);
+	next();
 	},
 	logOutgoingMessage: function (event, next) {
 		var message = event;
@@ -80,6 +80,6 @@ module.exports = {
 		var timestamp = utils.toIsoString(now);		
 		entry.timestamp = timestamp;
 		var db = insert(entry);		
-		next();
+	next();
 	}
 };

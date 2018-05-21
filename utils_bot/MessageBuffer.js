@@ -1,13 +1,13 @@
 var mongodb = require("mongodb");
 
 const options = {
-	ip: '18.234.8.122',
-	port: '27017',
-	database: 'gracie',
-	collection: 'chat_buffer',
-	username: 'adclaimsuser@bbdo.com',
-	password: 'Bbdoatl1',
-	queryString: 'gracie'
+    ip: 'ds161713.mlab.com',
+    port: '61713',
+    database: 'sg_state',
+    collection: 'test_msg_buffer',
+    username: 'ray',
+    password: 'Bbdoatl1',
+    queryString: 'sg_state'
 }
 
 function find (conversation_id, cb) {
