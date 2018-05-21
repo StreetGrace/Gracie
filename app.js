@@ -23,8 +23,7 @@ var connector = new builder.ChatConnector({
 // Listen for messages from users 
 server.post('/api/messages', [
     filteruser(), 
-    concatMsg(), 
-    connector.listen()]);
+    concatMsg(), connector.listen()]);
 
 const mongoOptions = {
     ip: '18.234.8.122',
