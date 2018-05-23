@@ -271,7 +271,7 @@ lib.dialog('/confirmIncall', [
         // session.send('[Start Confirm Incall]');
         // session.send('%j', args);
         try {
-            if (args.reprompt >= 2) {
+            if (args.reprompt >= 3) {
                 resDB.queryRes('confirmService:/', 0, 0, function (err, result) {
                     if (err) {
                         console.log(err);
