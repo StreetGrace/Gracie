@@ -85,7 +85,7 @@ lib.dialog('/intent.greeting', [
 				  var neighborhood = session.userData.profile.default.neighborhood;
 				  var data = null;
 				  data = utilsService.fillService(data);
-				  reply = `incall only in ${neighborhood}, not old enough to drive..`
+				  reply = `incall only in ${neighborhood} cuz i dont have license..`
 
 					setTimeout(function(){
 						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
@@ -164,10 +164,10 @@ lib.dialog('/intent.availability', [
 						var neighborhood = session.userData.profile.default.neighborhood;
 						if (apptLocation['atlanta-neighborhood']) {
 							if (apptLocation['atlanta-neighborhood'] == neighborhood) {
-								reply += ` incall only cuz im not old enough to drive lol.`
+								reply += ` incall only cuz im not having license ...`
 							}
 							else {
-								reply += ` buuut incall only in ${neighborhood}, not old enough to drive.`;
+								reply += ` buuut incall only in ${neighborhood}, dont have license.`;
 							}				
 						}	
 					}
@@ -183,7 +183,7 @@ lib.dialog('/intent.availability', [
 						
 						if (!appt.location.length && data.inout != 'incall') {
 							var neighborhood = session.userData.profile.default.neighborhood;
-							reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+							reply += `i only do incall in ${neighborhood}. dont have license.`
 						}
 						
 						setTimeout(function() {
@@ -195,7 +195,7 @@ lib.dialog('/intent.availability', [
 						data = utilsService.fillService(data);				
 						if (!appt.location.length) {
 							var neighborhood = session.userData.profile.default.neighborhood;
-							reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+							reply += `i only do incall in ${neighborhood}. dont have license.`
 						}
 						setTimeout(function() {
 							session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
@@ -253,7 +253,7 @@ lib.dialog('/intent.service_inquiry', [
 
 			var neighborhood = session.userData.profile.default.neighborhood;
 			if ('inout' in apptService && apptService.inout == 'outcall') {
-				reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+				reply += `i only do incall in ${neighborhood}. dont have license.`
 			}		
 
 			setTimeout(function() {
@@ -328,7 +328,7 @@ lib.dialog('/intent.price_inquiry', [
 							session.userData.profile.confirmation.price.priceGiven[data.duration] = 1;
 						}
 						if (data.has_inout && data.inout == 'outcall') {
-							reply += " too young to drive soo you'll need to call uber or lyft to pick me. ";
+							reply += " i dont have license soo you'll need to call uber or lyft to pick me. ";
 							session.userData.profile.confirmation.price.priceGiven.inout = 1;
 							session.dialogData.givenService.flag_rejectOut = 0;
 						}
@@ -339,7 +339,7 @@ lib.dialog('/intent.price_inquiry', [
 					}		
 					if (!(data.has_inout && data.inout == 'incall')) {
 						var neighborhood = session.userData.profile.default.neighborhood;
-						reply += ` i only do incall in ${neighborhood}. not old enough to drive.`
+						reply += ` i only do incall in ${neighborhood}. dont have license.`
 					}
 
 					setTimeout(function() {
@@ -405,7 +405,7 @@ lib.dialog('/intent.location_inquiry', [
 					var data = utilsService.fillService(apptService);
 					var neighborhood = session.userData.profile.default.neighborhood;
 
-					reply += ` im in ${neighborhood}, incall only cuz im not old enough to drive lol.`;
+					reply += ` im in ${neighborhood}, incall only cuz im not having license lol.`;
 
 					setTimeout(function() {
 						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
@@ -454,7 +454,7 @@ lib.dialog('/intent.unhandled', [
 					reply = decodeURIComponent(reply).replace(/\+/g, " ");
 					reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 					session.send(reply);
-					reply = `incall only in ${neighborhood}, not old enough to drive lol` ;
+					reply = `incall only in ${neighborhood}, dont have license lol` ;
 					setTimeout(function() {
 						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
 					}, 2500);		

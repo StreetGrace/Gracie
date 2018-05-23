@@ -775,7 +775,7 @@ lib.dialog('/givePrice', [
             session.dialogData.prompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;
 
-            if (args.reprompt >= 2) {
+            if (args.reprompt >= 3) {
                 reply = "u dont wannt to meet stop wasting my time! not replying you bye!"
                 blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
                 session.endConversation(reply);
