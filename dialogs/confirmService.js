@@ -3,13 +3,14 @@ var apiai = require('./../utils_bot/ApiaiRecognizer');
 var utils = require('./../utils_dialog/utils');
 var utilsService = require('./../utils_dialog/utils_Service');
 var blacklist = require('./../utils_bot/Blacklist');
+var resDB = require('./../utils_bot/QueryDB');
 var _ = require('underscore');
 
 var lib = new builder.Library('confirmService');
 
 lib.dialog('/', [
     function (session, args, next) {
-        // try {
+        try {
             // session.send('[Start confirmSerivce Dialog]');
             session.dialogData.givenService = args.data;
             session.dialogData.reprompt = args.reprompt;
@@ -27,59 +28,170 @@ lib.dialog('/', [
                 if (args.reply) {
                     session.send(reply);
                 }
-                var reply = "coool lol....";
-                session.replaceDialog('main:/', {reply: reply, complete_open: 1});            
+                resDB.queryRes('confirmService:/', 0, 1, function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        console.log('error pulling data');
+                    }
+                    else {
+                        var reply = result.message;
+                        reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                        reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                        session.replaceDialog('main:/', {reply: reply, complete_open: 1});            
+                    }
+                });
             }
             else if (args.reprompt >= 2) {
-                var reply = "u wasting my time, drop off my number.";
-                blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                session.endConversation(reply);            
+                resDB.queryRes('confirmService:/', 0, 0, function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        console.log('error pulling data');
+                    }
+                    else {
+                        var reply = result.message;
+                        reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                        reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                        blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                        session.endConversation(reply);            
+                    }
+                });
             }
             else if (args.data.flag_rejectOut) {
                 session.beginDialog('/confirmIncall', {data: args.data, reply: args.reply, stored_reprompt: args.reprompt, reprompt: 0});
             }
             else if (args.data.has_addon && args.data.flag_addon) {
                 if (args.data.addon == 'raw') {
-                    var reply = "bare's fine if ur clean and disease free. need plan b pill cuz dont want to be 14 and pregnant....";
-                    session.beginDialog('/confirmRaw', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
+                    resDB.queryRes('confirmService:/', 0, 2, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ").replace('14', '16');
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.beginDialog('/confirmRaw', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
+                        }
+                    });
                 }
                 else if (args.data.addon == 'bdsm') {
-                    var reply = " im mean im open minded.. just dont want you to hurt me lol.. you not gonna hurt me right?"
-                    session.beginDialog('/confirmBDSM', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
+                    resDB.queryRes('confirmService:/', 0, 3, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.beginDialog('/confirmBDSM', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
+                        }
+                    });
                 }
                 else if (args.data.addon == 'girlfriend experience') {
-                    var reply = " yeah why not lol. still have to pay $"
-                    session.dialogData.givenService.flag_addon = 0;
+                    resDB.queryRes('confirmService:/', 0, 4, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.dialogData.givenService.flag_addon = 0;
+                            builder.Prompts.text(session, reply); 
+                        }
+                    });
                 } 
                 else {
-                    var reply = " im mean im open minded.."
-                    session.dialogData.givenService.flag_addon = 0;
+                    resDB.queryRes('confirmService:/', 0, 5, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.dialogData.givenService.flag_addon = 0;
+                            builder.Prompts.text(session, reply); 
+                        }
+                    });
                 }
             }
             else {
                 if (args.data.has_inout && !args.data.has_duration) {
                     if (reply) {
-                        reply += ' How long are you looking for?';
+                        resDB.queryRes('confirmService:/', 0, 6, function (err, result) {
+                            if (err) {
+                                console.log(err);
+                                console.log('error pulling data');
+                            }
+                            else {
+                                var reply_new = result.message;
+                                reply_new = decodeURIComponent(reply_new).replace(/\+/g, " ");
+                                reply += ' ' + eval('`'+ reply_new.replace(/`/g,'\\`') + '`');
+                                builder.Prompts.text(session, reply);    
+                            }
+                        });
                     }
                     else if (args.reply){
-                        var reply = args.reply + 'How long are you looking for?'; 
+                        resDB.queryRes('confirmService:/', 0, 6, function (err, result) {
+                            if (err) {
+                                console.log(err);
+                                console.log('error pulling data');
+                            }
+                            else {
+                                var reply = result.message;
+                                reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                                reply = args.reply + ' ' + eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                                builder.Prompts.text(session, reply);    
+                            }
+                        });
                     }
                     else {
-                        var reply = 'How long are you looking for?';
+                        resDB.queryRes('confirmService:/', 0, 6, function (err, result) {
+                            if (err) {
+                                console.log(err);
+                                console.log('error pulling data');
+                            }
+                            else {
+                                var reply = result.message;
+                                reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                                reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                                builder.Prompts.text(session, reply);    
+                            }
+                        });                        
                     }
-                    builder.Prompts.text(session, reply);            
-                }            
+                } 
+                else {
+                    var reply = 'huh? what?'
+                    builder.Prompts.text(session, reply);
+                }           
             }
-        // }
-        // catch (err) {
-        //     var reply = 'sry got to go, text u later';
-        //     blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-        //     session.endConversation(reply);
-		// }
+        }
+        catch (err) {
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
+		}
 
     },
     function (session, args, next) {
-        // try {
+        try {
             var msg = args.response;
             apiai.recognizer.recognize({message:{text:msg}}, function(error, response) {
                 var intent = response.intent;
@@ -99,7 +211,11 @@ lib.dialog('/', [
                 //if response irrelevant
                 if (intent == 'Intent.Price_Inquiry' || price) {
                     // session.send('Switch to Price with data: %j', givenService);
-                    session.replaceDialog('/givePrice', {data: givenService, stored_reprompt: session.dialogData.reprompt, reply: ''});
+                    var inquiryService = null;
+                    if (service) {
+                        inquiryService = utilsService.fillService(service)
+                    }
+                    session.replaceDialog('/givePrice', {data: givenService, data_inquiry: inquiryService, stored_reprompt: session.dialogData.reprompt, reply: ''});
                 }
                 else if (intent == 'Intent.Service_Inquiry' || service) {
                     var givenService_new = utilsService.fillService(service);    
@@ -113,16 +229,39 @@ lib.dialog('/', [
                     session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.reprompt+1});
                 }
                 else {
-                    var reply = 'let m know know what u want first?'
-                    session.replaceDialog('/', {data: session.dialogData.givenService, reprompt: session.dialogData.reprompt+1, reply: reply});
+                    resDB.queryRes('confirmService:/', 0, 0, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/', {data: session.dialogData.givenService, reprompt: session.dialogData.reprompt+1, reply: reply});
+                        }
+                    });
                 }
             });  
-        // }
-        // catch (err) {
-        //     var reply = 'sry got to go, text u later';
-        //     blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-        //     session.endConversation(reply);
-		// }
+        }
+        catch (err) {
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
+		}
 
     }
 ]);
@@ -131,11 +270,21 @@ lib.dialog('/confirmIncall', [
     function (session, args, next) {
         // session.send('[Start Confirm Incall]');
         // session.send('%j', args);
-        // try {
+        try {
             if (args.reprompt >= 2) {
-                var reply = "u fooling around and i don't have all day! not talking to you bye!";
-                blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                session.endConversation(reply);
+                resDB.queryRes('confirmService:/', 0, 0, function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        console.log('error pulling data');
+                    }
+                    else {
+                        var reply = result.message;
+                        reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                        reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                        blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                        session.endConversation(reply);            
+                    }
+                });
             }
             else {
                 session.dialogData.givenService = args.data;
@@ -143,15 +292,28 @@ lib.dialog('/confirmIncall', [
                 session.dialogData.stored_reprompt = args.stored_reprompt;
                 builder.Prompts.text(session, args.reply);    
             }
-        // }
-        // catch (err) {
-        //     var reply = 'sry got to go, text u later';
-        //     blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-        //     session.endConversation(reply);
-		// }
+        }
+        catch (err) {
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
+		}
     },
     function (session, args, next) {
-        // try {
+        try {
             var msg = args.response;
             apiai.recognizer.recognize({message: {text: msg}}, function (error, response) {
                 // session.send('[Process confirm incall reply]');
@@ -178,30 +340,55 @@ lib.dialog('/confirmIncall', [
                 //     session.endConversation('stop wasting my time you jerk!');
                 // }
                 if (intent == 'Intent.Confirmation_Yes') {
-                    var reply = 'niiiiiiiiiiiice.'
-                    session.userData.profile.confirmation.service.inout = 'incall';	
-                    givenService.inout = 'incall';
-                    givenService = utilsService.updateService(givenService, givenService);
-                    givenService.flag_rejectOut = 0;
-                    session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
+                    resDB.queryRes('confirmService:/confirmIncall', 1, 0, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.userData.profile.confirmation.service.inout = 'incall';	
+                            givenService.inout = 'incall';
+                            givenService = utilsService.updateService(givenService, givenService);
+                            givenService.flag_rejectOut = 0;
+                            session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
+                        }
+                    });
                 }
                 else if (intent == 'Intent.Offer_Transportation') {
-                    var reply = 'ooook, fine i guess i could trust u and go to your place.'
-                    session.userData.profile.confirmation.service.inout = 'outcall';
-                    givenService.inout = 'outcall';
-                    givenService = utilsService.updateService(givenService, givenService);
-                    givenService.flag_rejectOut = 0;
-                    session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
-                }
-                // else if (intent == 'Intent.Price_Inquiry' && givenService_new && givenService_new.inout == 'outcall') {
-                //     session.userData.profile.confirmation.service.inout = 'outcall';
-                //     givenService.flag_rejectOut = 0;
-                //     givenService_new = {has_inout: 1, inout: 'outcall'};
-                //     session.replaceDialog('/givePrice', {data: givenService, data_inqury: givenService_new, stored_reprompt: session.dialogData.stored_reprompt});
-                // }          
+                    resDB.queryRes('confirmService:/confirmIncall', 1, 1, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            
+                            session.userData.profile.confirmation.service.inout = 'outcall';
+                            givenService.inout = 'outcall';
+                            givenService = utilsService.updateService(givenService, givenService);
+                            givenService.flag_rejectOut = 0;
+                            session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
+                        }
+                    });
+                }     
                 else if (service && givenService_new.inout == 'outcall') {
-                    var reply = "told u i'm too young to drive lol.. or u need to cum and pick me up, or buy me uber"
-                    session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.prompt+1, stored_reprompt: session.dialogData.stored_reprompt});
+                    resDB.queryRes('confirmService:/confirmIncall', 1, 2, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.prompt+1, stored_reprompt: session.dialogData.stored_reprompt});
+                        }
+                    });
                 }
                 else if (service && givenService_new.inout == 'incall') {
                     session.userData.profile.confirmation.service.inout = 'incall';	
@@ -209,24 +396,53 @@ lib.dialog('/confirmIncall', [
                     givenService = utilsService.updateService(givenService, givenService);
                     givenService.flag_rejectOut = 0;
                     // session.send('%j', givenService);
-                    var reply = 'good. ';
-                    session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
+                    resDB.queryRes('confirmService:/confirmIncall', 1, 3, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
+                        }
+                    });
                 }
                 else {
-                    // session.userData.profile.confirmation.service.inout = 'incall';	
-                    // givenService.inout = 'incall';
-                    // givenService = utilsService.updateService(givenService, givenService);
-                    // givenService.flag_rejectOut = 0;
-                    var reply = 'lol one thing a time!! this girl get confused easily. you fine with incall then?'
-                    session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.prompt+1, stored_reprompt: session.dialogData.stored_reprompt});
+                    resDB.queryRes('confirmService:/confirmIncall', 1, 4, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.prompt+1, stored_reprompt: session.dialogData.stored_reprompt});
+                        }
+                    });
                 }  
            });  
-        // }
-        // catch (err) {
-        //     var reply = 'sry got to go, text u later';
-        //     blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-        //     session.endConversation(reply);
-		// }
+        }
+        catch (err) {
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
+		}
     }  
 ]);
 
@@ -237,18 +453,41 @@ lib.dialog('/confirmRaw', [
             session.dialogData.prompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;
             if (args.reprompt >= 2) {
-                var reply = "you r bad ppl and u wasting me time fuck off.";
-                blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                session.endConversation(reply);
+                resDB.queryRes('confirmService:/confirmRaw', 0, 0, function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        console.log('error pulling data');
+                    }
+                    else {
+                        var reply = result.message;
+                        reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                        reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                        blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                        session.endConversation(reply);
+                    }
+                });
             }
             else {
                 builder.Prompts.text(session, args.reply);
             }
         }
         catch (err) {
-            var reply = 'sry got to go, text u later';
-            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            session.endConversation(reply);
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
 		}
     },
     function (session, args, next) {
@@ -268,33 +507,97 @@ lib.dialog('/confirmRaw', [
                 }
     
                 if (intent == 'Intent.Confirmation_Yes') {
-                    var reply = 'good thank you lol. im dd free nothing to worry lol...';
-                    session.dialogData.givenService.flag_addon = 0;
-                    session.replaceDialog('/', {data: session.dialogData.givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
+                    resDB.queryRes('confirmService:/confirmRaw', 0, 1, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.dialogData.givenService.flag_addon = 0;
+                        session.replaceDialog('/', {data: session.dialogData.givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
+                        }
+                    });
                 }
                 else if (intent == 'Intent.Pregnant') {
-                    var reply = 'okay i guess i could trust you...';
-                    session.dialogData.givenService.flag_addon = 0;
-                    session.replaceDialog('/', {data: session.dialogData.givenService, reply:reply, reprompt:session.dialogData.stored_reprompt}); 
+                    resDB.queryRes('confirmService:/confirmRaw', 0, 2, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.dialogData.givenService.flag_addon = 0;
+                            session.replaceDialog('/', {data: session.dialogData.givenService, reply:reply, reprompt:session.dialogData.stored_reprompt}); 
+                        }
+                    });
                 }
                 else if (intent == 'Intent.QuestionAge') {
-                    var reply = "well i am 14 why would i lie 2 u?"
-                    session.replaceDialog('/underAge', {data: session.dialogData.givenService, reply:reply, stored_reprompt:session.dialogData.stored_reprompt, reprompt:0});
+                    var age = 16;
+                    resDB.queryRes('confirmService:/confirmRaw', 0, 3, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/underAge', {data: session.dialogData.givenService, reply:reply, stored_reprompt:session.dialogData.stored_reprompt, reprompt:0});
+                        }
+                    });
                 }
                 else if (service && givenService_new.addon == 'raw') {
-                    var reply = "told ya i not wanna get pregnant. you need to bring me b pill or protection!";
-                    session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                 
+                    resDB.queryRes('confirmService:/confirmRaw', 0, 4, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                 
+                        }
+                    });
                 }
                 else {
-                    var reply = "so you aggree to bring b pill...? dont wanna be pregnant.";
-                    session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                          
+                    resDB.queryRes('confirmService:/confirmRaw', 0, 5, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                          
+                        }
+                    });
                 }
             })
         }
         catch (err) {
-            var reply = 'sry got to go, text u later';
-            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            session.endConversation(reply);
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
 		}
     }
 ]);
@@ -302,24 +605,47 @@ lib.dialog('/confirmRaw', [
 
 lib.dialog('/confirmBDSM', [
     function (session, args, next) {
-        // try {
+        try {
             session.dialogData.givenService = args.data;
             session.dialogData.prompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;
             if (args.reprompt >= 2) {
-                var reply = "sry time is $$ for me i dont have all day for time waster bye.";
-                blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                session.endConversation(reply);
+                resDB.queryRes('confirmService:/confirmBDSM', 0, 0, function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        console.log('error pulling data');
+                    }
+                    else {
+                        var reply = result.message;
+                        reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                        reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                        blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                    session.endConversation(reply);
+                    }
+                });
             }
             else {
                 builder.Prompts.text(session, args.reply);
             }          
-        // }
-        // catch (err) {
-        //     var reply = 'sry got to go, text u later';
-        //     blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-        //     session.endConversation(reply);
-		// }
+        }
+        catch (err) {
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
+		}
     },
     function (session, args, next) {
         try {
@@ -338,107 +664,195 @@ lib.dialog('/confirmBDSM', [
                 }
     
                 if (intent == 'Intent.Confirmation_No') {
-                    var reply = 'oaky im trust you lol.';
-                    session.dialogData.givenService.flag_addon = 0;
-                    session.replaceDialog('/', {data: session.dialogData.givenService, reply:reply, reprompt:session.dialogData.stored_reprompt});
+                    resDB.queryRes('confirmService:/confirmBDSM', 0, 1, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.dialogData.givenService.flag_addon = 0;
+                            session.replaceDialog('/', {data: session.dialogData.givenService, reply:reply, reprompt:session.dialogData.stored_reprompt});
+        
+                        }
+                    });
                 }
                 else if (intent == 'Intent.Ensure') {
-                    var reply = 'okay i guess i could trust you...dont be bad guy not cool...';
-                    session.dialogData.givenService.flag_addon = 0;
-                    session.replaceDialog('/', {data: session.dialogData.givenService, reply:reply, reprompt:session.dialogData.stored_reprompt}); 
+                    resDB.queryRes('confirmService:/confirmBDSM', 0, 2, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.dialogData.givenService.flag_addon = 0;
+                            session.replaceDialog('/', {data: session.dialogData.givenService, reply:reply, reprompt:session.dialogData.stored_reprompt}); 
+        
+                        }
+                    });                    
                 }
                 else if (intent == 'Intent.QuestionAge') {
-                    var reply = "well i am 14 why would i lie 2 u?"
-                    session.replaceDialog('/underAge', {data: session.dialogData.givenService, reply:reply, stored_reprompt:session.dialogData.stored_reprompt, reprompt:0});
+                    var age = 16;
+                    resDB.queryRes('confirmService:/confirmBDSM', 0, 3, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/underAge', {data: session.dialogData.givenService, reply:reply, stored_reprompt:session.dialogData.stored_reprompt, reprompt:0});
+                        }
+                    });
                 }
                 else if (service && givenService_new.addon == 'bdsm') {
-                    var reply = "if i wont get hurt...will i?";
-                    session.replaceDialog('/confirmBDSM', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                 
+                    resDB.queryRes('confirmService:/confirmBDSM', 0, 4, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/confirmBDSM', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                 
+                        }
+                    });
+                    
+                    
                 }
                 else {
-                    var reply = "so i wont get hurt right?";
-                    session.replaceDialog('/confirmBDSM', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                          
+                    resDB.queryRes('confirmService:/confirmBDSM', 0, 5, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/confirmBDSM', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                          
+                        }
+                    });
                 }
             })
         }
         catch (err) {
-            var reply = 'sry got to go, text u later';
-            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            session.endConversation(reply);
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
 		}
     }
 ]);
 
 lib.dialog('/givePrice', [
     function (session, args, next) {
-        // try {
+        try {
             // session.send('[Start give price]');
             var givenService = args.data;
-            var inquiryService = args.data_inquiry;
+            var inquiryService = args.data_inquiry; 
             
             session.dialogData.queryService = args.data_inquiry;
             session.dialogData.givenService = args.data;
             session.dialogData.prompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;
 
-            // session.send('stored reprompt: %d', session.dialogData.stored_reprompt);
-            var reply = '';
-            // session.send('incoming inquiry service: %j', inquiryService);
-            if (inquiryService) {
-                if (!session.userData.profile.confirmation.price.priceListGiven) {
-                    reply += 'donations are 100 for HH, 150 for H. ';
-                    session.userData.profile.confirmation.price.priceListGiven = 1;
-                    session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
-                    session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
-                }
-                if (inquiryService.has_duration && inquiryService.duration != '30min' && inquiryService.duration != '1 hour') {
-                    reply += utils.priceTable[inquiryService.duration] + ' for ' + inquiryService.duration + '.';
-                    session.userData.profile.confirmation.price.priceGiven[inquiryService.duration] = 1;
-                }
-                if (inquiryService.has_inout && inquiryService.inout == 'outcall') {
-                    reply += "you'll need to call uber or lift to pick me. ";
-                    session.userData.profile.confirmation.price.priceGiven.inout = 1;
-                    session.dialogData.givenService.flag_rejectOut = 0;
-                }
-                if (inquiryService.has_addon && inquiryService.addon != 'raw') {
-                    reply += 'any fetish thing is 50 extra..';
-                    session.userData.profile.confirmation.price.priceGiven.addon = 1;
-                }
-                if (inquiryService.has_addon && inquiryService.addon != 'raw') {
-                    reply += 'no extra $$ but you need to bring paln b pills.'
-                    session.userData.profile.confirmation.price.priceGiven.bare = 1;
-                }
-                else {
-                    if (!reply) {
-                        reply += 'You happy with the price then?';
-                    }
-                }
+            if (args.reprompt >= 2) {
+                reply = "u dont wannt to meet stop wasting my time! not replying you bye!"
+                blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                session.endConversation(reply);
             }
             else {
-                if (args.reply) {
-                    reply = args.reply;
-                }
-                else {
+            // session.send('stored reprompt: %d', session.dialogData.stored_reprompt);
+                var reply = '';
+                // session.send('incoming inquiry service: %j', inquiryService);
+                if (inquiryService) {
                     if (!session.userData.profile.confirmation.price.priceListGiven) {
                         reply += 'donations are 100 for HH, 150 for H. ';
                         session.userData.profile.confirmation.price.priceListGiven = 1;
                         session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
                         session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
                     }
-                    else {
-                        reply += '100 for HH, 150 for H, fetish things 50 extra. didnt i tell you already';
+                    if (inquiryService.has_duration && inquiryService.duration != '30min' && inquiryService.duration != '1 hour') {
+                        reply += utils.priceTable[inquiryService.duration] + ' for ' + inquiryService.duration + '.';
+                        session.userData.profile.confirmation.price.priceGiven[inquiryService.duration] = 1;
+                    }
+                    if (inquiryService.has_inout && inquiryService.inout == 'outcall') {
+                        reply += "you'll need to call uber or lift to pick me. ";
+                        session.userData.profile.confirmation.price.priceGiven.inout = 1;
+                        session.dialogData.givenService.flag_rejectOut = 0;
+                    }
+                    if (inquiryService.has_addon && inquiryService.addon != 'raw') {
+                        reply += 'any fetish thing is 50 extra..';
                         session.userData.profile.confirmation.price.priceGiven.addon = 1;
                     }
-        
+                    if (inquiryService.has_addon && inquiryService.addon != 'raw') {
+                        reply += 'no extra $$ but you need to bring paln b pills.'
+                        session.userData.profile.confirmation.price.priceGiven.bare = 1;
+                    }
+                    else {
+                        if (!reply) {
+                            reply += 'You happy with the price then?';
+                        }
+                    }
                 }
+                else {
+                    if (args.reply) {
+                        reply = args.reply;
+                    }
+                    else {
+                        if (!session.userData.profile.confirmation.price.priceListGiven) {
+                            reply += 'donations are 100 for HH, 150 for H. ';
+                            session.userData.profile.confirmation.price.priceListGiven = 1;
+                            session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
+                            session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
+                        }
+                        else {
+                            reply += '100 for HH, 150 for H, fetish things 50 extra. didnt i tell you already';
+                            session.userData.profile.confirmation.price.priceGiven.addon = 1;
+                        }
+            
+                    }
+                }
+                builder.Prompts.text(session, reply);
             }
-            builder.Prompts.text(session, reply);
-        // }
-        // catch (err) {
-        //     var reply = 'sry got to go, text u later';
-        //     blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-        //     session.endConversation(reply);
-		// }
+        }
+        catch (err) {
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
+		}
     },
     function (session, args, next) {
         try {
@@ -464,8 +878,18 @@ lib.dialog('/givePrice', [
                 // session.send('givenService_old: %j', session.dialogData.givenService);
                 
                 if (intent == 'Intent.Confirmation_Yes') {
-                    var reply = 'k..';
-                    session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
+                    resDB.queryRes('confirmService:/givePrice', 1, 0, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            console.log('error pulling data');
+                        }
+                        else {
+                            var reply = result.message;
+                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                            session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
+                        }
+                    });
                 }
                 else if (intent == 'Intent.Price_Inquiry') {
                     // session.send('Switch to Price with data: %j', givenService);
@@ -474,8 +898,18 @@ lib.dialog('/givePrice', [
                 else if (givenService_new) {
                     // session.send('[service mentioned]');
                     if (_.isEqual(givenService, session.dialogData.givenService)) {
-                        var reply = 'good..';
-                        session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
+                        resDB.queryRes('confirmService:/givePrice', 1, 1, function (err, result) {
+                            if (err) {
+                                console.log(err);
+                                console.log('error pulling data');
+                            }
+                            else {
+                                var reply = result.message;
+                                reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                                reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                                session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
+                            }
+                        });
                     }
                     else {
                         var priceGiven = session.userData.profile.confirmation.price.priceGiven;
@@ -500,9 +934,22 @@ lib.dialog('/givePrice', [
             });              
         }
         catch (err) {
-            var reply = 'sry got to go, text u later';
-            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            session.endConversation(reply);
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
 		}
     }
 ]);
@@ -517,9 +964,22 @@ lib.dialog('/underAge', [
             builder.Prompts.text(session, args.reply);
         }
         catch (err) {
-            var reply = 'sry got to go, text u later';
-            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            session.endConversation(reply);
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
 		}
     },
     function (session, args, next) {
@@ -563,9 +1023,22 @@ lib.dialog('/underAge', [
             });  
         }
         catch (err) {
-            var reply = 'sry got to go, text u later';
-            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            session.endConversation(reply);
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
 		}
     } 
 ]);
@@ -573,91 +1046,3 @@ module.exports.createLibrary = function(){
     return lib.clone();
 };
 
-
-
-// lib.dialog('/continueService', [
-//     function (session, args, next) {
-//         try {
-//             if (args.reprompt > 1) {
-//                 var reply = "Drop off my number you time-waster :/.";
-//                 blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-//                 session.endConversation(reply);
-//             }        
-//             else {
-//                 session.dialogData.givenService = args.data;
-//                 session.dialogData.reprompt = args.reprompt;
-//                 session.dialogData.reprompt_stored = args.reprompt_stored;
-//                 // session.send('reprompt: %d', args.reprompt);
-//                 if (args && args.reprompt) {
-//                     var reply_inout = 'Could you let me know in or out first?';
-//                     var reply_duration = 'First how long are you looking for?'
-//                     var reply = session.dialogData.givenService.has_inout ? reply_duration : reply_inout;
-//                     builder.Prompts.text(session, reply);
-//                 }
-//                 else {
-//                     var reply_inout = 'so you want incall or outcall?';
-//                     var reply_duration = 'so how long are you looking for?'
-//                     var reply = session.dialogData.givenService.has_inout ? reply_duration : reply_inout;
-//                     builder.Prompts.text(session, reply);
-//                 }      
-//             }
-//         }
-//         catch (err) {
-//             var reply = 'sry got to go, text u later';
-//             blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-//             session.endConversation(reply);
-// 		}
-//     },
-//     function (session, args, next) {
-//         try {
-//             var msg = args.response;
-//             apiai.recognizer.recognize({message:{text:msg}}, function(error, response){
-//                 var intent = response.intent;
-//                 var entities = response.entities;
-//                 var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
-//                 var price = entities['price'] ? entities['price'] : null;
-//                 var givenService = session.dialogData.givenSerivce;
-                
-//                 // session.send('givenService: %j', givenService);
-//                 // session.send('service: %j', service);
-//                 if (intent == 'Intent.Price_Inquiry' || price) {
-//                     // session.send('Switch to Price with data: %j', givenService);
-//                     session.replaceDialog('/givePrice', {data: givenService, reprompt_stored: session.dialogData.reprompt});
-//                 }
-//                 else if (intent == 'Intent.Confirmation_Yes' || service) {
-//                     var reply = 'sure i can do that.';
-//                     // session.send(reply);
-                    
-//                     if (service) {
-//                         var givenService_new = utilsService.fillService(service);
-//                         givenService = utilsService.updateService(givenService, givenService_new);
-//                     }
-                    
-//                     // session.send('Updated Service: %j', givenService);
-//                     session.replaceDialog('/', {data: givenService, reprompt: session.dialogData.reprompt_stored + 1});
-//                 }
-//                 else {
-//                     session.replaceDialog('/continueService', {
-//                             data: session.dialogData.givenService, 
-//                             reprompt: session.dialogData.reprompt + 1, 
-//                             reprompt_stored: session.dialogData.reprompt_stored
-//                         }
-//                     );
-//                 }
-//             });        
-//         }
-//         catch (err) {
-//             var reply = 'sry got to go, text u later';
-//             blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-//             session.endConversation(reply);
-// 		}
-//     }
-// ]);
-// const sample = {
-//     has_inout: has_inout,
-//     has_duration: has_duration,
-//     has_addon: has_addon,
-//     inout: inout,
-//     duration: duration,
-//     addon: addon
-// };

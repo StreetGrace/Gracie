@@ -6,6 +6,7 @@ var myMiddleware = require('./utils_bot/MiddlewareLogging.js');
 var botbuilder_mongo=require('botbuilder-mongodb');
 var buffer = require('./utils_bot/MessageBuffer');
 var blacklist = require('./utils_bot/Blacklist');
+var resDB = require('./utils_bot/QueryDB');
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -22,8 +23,9 @@ var connector = new builder.ChatConnector({
 
 // Listen for messages from users 
 server.post('/api/messages', [
-    filteruser(), 
-    concatMsg(), connector.listen()]);
+    // filteruser(), 
+    // concatMsg(), 
+    connector.listen()]);
 
 const mongoOptions = {
     ip: '18.234.8.122',
@@ -60,9 +62,21 @@ bot.dialog('/', [
 			session.beginDialog('main:/', {complete_open: 0});
 		}
 		catch (err) {
-            var reply = 'sry got to go, text u later';
-            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            session.endConversation(reply);
+            resDB.queryRes('global', 0, 0, function (err, result) {
+                if (err) {
+                  console.log(err);
+                  console.log('error pulling data');
+                }
+                else {
+                  var reply = result.message;
+                  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+
+                  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                  session.endConversation(reply);
+                }
+              }
+            );
 		}
 	}
 ]);

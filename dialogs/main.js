@@ -5,6 +5,7 @@ var utilsTime = require('./../utils_dialog/utils_Time');
 var utilsService = require('./../utils_dialog/utils_Service');
 var lib_router = require('./../utils_bot/IntentRouter');
 var blacklist = require('./../utils_bot/Blacklist');
+var resDB = require('./../utils_bot/QueryDB');
 
 var lib = new builder.Library('main');
 
@@ -24,17 +25,42 @@ lib.dialog('/', [
 				var priceGiven = session.userData.profile.confirmation.price.priceGiven;
 				var duration = session.userData.profile.confirmation.service.duration;
 				if (!priceGiven[duration]) {
-					reply += `donation is ${utils.priceTable[duration]}. `;
+					reply += ` donation is ${utils.priceTable[duration]}. `;
 				}
-				reply += 'Soooo your coming?';
-				builder.Prompts.text(session, reply);
+
+				resDB.queryRes('main:/', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply_new = result.message;
+					  reply_new = decodeURIComponent(reply_new).replace(/\+/g, " ");
+					  reply += eval('`'+ reply_new.replace(/`/g,'\\`') + '`');
+	
+					  builder.Prompts.text(session, reply);
+					}
+				  }
+				);			
 			}
 		} 
 		catch (err) {
 			console.log('Error running main dialog', err);
-            var reply = 'sry got to go, text u later';
-            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            session.endConversation(reply);
+			resDB.queryRes('global', 0, 0, function (err, result) {
+                if (err) {
+                  console.log(err);
+                  console.log('error pulling data');
+                }
+                else {
+                  var reply = result.message;
+                  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+
+                  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                  session.endConversation(reply);
+                }
+              }
+            );
 		}
 	},
 	function (session, args, next) {
@@ -48,46 +74,92 @@ lib.dialog('/', [
 		
 				if (intent == 'Intent.Confirmation_Yes') {
 					setTimeout(function(){
-						var reply = 'Errr sry something just happened cant do it today....text u later';
-						blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-						session.endConversation(reply);	
+						resDB.queryRes('global', 0, 0, function (err, result) {
+							if (err) {
+							  console.log(err);
+							  console.log('error pulling data');
+							}
+							else {
+							  var reply = result.message;
+							  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+							  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			
+							  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+							  session.endConversation(reply);
+							}
+						  }
+						);
 					}, 5000)
 				}
 				else if (intent == 'Intent.Location_Inquiry') {
 					setTimeout(function(){
-						var reply = 'Errr sry something just happened cant do it today....text u later';
-						blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-						session.endConversation(reply);
+						resDB.queryRes('global', 0, 0, function (err, result) {
+							if (err) {
+							  console.log(err);
+							  console.log('error pulling data');
+							}
+							else {
+							  var reply = result.message;
+							  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+							  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			
+							  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+							  session.endConversation(reply);
+							}
+						  }
+						);
 					}, 5000)
 				}
 				else if (intent == 'Intent.confirmation_No') {
 					setTimeout(function(){
-						var reply = 'Well whatever';
+						var reply = 'Well whatever bye';
 						blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
 						session.endConversation(reply);
-					}, 50/00)
+					}, 5000)
 					
 				}
 				else {
 					setTimeout(function(){
-						var reply = 'Errr sry something just happened cant do it today....text u later';
-						blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-						session.endConversation(reply);				
+						resDB.queryRes('global', 0, 0, function (err, result) {
+							if (err) {
+							  console.log(err);
+							  console.log('error pulling data');
+							}
+							else {
+							  var reply = result.message;
+							  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+							  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			
+							  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+							  session.endConversation(reply);
+							}
+						  }
+						);			
 					}, 5000)
 
 				}
 			});  		
 		}
 		catch (err) {
-            var reply = 'sry got to go, text u later';
-            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            session.endConversation(reply);
+			resDB.queryRes('global', 0, 0, function (err, result) {
+                if (err) {
+                  console.log(err);
+                  console.log('error pulling data');
+                }
+                else {
+                  var reply = result.message;
+                  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+
+                  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                  session.endConversation(reply);
+                }
+              }
+            );
 		}
 	}
-])
-setTimeout(function(){
+]);
 
-}, 2500)
 // bot.library(require('./dialogs/main').createLibrary());
 // bot.library(require('./dialogs/opener').createLibrary());
 // bot.library(require('./dialogs/confirmService').createLibrary());

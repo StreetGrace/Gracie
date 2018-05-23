@@ -5,6 +5,7 @@ var utilsTime = require('./../utils_dialog/utils_Time');
 var utilsService = require('./../utils_dialog/utils_Service');
 var lib_router = require('./../utils_bot/IntentRouter');
 var blacklist = require('./../utils_bot/Blacklist');
+var resDB = require('./../utils_bot/QueryDB');
 
 var lib = new builder.Library('opener');
 lib.recognizer(apiai.recognizer);
@@ -18,9 +19,20 @@ lib.dialog('/', function(session, args, next){
 		lib_router.routeMessage(lib, session);	
 	}
 	catch (err) {
-		var reply = 'sry got to go, text u later';
-		blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-		session.endConversation(reply);
+		resDB.queryRes('global', 0, 0, function (err, result) {
+			if (err) {
+			  console.log(err);
+			  console.log('error pulling data');
+			}
+			else {
+			  var reply = result.message;
+			  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+
+			  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			  session.endConversation(reply);
+			}
+		});
 	}
 })
 .beginDialogAction('openGreetingAction', '/intent.greeting', {matches: 'Intent.Greeting'})
@@ -53,27 +65,50 @@ lib.dialog('/intent.greeting', [
 			var appt = session.userData.profile.appointment; 
 			var demo = session.userData.profile.demographic;
 	
-			var name = demo.name || '';
+			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
-			var reply = `hey ${name}.....`;
-	
-			reply += 'so are you looking 4 a good time?'
-			session.send(reply);
-	
-			var neighborhood = session.userData.profile.default.neighborhood;
-			var data = null;
-			data = utilsService.fillService(data);
-			reply = `incall only in ${neighborhood}, not old enough to drive..`
 
-			setTimeout(function(){
-				session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-			}, 2500);
+			var reply = '';
+
+			resDB.queryRes('opener:/intent.greeting', 0, 0, function (err, result) {
+				if (err) {
+					console.log(err);
+					console.log('error pulling data');
+				}
+				else {
+					var reply_new = result.message;
+					reply_new = decodeURIComponent(reply_new).replace(/\+/g, " ");
+					reply += eval('`'+ reply_new.replace(/`/g,'\\`') + '`');
+
+				  session.send(reply);
+				  
+				  var neighborhood = session.userData.profile.default.neighborhood;
+				  var data = null;
+				  data = utilsService.fillService(data);
+				  reply = `incall only in ${neighborhood}, not old enough to drive..`
+
+					setTimeout(function(){
+						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+					}, 2500);		
+        }
+      });
 		}
 		catch (err) {
 			setTimeout(function(){
-				var reply = 'sry got to go, text u later';
-				blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-				session.endConversation(reply);	
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
 			}, 2500);
 		}
 	}
@@ -88,7 +123,7 @@ lib.dialog('/intent.greeting', [
 */
 lib.dialog('/intent.availability', [
 	function(session, args, next){
-		// try {
+		try {
 			// session.send('[Start Availability Dialog]');
 			console.log(session.message.text);
 			var entities = args.intent.entities;
@@ -97,77 +132,98 @@ lib.dialog('/intent.availability', [
 			var appt = session.userData.profile.appointment;
 			var demo = session.userData.profile.demographic;
 	
-			var name = demo.name || '';
+			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
-			var reply = `hey ${name}..i'm ready for fun lol...`;		
-	
-			var givenTime = utilsTime.fillTime(appt['exact-time'], appt['relative-time']);
-			if (givenTime.complete || givenTime.partial) {
-				if (givenTime.time == 'now') {
-					reply += "and i have time now. first cum first serve. "
+			// var reply = `hey ${name}..i'm ready for fun lol...`;		
+
+			resDB.queryRes('opener:/availability', 0, 0, function (err, result) {
+				if (err) {
+					console.log(err);
+					console.log('error pulling data');
 				}
 				else {
-					reply += " and i'm free at that time ";
-				}
-				
-			}
+					var reply = result.message;
+					reply = decodeURIComponent(reply).replace(/\+/g, " ").replace('there', 'here');
+					reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+				  
+					var givenTime = utilsTime.fillTime(appt['exact-time'], appt['relative-time']);
+					if (givenTime.complete || givenTime.partial) {
+						if (givenTime.time == 'now') {
+							reply += " and i have time now. first cum first serve. "
+						}
+						else {
+							reply += " and i'm free at that time ";
+						}						
+					}
+					session.send(reply);			
+					reply = '';
 	
-			session.send(reply);
-			reply = '';
-	
-			if (appt.location) {
-				// session.send('%j', appt.location);
-				var apptLocation = utils.getEntity('location', appt.location);
-				var neighborhood = session.userData.profile.default.neighborhood;
-				if (apptLocation['atlanta-neighborhood']) {
-					if (apptLocation['atlanta-neighborhood'] == neighborhood) {
-						reply += ` incall only cuz im not old enough to drive lol.`
+					if (appt.location) {
+						// session.send('%j', appt.location);
+						var apptLocation = utils.getEntity('location', appt.location);
+						var neighborhood = session.userData.profile.default.neighborhood;
+						if (apptLocation['atlanta-neighborhood']) {
+							if (apptLocation['atlanta-neighborhood'] == neighborhood) {
+								reply += ` incall only cuz im not old enough to drive lol.`
+							}
+							else {
+								reply += ` buuut incall only in ${neighborhood}, not old enough to drive.`;
+							}				
+						}	
+					}
+			
+					if (!givenTime.complete && !givenTime.partial && session.message.text.toLowerCase().indexOf('when') > -1) {
+						reply += 'i am available today lol....'
+					}
+					
+					if (appt.service) {
+						var apptService = utils.getEntity('service', appt.service);
+						var data = utilsService.fillService(apptService);
+						var neighborhood = session.userData.profile.default.neighborhood;
+						
+						if (!appt.location.length && data.inout != 'incall') {
+							var neighborhood = session.userData.profile.default.neighborhood;
+							reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+						}
+						
+						setTimeout(function() {
+							session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});					
+						}, 2500);
+					}	
+					else {
+						var data = null;
+						data = utilsService.fillService(data);				
+						if (!appt.location.length) {
+							var neighborhood = session.userData.profile.default.neighborhood;
+							reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+						}
+						setTimeout(function() {
+							session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+						}, 2500);				
+					}
+        }
+      });
+		}
+		catch (err) {
+			setTimeout(function() {
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
 					}
 					else {
-						reply += ` buuut incall only in ${neighborhood}, not old enough to drive.`;
-					}				
-				}	
-			}
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-			if (!givenTime.complete && !givenTime.partial && session.message.text.toLowerCase().indexOf('when') > -1) {
-				reply += 'i am available today lol....'
-			}
-			
-			if (appt.service) {
-				var apptService = utils.getEntity('service', appt.service);
-				var data = utilsService.fillService(apptService);
-				var neighborhood = session.userData.profile.default.neighborhood;
-				
-				if (!appt.location.length && data.inout != 'incall') {
-					var neighborhood = session.userData.profile.default.neighborhood;
-					reply += `i only do incall in ${neighborhood}. not old enough to drive.`
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
 				}
-				
-				setTimeout(function() {
-					session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});					
-				}, 2500);
-			}	
-			else {
-				var data = null;
-				data = utilsService.fillService(data);				
-				if (!appt.location.length) {
-					var neighborhood = session.userData.profile.default.neighborhood;
-					reply += `i only do incall in ${neighborhood}. not old enough to drive.`
-				}
-				setTimeout(function() {
-					session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-				}, 2500);				
-			}
-		// }
-		// catch (err) {
-		// 	setTimeout(function() {
-		// 		var reply = 'sry got to go, text u later';
-		// 		blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-		// 		session.endConversation(reply);
-		// 	}, 2500);			
-		// }
+			);
+		}, 2500);			
 	}
-]);
+}]);
 
 
 /*
@@ -186,6 +242,7 @@ lib.dialog('/intent.service_inquiry', [
 			
 			var name = demo.name || '';
 			var modelName = session.userData.profile.default.model;
+
 			var reply = `hey ${name}.....`;
 
 			session.send(reply);
@@ -205,9 +262,21 @@ lib.dialog('/intent.service_inquiry', [
 		}	
 		catch (err) {
 			setTimeout(function() {
-				var reply = 'sry got to go, text u later';
-				blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-				session.endConversation(reply);
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				  }
+				);
 			}, 2500);			
 		}
 	}
@@ -219,7 +288,7 @@ lib.dialog('/intent.service_inquiry', [
 */
 lib.dialog('/intent.price_inquiry', [
 	function(session, args, next){
-		// try {
+		try {
 			// session.send('[Start Price Inquiry Dialog]');
 			var entities = args.intent.entities;
 			utils.fillProfile(session, 'Price', entities);
@@ -228,55 +297,75 @@ lib.dialog('/intent.price_inquiry', [
 			var appt = session.userData.profile.appointment;
 			var demo = session.userData.profile.demographic;	
 			
-			var name = demo.name || '';
+			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
-			var reply = `hey ${name}.....`;
 
-			session.send(reply);
-			reply = '';
+			resDB.queryRes('opener:/price_inquiry', 0, 0, function (err, result) {
+				if (err) {
+					console.log(err);
+					console.log('error pulling data');
+				}
+				else {
+					var reply = result.message;
+					reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 
-			var apptService = utils.getEntity('service', appt.service);
-			var data = utilsService.fillService(apptService);
+					session.send(reply);
+					reply = '';
+		
+					var apptService = utils.getEntity('service', appt.service);
+					var data = utilsService.fillService(apptService);
+		
+					if (data) {
+						if (!session.userData.profile.confirmation.price.priceListGiven) {
+							reply += ' donations are 100 for HH, 150 for H. ';
+							session.userData.profile.confirmation.price.priceListGiven = 1;
+							session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
+							session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
+						}
+						if (data.has_duration && data.duration != '30min' && data.duration != '1 hour') {
+							reply += utils.priceTable[data.duration] + ' for ' + data.duration + '.';
+							session.userData.profile.confirmation.price.priceGiven[data.duration] = 1;
+						}
+						if (data.has_inout && data.inout == 'outcall') {
+							reply += " too young to drive soo you'll need to call uber or lyft to pick me. ";
+							session.userData.profile.confirmation.price.priceGiven.inout = 1;
+							session.dialogData.givenService.flag_rejectOut = 0;
+						}
+						if (data.has_addon) {
+							reply += ' any fetish thing is 50 extra..';
+							session.userData.profile.confirmation.price.priceGiven.addon = 1;
+						}
+					}		
+					if (!(data.has_inout && data.inout == 'incall')) {
+						var neighborhood = session.userData.profile.default.neighborhood;
+						reply += ` i only do incall in ${neighborhood}. not old enough to drive.`
+					}
 
-			if (data) {
-				if (!session.userData.profile.confirmation.price.priceListGiven) {
-					reply += 'donations are 100 for HH, 150 for H. ';
-					session.userData.profile.confirmation.price.priceListGiven = 1;
-					session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
-					session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
+					setTimeout(function() {
+						session.beginDialog('confirmService:/', {data: data, reprompt: 0, reply: reply});	
+					}, 2500);		
 				}
-				if (data.has_duration && data.duration != '30min' && data.duration != '1 hour') {
-					reply += utils.priceTable[data.duration] + ' for ' + data.duration + '.';
-					session.userData.profile.confirmation.price.priceGiven[data.duration] = 1;
-				}
-				if (data.has_inout && data.inout == 'outcall') {
-					reply += "you'll need to call uber or lyft to pick me. ";
-					session.userData.profile.confirmation.price.priceGiven.inout = 1;
-					session.dialogData.givenService.flag_rejectOut = 0;
-				}
-				if (data.has_addon) {
-					reply += 'any fetish thing is 50 extra..';
-					session.userData.profile.confirmation.price.priceGiven.addon = 1;
-				}
-			}		
-			if (!(data.has_inout && data.inout == 'incall')) {
-				var neighborhood = session.userData.profile.default.neighborhood;
-				reply += `i only do incall in ${neighborhood}. not old enough to drive.`
-			}
-			// else {
-			// 	data.flag_rejectOut = 0;
-			// }
+			});
+		}
+		catch (err) {
 			setTimeout(function() {
-				session.beginDialog('confirmService:/', {data: data, reprompt: 0, reply: reply});	
-			}, 2500);		
-		// }
-		// catch (err) {
-		// 	setTimeout(function() {
-		// 		var reply = 'sry got to go, text u later';
-		// 		blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-		// 		session.endConversation(reply);	
-		// 	}, 2500);
-		// }
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
+			}, 2500);
+		}
 	}
 ]);
 
@@ -294,29 +383,53 @@ lib.dialog('/intent.location_inquiry', [
 			var appt = session.userData.profile.appointment;
 			var demo = session.userData.profile.demographic;	
 			
-			var name = demo.name || '';
+			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
-			var reply = `hey ${name}.....`;
 
-			session.send(reply);
-			reply = '';
+			resDB.queryRes('opener:/location_inquiry', 0, 0, function (err, result) {
+				if (err) {
+					console.log(err);
+					console.log('error pulling data');
+				}
+				else {
+					var reply = result.message;
+					reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 
-			var apptLocation = utils.getEntity('location', appt.location);
-			var apptService = utils.getEntity('service', appt.service);
-			var data = utilsService.fillService(apptService);
-			var neighborhood = session.userData.profile.default.neighborhood;
+					session.send(reply);
+								
+					reply = '';
 
-			reply += `im in ${neighborhood}, incall only cuz im not old enough to drive lol.`;
+					var apptLocation = utils.getEntity('location', appt.location);
+					var apptService = utils.getEntity('service', appt.service);
+					var data = utilsService.fillService(apptService);
+					var neighborhood = session.userData.profile.default.neighborhood;
 
-			setTimeout(function() {
-				session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-			}, 2500);
+					reply += ` im in ${neighborhood}, incall only cuz im not old enough to drive lol.`;
+
+					setTimeout(function() {
+						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+					}, 2500);
+				}
+			});
 			
 		}
 		catch (err) {
-            var reply = 'sry got to go, text u later';
-            blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            session.endConversation(reply);
+			resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+						console.log(err);
+						console.log('error pulling data');
+					}
+					else {
+						var reply = result.message;
+						reply = decodeURIComponent(reply).replace(/\+/g, " ");
+						reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+
+						blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+						session.endConversation(reply);
+					}
+				}
+			);
 		}
 	}
 ]);
@@ -330,20 +443,41 @@ lib.dialog('/intent.unhandled', [
 		try {
 			var neighborhood = session.userData.profile.default.neighborhood;
 			var data = utilsService.fillService(null);
-			var reply = 'Hey....not sure what u mean. wahtever r u looking 4 a good time together?';
-			session.send(reply);
-			reply = `incall only in ${neighborhood}, not old enough to drive lol` ;
-			setTimeout(function() {
-				session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-			}, 2500);						
+
+			resDB.queryRes('opener:/unhandled', 0, 0, function (err, result) {
+				if (err) {
+					console.log(err);
+					console.log('error pulling data');
+				}
+				else {
+					var reply = result.message;
+					reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+					session.send(reply);
+					reply = `incall only in ${neighborhood}, not old enough to drive lol` ;
+					setTimeout(function() {
+						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+					}, 2500);		
+				}
+			});				
 		}
 		catch (err) {
 			setTimeout(function() {
-				var reply = 'sry got to go, text u later';
-				blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-				session.endConversation(reply);
+				resDB.queryRes('global', 0, 0, function (err, result) {
+					if (err) {
+					  console.log(err);
+					  console.log('error pulling data');
+					}
+					else {
+					  var reply = result.message;
+					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					  session.endConversation(reply);
+					}
+				});
 			}, 2500);
-
 		}
 	}
 ]);
