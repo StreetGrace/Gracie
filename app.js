@@ -1,5 +1,6 @@
 var restify = require('restify');
 var builder = require('botbuilder');
+var winston = require('winston');
 var apiai = require('./utils_bot/ApiaiRecognizer');
 var utils = require('./utils_dialog/utils');
 var myMiddleware = require('./utils_bot/MiddlewareLogging.js');
@@ -7,6 +8,7 @@ var botbuilder_mongo=require('botbuilder-mongodb');
 var buffer = require('./utils_bot/MessageBuffer');
 var blacklist = require('./utils_bot/Blacklist');
 var resDB = require('./utils_bot/QueryDB');
+
 
 // Setup Restify Server
 var server = restify.createServer();
