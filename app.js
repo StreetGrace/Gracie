@@ -1,6 +1,9 @@
 var restify = require('restify');
 var builder = require('botbuilder');
-var winston = require('winston');
+
+// var winston = require('winston');
+// require('winston-mongodb').MongoDB;
+
 var apiai = require('./utils_bot/ApiaiRecognizer');
 var utils = require('./utils_dialog/utils');
 var myMiddleware = require('./utils_bot/MiddlewareLogging.js');
@@ -8,7 +11,9 @@ var botbuilder_mongo=require('botbuilder-mongodb');
 var buffer = require('./utils_bot/MessageBuffer');
 var blacklist = require('./utils_bot/Blacklist');
 var resDB = require('./utils_bot/QueryDB');
+var botLog = require('./utils_bot/BotLogger');
 
+var log_label = 0; 
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -39,10 +44,10 @@ const mongoOptions = {
     queryString: 'gracie'
 }
 
+// Set State Data Storage to MongoDB
 mongoStorage=botbuilder_mongo.GetMongoDBLayer(mongoOptions)
 
 // var memoryStorage = new builder.MemoryBotStorage();
-
 var bot = new builder.UniversalBot(connector, {});
 // bot.set('storage', memoryStorage);
 bot.set('storage', mongoStorage);
@@ -209,6 +214,10 @@ function filteruser () {
             req.on('end', function () {
                 try {
                     req.body = JSON.parse(requestData);
+                    if (!log_label) {
+                        botLog.initial_logger(req.body.from.id);
+                        log_label = 1;
+                    }
                     blacklist.find(req.body.from.id, function (result) {
                         if (result) {
                             res.status(202);
