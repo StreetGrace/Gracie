@@ -11,7 +11,7 @@ var botbuilder_mongo=require('botbuilder-mongodb');
 var buffer = require('./utils_bot/MessageBuffer');
 var blacklist = require('./utils_bot/Blacklist');
 var resDB = require('./utils_bot/QueryDB');
-var botLog = require('./utils_bot/BotLogger');
+// var botLog = require('./utils_bot/BotLogger');
 
 var log_label = 0; 
 
@@ -66,7 +66,7 @@ bot.dialog('/', [
 		// session.send('[Start Root Dialog]');
 		session.userData.profile = session.userData.profile || initialProfile;
 		try {
-            session.send(log_label);
+            // session.send(log_label);
 			session.beginDialog('main:/', {complete_open: 0});
 		}
 		catch (err) {
@@ -215,10 +215,10 @@ function filteruser () {
             req.on('end', function () {
                 try {
                     req.body = JSON.parse(requestData);
-                    if (!log_label) {
-                        botLog.initial_logger(req.body.from.id);
-                        log_label = 1;
-                    }
+                    // if (!log_label) {
+                    //     botLog.initial_logger(req.body.from.id);
+                    //     log_label = 1;
+                    // }
                     blacklist.find(req.body.from.id, function (result) {
                         if (result) {
                             res.status(202);
