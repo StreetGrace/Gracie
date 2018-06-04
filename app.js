@@ -66,6 +66,7 @@ bot.dialog('/', [
 		// session.send('[Start Root Dialog]');
 		session.userData.profile = session.userData.profile || initialProfile;
 		try {
+            session.send(log_label);
 			session.beginDialog('main:/', {complete_open: 0});
 		}
 		catch (err) {
