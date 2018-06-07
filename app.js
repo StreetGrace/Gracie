@@ -1,9 +1,6 @@
 var restify = require('restify');
 var builder = require('botbuilder');
 
-// var winston = require('winston');
-// require('winston-mongodb').MongoDB;
-
 var apiai = require('./utils_bot/ApiaiRecognizer');
 var utils = require('./utils_dialog/utils');
 var myMiddleware = require('./utils_bot/MiddlewareLogging.js');
@@ -13,7 +10,9 @@ var blacklist = require('./utils_bot/Blacklist');
 var resDB = require('./utils_bot/QueryDB');
 var botLog = require('./utils_bot/BotLogger');
 
-var log_label = 0; 
+//Setup Logger
+var botLogger = botLog.botLog;
+botLogger.info('Gracie Online');
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -31,7 +30,7 @@ var connector = new builder.ChatConnector({
 // Listen for messages from users 
 server.post('/api/messages', [
     filteruser(), 
-    concatMsg(), 
+    // concatMsg(), 
     connector.listen()]);
 
 const mongoOptions = {
@@ -63,7 +62,13 @@ bot.use({
 
 bot.dialog('/', [
 	function (session, args, next){
-		// session.send('[Start Root Dialog]');
+        // session.send('[Start Root Dialog]');
+        // botLogger.info('Start Root Dialog');
+        // botLogger.info('session info', session);
+        var keys = Object.keys(session);
+        console.log('%j', keys);
+        // console.log('%j', session);
+        // console.log('%j', session.message);
 		session.userData.profile = session.userData.profile || initialProfile;
 		try {
             // session.send(log_label);

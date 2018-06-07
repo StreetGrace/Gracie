@@ -116,3 +116,10 @@ var IntentList_nonOpen = [
 ];
 
 exports.IntentList_nonOpen = IntentList_nonOpen;
+
+// function getSessionInfo(session) {
+// 	var meta = session.message;
+// 	return {
+// 		meta.
+// 	}
+// }
