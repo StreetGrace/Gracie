@@ -11,7 +11,7 @@ var botbuilder_mongo=require('botbuilder-mongodb');
 var buffer = require('./utils_bot/MessageBuffer');
 var blacklist = require('./utils_bot/Blacklist');
 var resDB = require('./utils_bot/QueryDB');
-// var botLog = require('./utils_bot/BotLogger');
+var botLog = require('./utils_bot/BotLogger');
 
 var log_label = 0; 
 
