@@ -10,6 +10,7 @@ var lib = new builder.Library('confirmService');
 
 lib.dialog('/', [
     function (session, args, next) {
+        session.send('%j', session.sessionState);
         try {
             // session.send('[Start confirmSerivce Dialog]');
             session.dialogData.givenService = args.data;

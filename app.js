@@ -62,19 +62,14 @@ bot.use({
 
 bot.dialog('/', [
 	function (session, args, next){
-        // session.send('[Start Root Dialog]');
-        // botLogger.info('Start Root Dialog');
-        // botLogger.info('session info', session);
-        var keys = Object.keys(session);
-        console.log('%j', keys);
-        // console.log('%j', session);
-        // console.log('%j', session.message);
+        botLogger.info('Start Dialog /', utils.getSessionInfo(session));
 		session.userData.profile = session.userData.profile || initialProfile;
 		try {
             // session.send(log_label);
 			session.beginDialog('main:/', {complete_open: 0});
 		}
 		catch (err) {
+            botLogger.error()
             resDB.queryRes('global', 0, 0, function (err, result) {
                 if (err) {
                   console.log(err);

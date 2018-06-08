@@ -117,9 +117,13 @@ var IntentList_nonOpen = [
 
 exports.IntentList_nonOpen = IntentList_nonOpen;
 
-// function getSessionInfo(session) {
-// 	var meta = session.message;
-// 	return {
-// 		meta.
-// 	}
-// }
+function getSessionInfo(session) {
+	return {
+		conversation_id: session.message.address.conversation.id,
+		user_id: session.message.address.user.id,
+		user_name: session.message.address.user.name,
+		stack: session.sessionState.callstack
+	}
+}
+
+exports.getSessionInfo = getSessionInfo;
