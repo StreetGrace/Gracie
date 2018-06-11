@@ -122,8 +122,41 @@ function getSessionInfo(session) {
 		conversation_id: session.message.address.conversation.id,
 		user_id: session.message.address.user.id,
 		user_name: session.message.address.user.name,
-		stack: session.sessionState.callstack
+		stack: getDialogID(session.sessionState.callstack)
 	}
 }
 
 exports.getSessionInfo = getSessionInfo;
+
+function getErrorInfo(error) {
+	return {
+		message: error.message,
+		errStack: error.stack,
+		trace: getTrace(error)
+	}
+};
+
+exports.getErrorInfo = getErrorInfo;
+
+const stackTrace = require('stack-trace');
+function getTrace(err) {
+    const trace = err ? stackTrace.parse(err) : stackTrace.get();
+    return trace.map(site => {
+      return {
+        column: site.getColumnNumber(),
+        file: site.getFileName(),
+        function: site.getFunctionName(),
+        line: site.getLineNumber(),
+        method: site.getMethodName(),
+        native: site.isNative()
+      };
+    });
+}
+
+function getDialogID(callstack) {
+	var dialogStack = [];
+	callstack.forEach(function(stack) {
+		dialogStack.push({id: stack.id});
+	})
+	return dialogStack;
+};

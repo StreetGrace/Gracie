@@ -7,6 +7,9 @@ var lib_router = require('./../utils_bot/IntentRouter');
 var blacklist = require('./../utils_bot/Blacklist');
 var resDB = require('./../utils_bot/QueryDB');
 
+var botLog = require('./../utils_bot/BotLogger');
+var botLogger = botLog.botLog;
+
 var lib = new builder.Library('opener');
 lib.recognizer(apiai.recognizer);
 
@@ -14,11 +17,14 @@ lib.recognizer(apiai.recognizer);
 *	Route incoming message to sub-dialogs based on detected intent
 */
 lib.dialog('/', function(session, args, next){	
-	// session.send('[Start Opener Dialog]');   
+	var sessionInfo = utils.getSessionInfo(session);
+	botLogger.info('opener:/, Start', sessionInfo);	
 	try {
 		lib_router.routeMessage(lib, session);	
 	}
 	catch (err) {
+		var errInfo = utils.getErrorInfo(err);
+		botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 		resDB.queryRes('global', 0, 0, function (err, result) {
 			if (err) {
 			  console.log(err);
@@ -57,14 +63,16 @@ lib.dialog('/', function(session, args, next){
 */
 lib.dialog('/intent.greeting', [
 	function(session, args, next ){
-		try {
-			// session.send('[Start Greeting Dialog]');
+		try {	
 			var entities = args.intent.entities;
 			utils.fillProfile(session, 'Greeting', entities);
 			
 			var appt = session.userData.profile.appointment; 
 			var demo = session.userData.profile.demographic;
-	
+
+			var sessionInfo = utils.getSessionInfo(session);
+			botLogger.info('Start opener:/intent.greeting', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
+
 			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
 
@@ -94,6 +102,9 @@ lib.dialog('/intent.greeting', [
       });
 		}
 		catch (err) {
+            var errInfo = utils.getErrorInfo(err);
+			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+						
 			setTimeout(function(){
 				resDB.queryRes('global', 0, 0, function (err, result) {
 					if (err) {
@@ -124,14 +135,15 @@ lib.dialog('/intent.greeting', [
 lib.dialog('/intent.availability', [
 	function(session, args, next){
 		try {
-			// session.send('[Start Availability Dialog]');
-			console.log(session.message.text);
 			var entities = args.intent.entities;
 			utils.fillProfile(session, 'Availability', entities);
-			// session.send('Updated Profile: %j', session.userData.profile);		
+			
 			var appt = session.userData.profile.appointment;
 			var demo = session.userData.profile.demographic;
 	
+			var sessionInfo = utils.getSessionInfo(session);
+			botLogger.info('Start opener:/intent.availability', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
+
 			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
 			// var reply = `hey ${name}..i'm ready for fun lol...`;		
@@ -205,6 +217,9 @@ lib.dialog('/intent.availability', [
       });
 		}
 		catch (err) {
+			var errInfo = utils.getErrorInfo(err);
+			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+			
 			setTimeout(function() {
 				resDB.queryRes('global', 0, 0, function (err, result) {
 					if (err) {
@@ -233,13 +248,15 @@ lib.dialog('/intent.availability', [
 lib.dialog('/intent.service_inquiry', [
 	function (session, args, next){	
 		try {
-			// session.send('[Start Service Inquiry Dialog]');
 			var entities = args.intent.entities;
 			utils.fillProfile(session, 'Service', entities);
-			// session.send('%j', session.userData.profile);		
+			
 			var appt = session.userData.profile.appointment;
 			var demo = session.userData.profile.demographic;
-			
+
+			var sessionInfo = utils.getSessionInfo(session);
+			botLogger.info('Start opener:/intent.service_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));				
+
 			var name = demo.name || '';
 			var modelName = session.userData.profile.default.model;
 
@@ -261,6 +278,9 @@ lib.dialog('/intent.service_inquiry', [
 			}, 2500);
 		}	
 		catch (err) {
+            var errInfo = utils.getErrorInfo(err);
+			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+						
 			setTimeout(function() {
 				resDB.queryRes('global', 0, 0, function (err, result) {
 					if (err) {
@@ -284,19 +304,20 @@ lib.dialog('/intent.service_inquiry', [
 
 /*
 *	1. Greet user.
-*	2. dialog confirmPrice.
+*	2. dialog confirmService.
 */
 lib.dialog('/intent.price_inquiry', [
 	function(session, args, next){
 		try {
-			// session.send('[Start Price Inquiry Dialog]');
 			var entities = args.intent.entities;
 			utils.fillProfile(session, 'Price', entities);
-			// session.send('%j', session.userData.profile);			
 
 			var appt = session.userData.profile.appointment;
 			var demo = session.userData.profile.demographic;	
-			
+
+			var sessionInfo = utils.getSessionInfo(session);
+			botLogger.info('Start opener:/intent.price_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
+
 			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
 
@@ -349,6 +370,9 @@ lib.dialog('/intent.price_inquiry', [
 			});
 		}
 		catch (err) {
+			var errInfo = utils.getErrorInfo(err);
+			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+			
 			setTimeout(function() {
 				resDB.queryRes('global', 0, 0, function (err, result) {
 					if (err) {
@@ -376,13 +400,15 @@ lib.dialog('/intent.price_inquiry', [
 lib.dialog('/intent.location_inquiry', [
 	function(session, args, next){
 		try {
-			// session.send('[Start Location Inquiry Dialog]');
 			var entities = args.intent.entities;
 			utils.fillProfile(session, 'Location', entities);
-			// session.send('%j', session.userData.profile);		
+			
 			var appt = session.userData.profile.appointment;
 			var demo = session.userData.profile.demographic;	
-			
+
+			var sessionInfo = utils.getSessionInfo(session);
+			botLogger.info('Start opener:/intent.location_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));
+
 			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
 
@@ -415,6 +441,9 @@ lib.dialog('/intent.location_inquiry', [
 			
 		}
 		catch (err) {
+			var errInfo = utils.getErrorInfo(err);
+			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+			
 			resDB.queryRes('global', 0, 0, function (err, result) {
 					if (err) {
 						console.log(err);
@@ -444,6 +473,9 @@ lib.dialog('/intent.unhandled', [
 			var neighborhood = session.userData.profile.default.neighborhood;
 			var data = utilsService.fillService(null);
 
+			var sessionInfo = utils.getSessionInfo(session);
+			botLogger.info('Start opener:/intent.greeting', sessionInfo);	
+
 			resDB.queryRes('opener:/unhandled', 0, 0, function (err, result) {
 				if (err) {
 					console.log(err);
@@ -462,6 +494,9 @@ lib.dialog('/intent.unhandled', [
 			});				
 		}
 		catch (err) {
+			var errInfo = utils.getErrorInfo(err);
+			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+			
 			setTimeout(function() {
 				resDB.queryRes('global', 0, 0, function (err, result) {
 					if (err) {

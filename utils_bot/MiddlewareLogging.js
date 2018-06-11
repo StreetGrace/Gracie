@@ -63,6 +63,11 @@ module.exports = {
 		var timestamp = utils.toIsoString(now);		
 		entry.timestamp = timestamp;		
 		var db = insert(entry);
+
+		if (session.message.text) {
+			session.message.text = session.message.text.replace(/q.v./gi, 'qv');
+		}
+		 
 		next();
 	},
 	logOutgoingMessage: function (event, next) {

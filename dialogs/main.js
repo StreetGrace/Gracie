@@ -7,6 +7,9 @@ var lib_router = require('./../utils_bot/IntentRouter');
 var blacklist = require('./../utils_bot/Blacklist');
 var resDB = require('./../utils_bot/QueryDB');
 
+var botLog = require('./../utils_bot/BotLogger');
+var botLogger = botLog.botLog;
+
 var lib = new builder.Library('main');
 
 /*
@@ -14,7 +17,8 @@ var lib = new builder.Library('main');
 */
 lib.dialog('/', [
 	function (session, args, next){
-		// session.send('[Start Main Dialog]');  
+		var sessionInfo = utils.getSessionInfo(session);
+		botLogger.info('main:/, Start', Object.assign(sessionInfo));
 		try {
 			if (!args.complete_open) {
 				session.beginDialog('opener:/');
@@ -45,7 +49,8 @@ lib.dialog('/', [
 			}
 		} 
 		catch (err) {
-			console.log('Error running main dialog', err);
+			var errInfo = utils.getErrorInfo(err);
+			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			resDB.queryRes('global', 0, 0, function (err, result) {
                 if (err) {
                   console.log(err);
@@ -71,7 +76,10 @@ lib.dialog('/', [
 				var entities = response.entities;
 				var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
 				var price = entities['price'] ? entities['price'] : null;
-		
+				
+				var sessionInfo = utils.getSessionInfo(session);
+				botLogger.info('main:/, Receive Response', utils.getSessionInfo({}, sessionInfo, {intent: intent}));
+
 				if (intent == 'Intent.Confirmation_Yes') {
 					setTimeout(function(){
 						resDB.queryRes('global', 0, 0, function (err, result) {
@@ -141,6 +149,7 @@ lib.dialog('/', [
 			});  		
 		}
 		catch (err) {
+			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			resDB.queryRes('global', 0, 0, function (err, result) {
                 if (err) {
                   console.log(err);
@@ -159,11 +168,6 @@ lib.dialog('/', [
 		}
 	}
 ]);
-
-// bot.library(require('./dialogs/main').createLibrary());
-// bot.library(require('./dialogs/opener').createLibrary());
-// bot.library(require('./dialogs/confirmService').createLibrary());
-// bot.library(require('./dialogs/confirmTime').createLibrary());
 
 module.exports.createLibrary = function(){
     return lib.clone();

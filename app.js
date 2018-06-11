@@ -12,7 +12,7 @@ var botLog = require('./utils_bot/BotLogger');
 
 //Setup Logger
 var botLogger = botLog.botLog;
-botLogger.info('Gracie Online');
+botLogger.info('Gracie Online', {test: null});
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -62,14 +62,16 @@ bot.use({
 
 bot.dialog('/', [
 	function (session, args, next){
-        botLogger.info('Start Dialog /', utils.getSessionInfo(session));
+        var sessionInfo = utils.getSessionInfo(session);
+        botLogger.info(':/, Start', sessionInfo);
 		session.userData.profile = session.userData.profile || initialProfile;
 		try {
             // session.send(log_label);
 			session.beginDialog('main:/', {complete_open: 0});
 		}
 		catch (err) {
-            botLogger.error()
+            var errInfo = utils.getErrorInfo(err);          
+            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
             resDB.queryRes('global', 0, 0, function (err, result) {
                 if (err) {
                   console.log(err);
