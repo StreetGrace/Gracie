@@ -65,7 +65,7 @@ lib.dialog('/', [
                   session.endConversation(reply);
                 }
               }
-            );
+          );
 		}
 	},
 	function (session, args, next) {
@@ -76,7 +76,7 @@ lib.dialog('/', [
 				var entities = response.entities;
 				var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
 				var price = entities['price'] ? entities['price'] : null;
-				
+			
 				var sessionInfo = utils.getSessionInfo(session);
 				botLogger.info('main:/, Receive Response', utils.getSessionInfo({}, sessionInfo, {intent: intent}));
 

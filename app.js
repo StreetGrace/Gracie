@@ -62,6 +62,7 @@ bot.use({
 
 bot.dialog('/', [
 	function (session, args, next){
+        console.log('%j', session.message);
         var sessionInfo = utils.getSessionInfo(session);
         botLogger.info(':/, Start', sessionInfo);
 		session.userData.profile = session.userData.profile || initialProfile;

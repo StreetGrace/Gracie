@@ -122,6 +122,7 @@ function getSessionInfo(session) {
 		conversation_id: session.message.address.conversation.id,
 		user_id: session.message.address.user.id,
 		user_name: session.message.address.user.name,
+		received_message: session.message.text,
 		stack: getDialogID(session.sessionState.callstack)
 	}
 }
@@ -160,3 +161,30 @@ function getDialogID(callstack) {
 	})
 	return dialogStack;
 };
+
+resDB.queryRes('confirmService:/', 0, 0, function (err, result){})
+queryRes(dialog, index, branch, cb)
+
+function endConversation(session, indicator) {
+	var table = {
+		'error': {dialog: 'global', index: 0, branch: 0},
+		'complete': {dialog: 'global', index:0, branch: 0},
+		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
+	};
+
+	resDB.queryRes(table[indicator].dialog, table[indicator].index, table[indicator].branch, function (err, result) {
+		if (err) {
+		  console.log(err);
+		  console.log('error pulling data');
+		}
+		else {
+		  var reply = result.message;
+		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+
+		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+		  session.endConversation(reply);
+		}
+	  }
+  );
+}
