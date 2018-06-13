@@ -164,27 +164,27 @@ function getDialogID(callstack) {
 
 // resDB.queryRes('confirmService:/', 0, 0, function (err, result){})
 // queryRes(dialog, index, branch, cb)
+var blacklist = require('./../utils_bot/Blacklist');
+function endConversation(session, indicator) {
+	var table = {
+		'error': {dialog: 'global', index: 0, branch: 0},
+		'complete': {dialog: 'global', index:0, branch: 0},
+		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
+	};
 
-// function endConversation(session, indicator) {
-// 	var table = {
-// 		'error': {dialog: 'global', index: 0, branch: 0},
-// 		'complete': {dialog: 'global', index:0, branch: 0},
-// 		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
-// 	};
+	resDB.queryRes(table[indicator].dialog, table[indicator].index, table[indicator].branch, function (err, result) {
+		if (err) {
+		  console.log(err);
+		  console.log('error pulling data');
+		}
+		else {
+		  var reply = result.message;
+		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 
-// 	resDB.queryRes(table[indicator].dialog, table[indicator].index, table[indicator].branch, function (err, result) {
-// 		if (err) {
-// 		  console.log(err);
-// 		  console.log('error pulling data');
-// 		}
-// 		else {
-// 		  var reply = result.message;
-// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-
-// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-// 		  session.endConversation(reply);
-// 		}
-// 	  }
-//   );
-// }
+		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+		  session.endConversation(reply);
+		}
+	  }
+  );
+}
