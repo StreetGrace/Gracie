@@ -229,7 +229,7 @@ lib.dialog('/', [
                     session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.reprompt+1});
                 }
                 else {
-                    resDB.queryRes('confirmService:/', 0, 0, function (err, result) {
+                    resDB.queryRes('confirmService:/', 1, 0, function (err, result) {
                         if (err) {
                             console.log(err);
                             console.log('error pulling data');
