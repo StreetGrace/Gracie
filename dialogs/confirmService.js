@@ -45,19 +45,20 @@ lib.dialog('/', [
                 });
             }
             else if (args.reprompt >= 2) {
-                resDB.queryRes('confirmService:/', 0, 0, function (err, result) {
-                    if (err) {
-                        console.log(err);
-                        console.log('error pulling data');
-                    }
-                    else {
-                        var reply = result.message;
-                        reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                        reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                        blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                        session.endConversation(reply);            
-                    }
-                });
+                // resDB.queryRes('confirmService:/', 0, 0, function (err, result) {
+                //     if (err) {
+                //         console.log(err);
+                //         console.log('error pulling data');
+                //     }
+                //     else {
+                //         var reply = result.message;
+                //         reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                //         reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                //         blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                //         session.endConversation(reply);            
+                //     }
+                // });
+                utils.endConversation(session, 'boot');
             }
             else if (args.data.flag_rejectOut) {
                 session.beginDialog('/confirmIncall', {data: args.data, reply: args.reply, stored_reprompt: args.reprompt, reprompt: 0});
@@ -176,22 +177,23 @@ lib.dialog('/', [
         catch (err) {
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
 
     },
@@ -245,22 +247,23 @@ lib.dialog('/', [
         catch (err) {
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
 
     }
@@ -273,19 +276,20 @@ lib.dialog('/confirmIncall', [
             botLogger.info('confirmService:/confirmIncall, Start', Object.assign({}, sessionInfo, {data: args.data, reprompt: args.reprompt, stored_reprompt: args.stored_reprompt}));        
 
             if (args.reprompt >= 3) {
-                resDB.queryRes('confirmService:/', 0, 0, function (err, result) {
-                    if (err) {
-                        console.log(err);
-                        console.log('error pulling data');
-                    }
-                    else {
-                        var reply = result.message;
-                        reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                        reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                        blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                        session.endConversation(reply);            
-                    }
-                });
+                // resDB.queryRes('confirmService:/', 0, 0, function (err, result) {
+                //     if (err) {
+                //         console.log(err);
+                //         console.log('error pulling data');
+                //     }
+                //     else {
+                //         var reply = result.message;
+                //         reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                //         reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                //         blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                //         session.endConversation(reply);            
+                //     }
+                // });
+                utils.endConversation(session, 'boot');
             }
             else {
                 session.dialogData.givenService = args.data;
@@ -298,22 +302,23 @@ lib.dialog('/confirmIncall', [
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
     },
     function (session, args, next) {
@@ -428,22 +433,23 @@ lib.dialog('/confirmIncall', [
         catch (err) {
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));            
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
     }  
 ]);
@@ -459,19 +465,20 @@ lib.dialog('/confirmRaw', [
             botLogger.info('confirmService:/confirmRaw, Start', Object.assign({}, sessionInfo, {data: args.data, reprompt: args.reprompt, stored_reprompt: args.stored_reprompt}));
 
             if (args.reprompt >= 2) {
-                resDB.queryRes('confirmService:/confirmRaw', 0, 0, function (err, result) {
-                    if (err) {
-                        console.log(err);
-                        console.log('error pulling data');
-                    }
-                    else {
-                        var reply = result.message;
-                        reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                        reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                        blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                        session.endConversation(reply);
-                    }
-                });
+                // resDB.queryRes('confirmService:/confirmRaw', 0, 0, function (err, result) {
+                //     if (err) {
+                //         console.log(err);
+                //         console.log('error pulling data');
+                //     }
+                //     else {
+                //         var reply = result.message;
+                //         reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                //         reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                //         blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                //         session.endConversation(reply);
+                //     }
+                // });
+                utils.endConversation(session, 'boot');
             }
             else {
                 builder.Prompts.text(session, args.reply);
@@ -481,22 +488,23 @@ lib.dialog('/confirmRaw', [
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
     },
     function (session, args, next) {
@@ -599,22 +607,23 @@ lib.dialog('/confirmRaw', [
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
     }
 ]);
@@ -631,19 +640,20 @@ lib.dialog('/confirmBDSM', [
             botLogger.info('confirmService:/confirmBDSM, Start', Object.assign({}, sessionInfo, {data: args.data, reprompt: args.reprompt, stored_reprompt: args.stored_reprompt}));            
 
             if (args.reprompt >= 2) {
-                resDB.queryRes('confirmService:/confirmBDSM', 0, 0, function (err, result) {
-                    if (err) {
-                        console.log(err);
-                        console.log('error pulling data');
-                    }
-                    else {
-                        var reply = result.message;
-                        reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                        reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                        blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                    session.endConversation(reply);
-                    }
-                });
+                // resDB.queryRes('confirmService:/confirmBDSM', 0, 0, function (err, result) {
+                //     if (err) {
+                //         console.log(err);
+                //         console.log('error pulling data');
+                //     }
+                //     else {
+                //         var reply = result.message;
+                //         reply = decodeURIComponent(reply).replace(/\+/g, " ");
+                //         reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                //         blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                //     session.endConversation(reply);
+                //     }
+                // });
+                utils.endConversation(session, 'boot');
             }
             else {
                 builder.Prompts.text(session, args.reply);
@@ -653,22 +663,23 @@ lib.dialog('/confirmBDSM', [
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
     },
     function (session, args, next) {
@@ -775,22 +786,23 @@ lib.dialog('/confirmBDSM', [
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
     }
 ]);
@@ -810,9 +822,10 @@ lib.dialog('/givePrice', [
             botLogger.info('confirmService:/givePrice, Start', Object.assign({}, sessionInfo, {data: args.data, reprompt: args.reprompt, stored_reprompt: args.stored_reprompt}));            
 
             if (args.reprompt >= 3) {
-                reply = "u dont wannt to meet stop wasting my time! not replying you bye!"
-                blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                session.endConversation(reply);
+                // reply = "u dont wannt to meet stop wasting my time! not replying you bye!"
+                // blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+                // session.endConversation(reply);
+                utils.endConversation(session, 'boot');
             }
             else {
                 var reply = '';
@@ -836,8 +849,8 @@ lib.dialog('/givePrice', [
                         reply += 'any fetish thing is 50 extra..';
                         session.userData.profile.confirmation.price.priceGiven.addon = 1;
                     }
-                    if (inquiryService.has_addon && inquiryService.addon != 'raw') {
-                        reply += 'no extra $$ but you need to bring paln b pills.'
+                    if (inquiryService.has_addon && inquiryService.addon == 'raw') {
+                        reply += 'no extra $$ for raw but you need to bring paln b pills.'
                         session.userData.profile.confirmation.price.priceGiven.bare = 1;
                     }
                     else {
@@ -870,22 +883,23 @@ lib.dialog('/givePrice', [
         catch (err) {
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
     },
     function (session, args, next) {
@@ -967,22 +981,23 @@ lib.dialog('/givePrice', [
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
     }
 ]);
@@ -1004,22 +1019,23 @@ lib.dialog('/underAge', [
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
     },
     function (session, args, next) {
@@ -1070,22 +1086,23 @@ lib.dialog('/underAge', [
             var errInfo = utils.getErrorInfo(err);
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 
-			setTimeout(function() {
-				resDB.queryRes('global', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply = result.message;
-					  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-					  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			// setTimeout(function() {
+			// 	resDB.queryRes('global', 0, 0, function (err, result) {
+			// 		if (err) {
+			// 		  console.log(err);
+			// 		  console.log('error pulling data');
+			// 		}
+			// 		else {
+			// 		  var reply = result.message;
+			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 	
-					  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-					  session.endConversation(reply);
-					}
-				});
-			}, 2500);
+			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			// 		  session.endConversation(reply);
+			// 		}
+			// 	});
+            // }, 2500);
+            utils.endConversation(session, 'error');
 		}
     } 
 ]);

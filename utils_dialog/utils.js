@@ -162,29 +162,36 @@ function getDialogID(callstack) {
 	return dialogStack;
 };
 
-// resDB.queryRes('confirmService:/', 0, 0, function (err, result){})
-// queryRes(dialog, index, branch, cb)
+var resDB = require('./../utils_bot/QueryDB');
 var blacklist = require('./../utils_bot/Blacklist');
-function endConversation(session, indicator) {
+var resultLogger = require('./../utils_bot/ResultLog');
+
+function endConversation(session, chat_result) {
 	var table = {
 		'error': {dialog: 'global', index: 0, branch: 0},
 		'complete': {dialog: 'global', index:0, branch: 0},
+		'complete_n': {dialog: 'global', index:0, branch: 1},
 		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
 	};
 
-	resDB.queryRes(table[indicator].dialog, table[indicator].index, table[indicator].branch, function (err, result) {
-		if (err) {
-		  console.log(err);
-		  console.log('error pulling data');
-		}
-		else {
-		  var reply = result.message;
-		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-
-		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-		  session.endConversation(reply);
-		}
-	  }
-  );
+	setTimeout(function(){
+		resDB.queryRes(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch, function (err, result) {
+			if (err) {
+			  console.log(err);
+			  console.log('error pulling data');
+			}
+			else {
+			  var reply = result.message;
+			  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+			  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			  resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: chat_result});
+			  session.endConversation(reply);
+			}
+		  }
+		);
+	}, 8000);
 }
+
+exports.endConversation = endConversation;

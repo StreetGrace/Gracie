@@ -43,7 +43,8 @@ function insert (data) {
 	var update = {
 		'$set': { 
 			'user_id': data.user_id,
-			'user_name': data.user_name
+			'user_name': data.user_name,
+			'result': data.result
 		} 
 	};	
 	var connectOptions = {};
