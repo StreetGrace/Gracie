@@ -1,70 +1,92 @@
-'use strict';
 
-var util = require('util'),
-    winston = require('winston'),
-    logger = new winston.Logger(),
-    production = 
-        (process.env.NODE_ENV || '').toLowerCase() === 
-        'production';
+var winston = require('winston')
+var logger = new winston.Logger()
+require('winston-mongodb').MongoDB
 
-require('winston-mongodb').MongoDB;
+function extend (origin, add) {
+    // Don't do anything if add isn't an object
+    if (!add || typeof add !== 'object') return origin;
+  
+    var keys = Object.keys(add);
+    var i = keys.length;
+    while (i--) {
+      origin[keys[i]] = add[keys[i]];
+    }
+    return origin;
+};
 
-logger.add(winston.transports.Console, {
-    colorize: true,
-    timestamp: true,
-    level: 'info'
-});
+function getErrMeta(err, user_id) {
+    let { message } = err;
+    if (!message && typeof err === 'string') {
+      message = err;
+    }
 
-function initial_logger (conversation_id) {
-    logger.remove(winston.transports.Console);
-    logger.add(winston.transports.MongoDB, ({
-        db: 'mongodb://adclaimsuser%40bbdo.com:Bbdoatl1@18.234.8.122:27017/gracie',
-        collection : 'bot_logging',
-        level: 'info',
-        label: conversation_id,
-        capped: true
-        }) 
-    );
+    return {
+      error: err,
+      // TODO (indexzero): how do we configure this?
+      user_id: user_id,
+      level: 'error',
+      message: [
+        `Exception Caught: ${(message || '(no error message)')}`,
+        err.stack || '  No stack trace'
+      ].join('\n'),
+      stack: err.stack,
+    };   
 }
+// Set up Bot Logger 
+winston.loggers.add('botLog', {
+    transports : [
+        new(winston.transports.MongoDB) ({
+            db: 'mongodb://adclaimsuser%40bbdo.com:Bbdoatl1@18.234.8.122:27017/gracie',
+            collection : 'bot_logging',
+            level: 'info',
+            label: 'Standard',
+            capped: true
+        }),    
+    ]
+})
+
+winston.loggers.add('UncaughtExceptionLog', {
+    transports : [
+        new(winston.transports.MongoDB) ({
+            db: 'mongodb://adclaimsuser%40bbdo.com:Bbdoatl1@18.234.8.122:27017/gracie',
+            collection : 'bot_logging',
+            level: 'info',
+            label: 'Uncaught Exception',
+            handleExceptions: true,
+            capped: true,   
+        }),    
+    ]
+})
+
+var botLog = winston.loggers.get('botLog');
 
 module.exports = {
-    initial_logger: initial_logger,
-    logger: logger
+    botLog,
+    getErrMeta: getErrMeta
 };
 
-// Override the built-in console methods with winston hooks
-function formatArgs(args){
-    return [util.format.apply(util.format, Array.prototype.slice.call(args))];
-}
+// var uncaughtExceptionLog = winston.loggers.get('UncaughtExceptionLog');
 
-console.log = function(){
-    logger.info.apply(logger, formatArgs(arguments));
-};
-console.info = function(){
-    logger.info.apply(logger, formatArgs(arguments));
-};
-console.warn = function(){
-    logger.warn.apply(logger, formatArgs(arguments));
-};
-console.error = function(){
-    logger.error.apply(logger, formatArgs(arguments));
-};
-console.debug = function(){
-    logger.debug.apply(logger, formatArgs(arguments));
-};
+// var uncaughtLog = winston.loggers.get('UncaughtExceptionLog');
 
+// botLog.log = function(){
+//     var args = arguments;
+//     var level = args[0];
 
-/////////////SAMPLES//////////////////////////////////////
-// Set up Bot Logger 
-// winston.loggers.add('botLog', {
-//     transports : [
-//         new(winston.transports.MongoDB) ({
-//             db: 'mongodb://adclaimsuser%40bbdo.com:Bbdoatl1@18.234.8.122:27017/gracie',
-//             collection : 'bot_logging',
-//             level: 'info',
-//             capped: true
-//         })
-//     ]
-// })
-// var botLog = winston.loggers.get('botLog');
-// botLog.info('Conversation Start');
+//     var originalMeta = args[2] || {};
+//     args[2] = extend(originalMeta, {logType: 'Standard'});
+    
+//     winston.Logger.prototype.log.apply(this,args);
+// };
+
+// logger.log = function(){
+//     var args = arguments;
+//     var level = args[0];
+    
+//     var originalMeta = args[2] || {};
+
+//     args[2] = extend(originalMeta, {logType: 'Uncaught Exception'});
+
+//     winston.Logger.prototype.log.apply(this,args);
+// };

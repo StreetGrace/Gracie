@@ -7,13 +7,13 @@ var lib = new builder.Library('confirmService');
 
 lib.dialog('/', [
     function (session, args, next) {
-        session.send('[Start confirmSerivce Dialog]');
         session.dialogData.givenService = args.data;
         session.dialogData.reprompt = args.reprompt;
-        session.send('GivenService: %j', session.dialogData.givenService);
-        session.send('Reprompt: %d', args.reprompt);      
         
         args.data = utilsService.updateService(args.data, args.data);
+
+        var sessionInfo = utils.getSessionInfo(session);
+        botLogger.info('confirmPrice:/, Start', Object.assign({}, sessionInfo, {data: args.data, reprompt: args.reprompt}));        
 
         if (args.data.complete) {
 			session.userData.profile.confirmation.service.inout = args.data.inout;	
@@ -34,7 +34,7 @@ lib.dialog('/', [
         }
         else if (args.data.has_addon && args.data.flag_addon) {
             if (args.data.addon == 'raw') {
-                var reply = "bare's fine if ur clean and disease free. need plan b pill cuz dont want to be 14 and pregnant....";
+                var reply = "bare's fine if ur clean and disease free. need plan b pill cuz dont want to be 16 and pregnant....";
                 session.beginDialog('/confirmRaw', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
             }
             else if (apptService.addon == 'bdsm') {

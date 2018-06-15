@@ -116,3 +116,89 @@ var IntentList_nonOpen = [
 ];
 
 exports.IntentList_nonOpen = IntentList_nonOpen;
+ 
+const utl = require('util');
+function getSessionInfo(session) {
+	try {
+		return {
+			conversation_id: session.message.address.conversation.id,
+			user_id: session.message.address.user.id,
+			user_name: session.message.address.user.name,
+			received_message: session.message.text,
+			stack: getDialogID(session.sessionState.callstack)
+		}
+	
+	}
+	catch (err) {
+		return utl.inspect(session, false, null);						
+	}
+}
+
+exports.getSessionInfo = getSessionInfo;
+
+function getErrorInfo(error) {
+	return {
+		message: error.message,
+		errStack: error.stack,
+		trace: getTrace(error)
+	}
+};
+
+exports.getErrorInfo = getErrorInfo;
+
+const stackTrace = require('stack-trace');
+function getTrace(err) {
+    const trace = err ? stackTrace.parse(err) : stackTrace.get();
+    return trace.map(site => {
+      return {
+        column: site.getColumnNumber(),
+        file: site.getFileName(),
+        function: site.getFunctionName(),
+        line: site.getLineNumber(),
+        method: site.getMethodName(),
+        native: site.isNative()
+      };
+    });
+}
+
+function getDialogID(callstack) {
+	var dialogStack = [];
+	callstack.forEach(function(stack) {
+		dialogStack.push({id: stack.id});
+	})
+	return dialogStack;
+};
+
+var resDB = require('./../utils_bot/QueryDB');
+var blacklist = require('./../utils_bot/Blacklist');
+var resultLogger = require('./../utils_bot/ResultLog');
+
+function endConversation(session, chat_result) {
+	var table = {
+		'error': {dialog: 'global', index: 0, branch: 0},
+		'complete': {dialog: 'global', index:0, branch: 0},
+		'complete_n': {dialog: 'global', index:0, branch: 1},
+		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
+	};
+
+	setTimeout(function(){
+		resDB.queryRes(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch, function (err, result) {
+			if (err) {
+			  console.log(err);
+			  console.log('error pulling data');
+			}
+			else {
+			  var reply = result.message;
+			  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+	
+			  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			  resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: chat_result});
+			  session.endConversation(reply);
+			}
+		  }
+		);
+	}, 8000);
+}
+
+exports.endConversation = endConversation;

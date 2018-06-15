@@ -7,6 +7,9 @@ var lib_router = require('./../utils_bot/IntentRouter');
 var blacklist = require('./../utils_bot/Blacklist');
 var resDB = require('./../utils_bot/QueryDB');
 
+var botLog = require('./../utils_bot/BotLogger');
+var botLogger = botLog.botLog;
+
 var lib = new builder.Library('main');
 
 /*
@@ -14,7 +17,8 @@ var lib = new builder.Library('main');
 */
 lib.dialog('/', [
 	function (session, args, next){
-		// session.send('[Start Main Dialog]');  
+		var sessionInfo = utils.getSessionInfo(session);
+		botLogger.info('main:/, Start', Object.assign(sessionInfo));
 		try {
 			if (!args.complete_open) {
 				session.beginDialog('opener:/');
@@ -36,7 +40,7 @@ lib.dialog('/', [
 					else {
 					  var reply_new = result.message;
 					  reply_new = decodeURIComponent(reply_new).replace(/\+/g, " ");
-					  reply += eval('`'+ reply_new.replace(/`/g,'\\`') + '`');
+					  reply += ' ' + eval('`'+ reply_new.replace(/`/g,'\\`') + '`');
 	
 					  builder.Prompts.text(session, reply);
 					}
@@ -45,22 +49,24 @@ lib.dialog('/', [
 			}
 		} 
 		catch (err) {
-			console.log('Error running main dialog', err);
-			resDB.queryRes('global', 0, 0, function (err, result) {
-                if (err) {
-                  console.log(err);
-                  console.log('error pulling data');
-                }
-                else {
-                  var reply = result.message;
-                  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			var errInfo = utils.getErrorInfo(err);
+			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+				// resDB.queryRes('global', 0, 0, function (err, result) {
+				// 					if (err) {
+				// 						console.log(err);
+				// 						console.log('error pulling data');
+				// 					}
+				// 					else {
+				// 						var reply = result.message;
+				// 						reply = decodeURIComponent(reply).replace(/\+/g, " ");
+				// 						reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 
-                  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                  session.endConversation(reply);
-                }
-              }
-            );
+				// 						blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+				// 						session.endConversation(reply);
+				// 					}
+				// 				}
+				// 	);
+				utils.endConversation(session, 'error');
 		}
 	},
 	function (session, args, next) {
@@ -71,99 +77,101 @@ lib.dialog('/', [
 				var entities = response.entities;
 				var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
 				var price = entities['price'] ? entities['price'] : null;
-		
-				if (intent == 'Intent.Confirmation_Yes') {
-					setTimeout(function(){
-						resDB.queryRes('global', 0, 0, function (err, result) {
-							if (err) {
-							  console.log(err);
-							  console.log('error pulling data');
-							}
-							else {
-							  var reply = result.message;
-							  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-							  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 			
-							  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-							  session.endConversation(reply);
-							}
-						  }
-						);
-					}, 5000)
+				var sessionInfo = utils.getSessionInfo(session);
+				botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
+
+				if (intent == 'Intent.Confirmation_Yes') {
+					// setTimeout(function(){
+					// 	resDB.queryRes('global', 0, 0, function (err, result) {
+					// 		if (err) {
+					// 		  console.log(err);
+					// 		  console.log('error pulling data');
+					// 		}
+					// 		else {
+					// 		  var reply = result.message;
+					// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			
+					// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					// 		  session.endConversation(reply);
+					// 		}
+					// 	  }
+					// 	);
+					// }, 5000)
+					utils.endConversation(session, 'complete');
 				}
 				else if (intent == 'Intent.Location_Inquiry') {
-					setTimeout(function(){
-						resDB.queryRes('global', 0, 0, function (err, result) {
-							if (err) {
-							  console.log(err);
-							  console.log('error pulling data');
-							}
-							else {
-							  var reply = result.message;
-							  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-							  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+					// setTimeout(function(){
+					// 	resDB.queryRes('global', 0, 0, function (err, result) {
+					// 		if (err) {
+					// 		  console.log(err);
+					// 		  console.log('error pulling data');
+					// 		}
+					// 		else {
+					// 		  var reply = result.message;
+					// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 			
-							  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-							  session.endConversation(reply);
-							}
-						  }
-						);
-					}, 5000)
+					// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					// 		  session.endConversation(reply);
+					// 		}
+					// 	  }
+					// 	);
+					// }, 5000)
+					utils.endConversation(session, 'complete');
 				}
 				else if (intent == 'Intent.confirmation_No') {
-					setTimeout(function(){
-						var reply = 'Well whatever bye';
-						blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-						session.endConversation(reply);
-					}, 5000)
-					
+					// setTimeout(function(){
+					// 	var reply = 'Well whatever bye';
+					// 	blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					// 	session.endConversation(reply);
+					// }, 5000)					
+					utils.endConversation(session, 'complete_n');
 				}
 				else {
-					setTimeout(function(){
-						resDB.queryRes('global', 0, 0, function (err, result) {
-							if (err) {
-							  console.log(err);
-							  console.log('error pulling data');
-							}
-							else {
-							  var reply = result.message;
-							  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-							  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+					// setTimeout(function(){
+					// 	resDB.queryRes('global', 0, 0, function (err, result) {
+					// 		if (err) {
+					// 		  console.log(err);
+					// 		  console.log('error pulling data');
+					// 		}
+					// 		else {
+					// 		  var reply = result.message;
+					// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
+					// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 			
-							  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-							  session.endConversation(reply);
-							}
-						  }
-						);			
-					}, 5000)
-
+					// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+					// 		  session.endConversation(reply);
+					// 		}
+					// 	  }
+					// 	);			
+					// }, 5000)
+					utils.endConversation(session, 'complete');
 				}
 			});  		
 		}
 		catch (err) {
-			resDB.queryRes('global', 0, 0, function (err, result) {
-                if (err) {
-                  console.log(err);
-                  console.log('error pulling data');
-                }
-                else {
-                  var reply = result.message;
-                  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+			// resDB.queryRes('global', 0, 0, function (err, result) {
+      //           if (err) {
+      //             console.log(err);
+      //             console.log('error pulling data');
+      //           }
+      //           else {
+      //             var reply = result.message;
+      //             reply = decodeURIComponent(reply).replace(/\+/g, " ");
+      //             reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 
-                  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-                  session.endConversation(reply);
-                }
-              }
-            );
+      //             blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+      //             session.endConversation(reply);
+      //           }
+      //         }
+			//       );
+			utils.endConversation(session, 'error');
 		}
 	}
 ]);
-
-// bot.library(require('./dialogs/main').createLibrary());
-// bot.library(require('./dialogs/opener').createLibrary());
-// bot.library(require('./dialogs/confirmService').createLibrary());
-// bot.library(require('./dialogs/confirmTime').createLibrary());
 
 module.exports.createLibrary = function(){
     return lib.clone();
