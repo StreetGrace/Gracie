@@ -153,7 +153,6 @@ function concatMsg () {
                 var time_received = new Date().getTime();    
                 buffer.find(req.body.conversation.id, function (result) {
                     if (result) {
-                        // console.log(result);
                         req.body.text = result.msg + ' ' + req.body.text;
                     }
                     console.log('Text: %j', req.body);
@@ -175,18 +174,10 @@ function concatMsg () {
                             time_stored = time_received;
                         }
                         if (now - time_stored > 15000) {
-                            buffer.del_msg(req.body.conversation.id);
-                            // console.log('Complete Msg: ' + req.body.text)
-                            // console.log('Complete Now: ' + now);
-                            // console.log('Complete time_stored: ' + time_stored);
-                            // console.log('Complete Diff: ' + (now - time_stored));                                
+                            buffer.del_msg(req.body.conversation.id);                              
                             next();
                         }
                         else {
-                            // console.log('Msg: ' + req.body.text)
-                            // console.log('Now: ' + now);
-                            // console.log('time_stored: ' + time_stored);
-                            // console.log('Diff: ' + (now - time_stored));  
                             res.status(202);
                             res.end();
                         }
@@ -204,6 +195,7 @@ function concatMsg () {
     }
 }
 
+// const utl = require('util');
 function filteruser () {
     // now = new Date();
     return function (req, res, next) {
@@ -218,14 +210,12 @@ function filteruser () {
             req.on('end', function () {
                 try {
                     req.body = JSON.parse(requestData);
-                    // if (!log_label) {
-                    //     botLog.initial_logger(req.body.from.id);
-                    //     log_label = 1;
-                    // }
                     blacklist.find(req.body.from.id, function (result) {
                         if (result) {
                             res.status(202);
-                            res.end();                           
+                            myMiddleware.logBlackListedMessage(req, res);
+                            // console.log('%j', utl.inspect(req));
+                            // res.end();                           
                         }
                         else {
                             next();

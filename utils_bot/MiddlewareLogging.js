@@ -91,5 +91,26 @@ module.exports = {
 		entry.timestamp = timestamp;				
 		var db = insert(entry);		
 		next();
+	},
+	logBlackListedMessage: function (req, res) {
+		var entry = {
+			conversation_id: req.body.conversation.id,
+			address_id: null,
+			channel_id: req.body.channelId,
+			direction: 'incoming',
+			agent: 'botbuilder',
+			source: null,
+			user_id: req.body.from.id,
+			user_name: req.body.from.name,
+			bot_id: req.body.recipient.id,
+			bot_name: req.body.recipient.name,
+			text: req.body.text
+		};
+
+		var now = new Date();
+		var timestamp = utils.toIsoString(now);
+		entry.timestamp = timestamp;
+		var db = insert(entry);
+		res.end();
 	}
 };
