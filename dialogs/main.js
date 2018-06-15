@@ -40,7 +40,7 @@ lib.dialog('/', [
 					else {
 					  var reply_new = result.message;
 					  reply_new = decodeURIComponent(reply_new).replace(/\+/g, " ");
-					  reply += eval('`'+ reply_new.replace(/`/g,'\\`') + '`');
+					  reply += ' ' + eval('`'+ reply_new.replace(/`/g,'\\`') + '`');
 	
 					  builder.Prompts.text(session, reply);
 					}
@@ -79,7 +79,7 @@ lib.dialog('/', [
 				var price = entities['price'] ? entities['price'] : null;
 			
 				var sessionInfo = utils.getSessionInfo(session);
-				botLogger.info('main:/, Receive Response', utils.getSessionInfo({}, sessionInfo, {intent: intent}));
+				botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
 
 				if (intent == 'Intent.Confirmation_Yes') {
 					// setTimeout(function(){

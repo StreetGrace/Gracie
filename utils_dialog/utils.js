@@ -116,14 +116,21 @@ var IntentList_nonOpen = [
 ];
 
 exports.IntentList_nonOpen = IntentList_nonOpen;
-
+ 
+const utl = require('util');
 function getSessionInfo(session) {
-	return {
-		conversation_id: session.message.address.conversation.id,
-		user_id: session.message.address.user.id,
-		user_name: session.message.address.user.name,
-		received_message: session.message.text,
-		stack: getDialogID(session.sessionState.callstack)
+	try {
+		return {
+			conversation_id: session.message.address.conversation.id,
+			user_id: session.message.address.user.id,
+			user_name: session.message.address.user.name,
+			received_message: session.message.text,
+			stack: getDialogID(session.sessionState.callstack)
+		}
+	
+	}
+	catch (err) {
+		return utl.inspect(session, false, null);						
 	}
 }
 

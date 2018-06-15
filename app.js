@@ -30,7 +30,7 @@ var connector = new builder.ChatConnector({
 // Listen for messages from users 
 server.post('/api/messages', [
     filteruser(), 
-    // concatMsg(), 
+    concatMsg(), 
     connector.listen()]);
 
 const mongoOptions = {
