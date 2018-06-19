@@ -1,4 +1,5 @@
 'use strict';
+let patch = require('./../utils_bot/patches');
 
 let restify = require('restify')
 //Include the library botbuilder
@@ -29,47 +30,36 @@ bot.dialog('/', [
 	function (session, args, next) {
 		let name = session.message.user.name
 		let message = session.message.text
+		// session.delay(getRandomInt(1, 5)*1000);
 		session.send('1' + name + " said "  + message);
-		session.send('2' + name + " said "  + message)
-		session.send('3' + name + " said "  + message)
-		session.send('4' + name + " said "  + message)
-		// next();
+		next();
 	},
 	// function (session, args, next) {
 	// 	let name = session.message.user.name
 	// 	let message = session.message.text
+	// 	session.delay(getRandomInt(1, 2)*1000);
 	// 	session.send('2' + name + " said "  + message)
-	// 	// next();
+	// 	next();
 	// },
 	// function (session, args, next) {
 	// 	let name = session.message.user.name
 	// 	let message = session.message.text
+	// 	session.delay(getRandomInt(1, 5)*1000);
 	// 	session.send('3' + name + " said "  + message)
-	// 	// next();
+	// 	next();
 	// },
 	// function (session, args, next) {
 	// 	let name = session.message.user.name
 	// 	let message = session.message.text
+	// 	session.delay(getRandomInt(1, 2)*1000);
 	// 	session.send('4' + name + " said "  + message)
-	// 	// next();
+	// 	next();
 	// },
 	// function (session) {
 	// 	let name = session.message.user.name
 	// 	let message = session.message.text
+	// 	session.delay(getRandomInt(1, 5)*1000);
 	// 	session.send('5' + name + " said "  + message)		
 	// }
 ]);
 
-
-builder.Session.prototype._send = builder.Session.prototype.send;
-
-builder.Session.prototype.send = function (message) {
-	var _this = this;
-	setTimeout(function () {
-		return _this._send(message);
-	}, getRandomInt(3)*1000); 
-};
-
-function getRandomInt(max) {
-	return Math.floor(Math.random() * Math.floor(max));
-  }
