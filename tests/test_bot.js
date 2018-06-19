@@ -1,5 +1,7 @@
 'use strict';
 let patch = require('./../utils_bot/patches');
+// var resDB = require('./../utils_bot/QueryDB');
+var resDB = require('./../utils_bot/QueryDB_1');
 
 let restify = require('restify')
 //Include the library botbuilder
@@ -28,38 +30,13 @@ bot.set('storage', inMemoryStorage);
 
 bot.dialog('/', [
 	function (session, args, next) {
-		let name = session.message.user.name
-		let message = session.message.text
-		// session.delay(getRandomInt(1, 5)*1000);
-		session.send('1' + name + " said "  + message);
+
+		resDB.queryRes('opener:/intent.greeting', 0, 0)
+		.then(function(result) {
+			session.send(result);
+		});
+		
 		next();
-	},
-	// function (session, args, next) {
-	// 	let name = session.message.user.name
-	// 	let message = session.message.text
-	// 	session.delay(getRandomInt(1, 2)*1000);
-	// 	session.send('2' + name + " said "  + message)
-	// 	next();
-	// },
-	// function (session, args, next) {
-	// 	let name = session.message.user.name
-	// 	let message = session.message.text
-	// 	session.delay(getRandomInt(1, 5)*1000);
-	// 	session.send('3' + name + " said "  + message)
-	// 	next();
-	// },
-	// function (session, args, next) {
-	// 	let name = session.message.user.name
-	// 	let message = session.message.text
-	// 	session.delay(getRandomInt(1, 2)*1000);
-	// 	session.send('4' + name + " said "  + message)
-	// 	next();
-	// },
-	// function (session) {
-	// 	let name = session.message.user.name
-	// 	let message = session.message.text
-	// 	session.delay(getRandomInt(1, 5)*1000);
-	// 	session.send('5' + name + " said "  + message)		
-	// }
+	}
 ]);
 

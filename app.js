@@ -4,13 +4,12 @@ let patch = require('./utils_bot/patches');
 var restify = require('restify');
 var builder = require('botbuilder');
 
-var apiai = require('./utils_bot/ApiaiRecognizer');
 var utils = require('./utils_dialog/utils');
 var myMiddleware = require('./utils_bot/MiddlewareLogging.js');
 var botbuilder_mongo=require('botbuilder-mongodb');
 var buffer = require('./utils_bot/MessageBuffer');
 var blacklist = require('./utils_bot/Blacklist');
-// var resDB = require('./utils_bot/QueryDB');
+
 var botLog = require('./utils_bot/BotLogger');
 
 //Setup Logger
@@ -75,21 +74,6 @@ bot.dialog('/', [
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);          
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-            // resDB.queryRes('global', 0, 0, function (err, result) {
-            //     if (err) {
-            //       console.log(err);
-            //       console.log('error pulling data');
-            //     }
-            //     else {
-            //       var reply = result.message;
-            //       reply = decodeURIComponent(reply).replace(/\+/g, " ");
-            //       reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-
-            //       blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-            //       session.endConversation(reply);
-            //     }
-            //   }
-            // );
             utils.endConversation(session, 'error')
 		}
 	}
