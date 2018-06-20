@@ -1,7 +1,8 @@
 'use strict';
 let patch = require('./../utils_bot/patches');
 // var resDB = require('./../utils_bot/QueryDB');
-var resDB = require('./../utils_bot/QueryDB_1');
+var queryDB = require('./../utils_bot/QueryDB_1');
+var utils = require('./../utils_dialog/utils');
 
 let restify = require('restify')
 //Include the library botbuilder
@@ -30,12 +31,8 @@ bot.set('storage', inMemoryStorage);
 
 bot.dialog('/', [
 	function (session, args, next) {
+		queryDB.query
 
-		resDB.queryRes('opener:/intent.greeting', 0, 0)
-		.then(function(result) {
-			session.send(result);
-		});
-		
 		next();
 	}
 ]);

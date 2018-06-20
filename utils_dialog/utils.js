@@ -202,5 +202,14 @@ function endConversation(session, chat_result) {
 	);
 	
 }
-
 exports.endConversation = endConversation;
+
+function parseMsg (rows) {
+	var msg = rows[0].message;
+	msg = decodeURIComponent(msg).replace(/\+/g, " ");
+	msg = eval('`'+ msg.replace(/`/g,'\\`') + '`');
+  
+	return msg;
+}
+exports.parseMsg = parseMsg;
+  
