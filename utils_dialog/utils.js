@@ -183,24 +183,33 @@ function endConversation(session, chat_result) {
 
 	session.send('Oops....Wait');
 
-	setTimeout(function(){
-		resDB.queryRes(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch, function (err, result) {
-			if (err) {
-			  console.log(err);
-			  console.log('error pulling data');
-			}
-			else {
-			  var reply = result.message;
-			  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-			  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-	
-			  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-			  resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: chat_result});
-			  session.endConversation(reply);
-			}
-		  }
-		);
-	}, 8000);
-}
+	resDB.queryRes(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch, function (err, result) {
+		if (err) {
+			console.log(err);
+			console.log('error pulling data');
+		}
+		else {
+			var reply = result.message;
+			reply = decodeURIComponent(reply).replace(/\+/g, " ");
+			reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 
+			blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+			resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: chat_result});
+			session.send(reply);
+			session.endConversation();
+		}
+		}
+	);
+	
+}
 exports.endConversation = endConversation;
+
+function parseMsg (rows) {
+	var msg = rows[0].message;
+	msg = decodeURIComponent(msg).replace(/\+/g, " ");
+	msg = eval('`'+ msg.replace(/`/g,'\\`') + '`');
+  
+	return msg;
+}
+exports.parseMsg = parseMsg;
+  

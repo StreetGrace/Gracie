@@ -88,8 +88,10 @@ module.exports = {
 
 		var now = new Date();
 		var timestamp = utils.toIsoString(now);		
-		entry.timestamp = timestamp;				
-		var db = insert(entry);		
+		entry.timestamp = timestamp;	
+		if (message.text) {
+			var db = insert(entry);		
+		}			
 		next();
 	},
 	logBlackListedMessage: function (req, res) {

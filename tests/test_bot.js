@@ -1,5 +1,9 @@
 'use strict';
-let patch = require('./../utils_bot/patches');
+// let patch = require('./../utils_bot/patches');
+
+// var resDB = require('./../utils_bot/QueryDB');
+var db = require('./../utils_bot/QueryDB_1');
+var utils = require('./../utils_dialog/utils');
 
 let restify = require('restify')
 //Include the library botbuilder
@@ -26,40 +30,42 @@ var inMemoryStorage = new builder.MemoryBotStorage();
 var bot = new builder.UniversalBot(connector, {});
 bot.set('storage', inMemoryStorage);
 
+// bot.dialog('/', [
+// 	function (session, args, next) {
+// 		let reply;
+// 		db.queryDB('global', 0, 0)
+// 			.then( res => {
+// 				reply = utils.parseMsg(res.rows);
+// 				res.connection.end();
+		
+// 				if (session.message.text == '1') {
+// 					return db.queryDB('confirmService:/', 0, 1);
+// 				}
+// 				return '';
+// 			},
+// 			err => {
+// 				err.connection.end();
+// 				throw err.err;
+// 			})
+// 			.then( function(res) {
+// 				if (res) {
+// 					reply += ' || ' + utils.parseMsg(res.rows);
+// 					res.connection.end();
+// 				}
+// 				session.send(reply);
+// 			})
+// 			.catch(err => {
+// 				console.log(err) 
+// 			}) 
+// 		// next();
+// 	}
+// ]);
+
 bot.dialog('/', [
 	function (session, args, next) {
-		let name = session.message.user.name
-		let message = session.message.text
-		// session.delay(getRandomInt(1, 5)*1000);
-		session.send('1' + name + " said "  + message);
-		next();
-	},
-	// function (session, args, next) {
-	// 	let name = session.message.user.name
-	// 	let message = session.message.text
-	// 	session.delay(getRandomInt(1, 2)*1000);
-	// 	session.send('2' + name + " said "  + message)
-	// 	next();
-	// },
-	// function (session, args, next) {
-	// 	let name = session.message.user.name
-	// 	let message = session.message.text
-	// 	session.delay(getRandomInt(1, 5)*1000);
-	// 	session.send('3' + name + " said "  + message)
-	// 	next();
-	// },
-	// function (session, args, next) {
-	// 	let name = session.message.user.name
-	// 	let message = session.message.text
-	// 	session.delay(getRandomInt(1, 2)*1000);
-	// 	session.send('4' + name + " said "  + message)
-	// 	next();
-	// },
-	// function (session) {
-	// 	let name = session.message.user.name
-	// 	let message = session.message.text
-	// 	session.delay(getRandomInt(1, 5)*1000);
-	// 	session.send('5' + name + " said "  + message)		
-	// }
+		let reply;
+		reply = db.pullRes('global', 0, 0);
+		session.send(reply);
+	}
 ]);
 

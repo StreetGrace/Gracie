@@ -4,7 +4,6 @@ var utils = require('./../utils_dialog/utils');
 var utilsTime = require('./../utils_dialog/utils_Time');
 var utilsService = require('./../utils_dialog/utils_Service');
 var lib_router = require('./../utils_bot/IntentRouter');
-var blacklist = require('./../utils_bot/Blacklist');
 var resDB = require('./../utils_bot/QueryDB');
 
 var botLog = require('./../utils_bot/BotLogger');
@@ -25,20 +24,6 @@ lib.dialog('/', function(session, args, next){
 	catch (err) {
 		var errInfo = utils.getErrorInfo(err);
 		botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-		// resDB.queryRes('global', 0, 0, function (err, result) {
-		// 	if (err) {
-		// 	  console.log(err);
-		// 	  console.log('error pulling data');
-		// 	}
-		// 	else {
-		// 	  var reply = result.message;
-		// 	  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-		// 	  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-
-		// 	  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-		// 	  session.endConversation(reply);
-		// 	}
-		// });
 		utils.endConversation(session, 'error');
 	}
 })
@@ -96,32 +81,13 @@ lib.dialog('/intent.greeting', [
 				  data = utilsService.fillService(data);
 				  reply = `incall only in ${neighborhood} cuz i dont have license..`
 
-					setTimeout(function(){
-						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-					}, 4000);		
-        }
-      });
+				  session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
+        		}
+      		});
 		}
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-						
-			// setTimeout(function(){
-			// 	resDB.queryRes('global', 0, 0, function (err, result) {
-			// 		if (err) {
-			// 		  console.log(err);
-			// 		  console.log('error pulling data');
-			// 		}
-			// 		else {
-			// 		  var reply = result.message;
-			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-	
-			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-			// 		  session.endConversation(reply);
-			// 		}
-			// 	});
-			// }, 4000);
 			utils.endConversation(session, 'error');
 		}
 	}
@@ -148,7 +114,6 @@ lib.dialog('/intent.availability', [
 
 			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
-			// var reply = `hey ${name}..i'm ready for fun lol...`;		
 
 			resDB.queryRes('opener:/availability', 0, 0, function (err, result) {
 				if (err) {
@@ -173,7 +138,6 @@ lib.dialog('/intent.availability', [
 					reply = '';
 	
 					if (appt.location) {
-						// session.send('%j', appt.location);
 						var apptLocation = utils.getEntity('location', appt.location);
 						var neighborhood = session.userData.profile.default.neighborhood;
 						if (apptLocation['atlanta-neighborhood']) {
@@ -200,9 +164,7 @@ lib.dialog('/intent.availability', [
 							reply += `i only do incall in ${neighborhood}. dont have license.`
 						}
 						
-						setTimeout(function() {
-							session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});					
-						}, 4000);
+						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
 					}	
 					else {
 						var data = null;
@@ -211,9 +173,8 @@ lib.dialog('/intent.availability', [
 							var neighborhood = session.userData.profile.default.neighborhood;
 							reply += `i only do incall in ${neighborhood}. dont have license.`
 						}
-						setTimeout(function() {
-							session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-						}, 4000);				
+
+						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
 					}
         }
       });
@@ -222,26 +183,10 @@ lib.dialog('/intent.availability', [
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			
-		// 	setTimeout(function() {
-		// 		resDB.queryRes('global', 0, 0, function (err, result) {
-		// 			if (err) {
-		// 			  console.log(err);
-		// 			  console.log('error pulling data');
-		// 			}
-		// 			else {
-		// 			  var reply = result.message;
-		// 			  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-		// 			  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-	
-		// 			  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-		// 			  session.endConversation(reply);
-		// 			}
-		// 		}
-		// 	);
-		// }, 4000);
-		utils.endConversation(session, 'error');			
+			utils.endConversation(session, 'error');			
+		}
 	}
-}]);
+]);
 
 
 /*
@@ -276,31 +221,12 @@ lib.dialog('/intent.service_inquiry', [
 				reply += `i only do incall in ${neighborhood}. dont have license.`
 			}		
 
-			setTimeout(function() {
-				session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
-			}, 4000);
+			session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
 		}	
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-						
-			// setTimeout(function() {
-			// 	resDB.queryRes('global', 0, 0, function (err, result) {
-			// 		if (err) {
-			// 		  console.log(err);
-			// 		  console.log('error pulling data');
-			// 		}
-			// 		else {
-			// 		  var reply = result.message;
-			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-	
-			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-			// 		  session.endConversation(reply);
-			// 		}
-			// 	  }
-			// 	);
-			// }, 4000);			
+								
 			utils.endConversation(session, 'error');
 		}
 	}
@@ -367,9 +293,7 @@ lib.dialog('/intent.price_inquiry', [
 						reply += ` i only do incall in ${neighborhood}. dont have license.`
 					}
 
-					setTimeout(function() {
-						session.beginDialog('confirmService:/', {data: data, reprompt: 0, reply: reply});	
-					}, 4000);		
+					session.beginDialog('confirmService:/', {data: data, reprompt: 0, reply: reply});	
 				}
 			});
 		}
@@ -377,22 +301,6 @@ lib.dialog('/intent.price_inquiry', [
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			
-			// setTimeout(function() {
-			// 	resDB.queryRes('global', 0, 0, function (err, result) {
-			// 		if (err) {
-			// 		  console.log(err);
-			// 		  console.log('error pulling data');
-			// 		}
-			// 		else {
-			// 		  var reply = result.message;
-			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-	
-			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-			// 		  session.endConversation(reply);
-			// 		}
-			// 	});
-			// }, 4000);
 			utils.endConversation(session, 'error');
 		}
 	}
@@ -438,9 +346,7 @@ lib.dialog('/intent.location_inquiry', [
 
 					reply += ` im in ${neighborhood}, incall only cuz im not having license lol.`;
 
-					setTimeout(function() {
-						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-					}, 4000);
+					session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
 				}
 			});
 			
@@ -449,21 +355,6 @@ lib.dialog('/intent.location_inquiry', [
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			
-			// resDB.queryRes('global', 0, 0, function (err, result) {
-			// 		if (err) {
-			// 			console.log(err);
-			// 			console.log('error pulling data');
-			// 		}
-			// 		else {
-			// 			var reply = result.message;
-			// 			reply = decodeURIComponent(reply).replace(/\+/g, " ");
-			// 			reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-
-			// 			blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-			// 			session.endConversation(reply);
-			// 		}
-			// 	}
-			// );
 			utils.endConversation(session, 'error');
 		}
 	}
@@ -493,9 +384,8 @@ lib.dialog('/intent.unhandled', [
 					reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
 					session.send(reply);
 					reply = `incall only in ${neighborhood}, dont have license lol` ;
-					setTimeout(function() {
-						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-					}, 4000);		
+
+					session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
 				}
 			});				
 		}
@@ -503,22 +393,6 @@ lib.dialog('/intent.unhandled', [
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			
-			// setTimeout(function() {
-			// 	resDB.queryRes('global', 0, 0, function (err, result) {
-			// 		if (err) {
-			// 		  console.log(err);
-			// 		  console.log('error pulling data');
-			// 		}
-			// 		else {
-			// 		  var reply = result.message;
-			// 		  reply = decodeURIComponent(reply).replace(/\+/g, " ");
-			// 		  reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-	
-			// 		  blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-			// 		  session.endConversation(reply);
-			// 		}
-			// 	});
-			// }, 4000);
 			utils.endConversation(session, 'error');
 		}
 	}
