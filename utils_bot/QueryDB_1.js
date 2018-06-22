@@ -72,15 +72,25 @@ function closeDB(connection) {
 }
 
 async function pullRes(dialog, index, branch) {
-  try {
-    let res = await queryDB(dialog, index, branch);
-    return res;
-  }
-  catch (err) {
-    console.log(err.err.message);
-    return await 'error';
-  }
+  var param = {
+    table: 'dialog',
+    column: 'message',
+    dialog: dialog,
+    index: index,
+    branch: branch
+  };
+
+  var query =  `select ${param.column} from ${param.table}
+    where dialog = "${param.dialog}" \
+    and \`index\` = "${param.index}" \
+    and branch = "${param.branch}" \
+    order by rand() limit 1;`;
+    
+  var connection = await mysql.createConnection(config);
+  var reply = await connection.query(query);
+  return reply;
 }
+
 module.exports = {
   queryDB: queryDB,
   closeDB: closeDB,
