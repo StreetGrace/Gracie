@@ -30,7 +30,7 @@ var config = {
   host: "loreleierd.ciargp61tp0d.us-east-1.rds.amazonaws.com",
   user: "lorelei_master",
   password: "Gracie2018",
-  database: "lorelei_erd"
+  database: "lorelei_erds"
 };
 
 function queryDB(dialog, index, branch) {
@@ -53,7 +53,7 @@ function queryDB(dialog, index, branch) {
   return new Promise ( (resolve, reject) => {
     connection.query(query, (err, rows) => {
       if (err) {
-        return reject (err);
+        return reject ({connection: connection, err:err});
       }
       resolve ({connection: connection, rows: rows});
     })
@@ -71,15 +71,20 @@ function closeDB(connection) {
   });
 }
 
-// queryDB('global', 0, 0)
-//   .then(function (res) {
-//     console.log(parseMsg(res.rows)); 
-//     return res.connection;
-//     res.connection.end();
-//   })
-  
-moduls.exports = {
-  queryDB: queryDB
+async function pullRes(dialog, index, branch) {
+  try {
+    let res = await queryDB(dialog, index, branch);
+    return res;
+  }
+  catch (err) {
+    console.log(err.err.message);
+    return await 'error';
+  }
+}
+module.exports = {
+  queryDB: queryDB,
+  closeDB: closeDB,
+  pullRes: pullRes
 };
   // queryDB('global', 0, 0)
   // .then(function (res) {
