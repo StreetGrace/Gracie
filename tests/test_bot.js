@@ -63,9 +63,9 @@ bot.set('storage', inMemoryStorage);
 
 bot.dialog('/', [
 	function (session, args, next) {
-		let reply;
-		reply = db.pullRes('global', 0, 0);
-		session.send(reply);
+		var res = db.pullRes('global', 0, 0);
+		// session.delay(3000);
+		session.send(res[0]);
 	}
 ]);
 
