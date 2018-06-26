@@ -1,9 +1,11 @@
 'use strict';
 // let patch = require('./../utils_bot/patches');
 
-// var resDB = require('./../utils_bot/QueryDB');
 var db = require('./../utils_bot/QueryDB_1');
 var utils = require('./../utils_dialog/utils');
+
+var botLog = require('./../utils_bot/BotLogger');
+var botLogger = botLog.botLog;
 
 let restify = require('restify')
 //Include the library botbuilder
@@ -30,42 +32,83 @@ var inMemoryStorage = new builder.MemoryBotStorage();
 var bot = new builder.UniversalBot(connector, {});
 bot.set('storage', inMemoryStorage);
 
-// bot.dialog('/', [
-// 	function (session, args, next) {
-// 		let reply;
-// 		db.queryDB('global', 0, 0)
-// 			.then( res => {
-// 				reply = utils.parseMsg(res.rows);
-// 				res.connection.end();
-		
-// 				if (session.message.text == '1') {
-// 					return db.queryDB('confirmService:/', 0, 1);
-// 				}
-// 				return '';
-// 			},
-// 			err => {
-// 				err.connection.end();
-// 				throw err.err;
-// 			})
-// 			.then( function(res) {
-// 				if (res) {
-// 					reply += ' || ' + utils.parseMsg(res.rows);
-// 					res.connection.end();
-// 				}
-// 				session.send(reply);
-// 			})
-// 			.catch(err => {
-// 				console.log(err) 
-// 			}) 
-// 		// next();
-// 	}
-// ]);
-
 bot.dialog('/', [
 	function (session, args, next) {
-		var res = db.pullRes('global', 0, 0);
-		// session.delay(3000);
-		session.send(res[0]);
+		try {
+			let reply;
+			var sessionInfo = utils.getSessionInfo(session);
+
+			db.queryDB('global', 0, 0)
+				.then( res => {
+					reply = utils.parseMsg(res.rows);
+					res.connection.end();
+			
+					if (session.message.text == '1') {
+						return db.queryDB('confirmService:/', 0, 1);
+					}
+					return r;
+				}, err => {
+					err.connection.end();
+					throw (err.err);
+				})
+				.then( res => {
+					if (res) {
+						reply += ' || ' + utils.parseMsg(res.rows);
+						res.connection.end();
+					}
+					session.send(reply);
+				}, err => {
+					if (err.connection) {
+						err.connection.end();
+						throw (err.err)
+					}
+					else {
+						throw err
+					}
+				})
+				// .then(res => {
+				// 	session.beginDialog('test2');
+				// })
+				.catch(err => {
+					var errInfo = utils.getErrorInfo(err);
+					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+					session.endConversation('Error');
+				}) 			
+		}
+		catch (err) {
+			console.log('ERR: ' + err.message);
+			
+		}
 	}
 ]);
+
+bot.dialog('test', [
+	function (session, args, next) {
+		let reply = 'd2: ';
+		db.queryDB('global', 0, 0)
+			.then( res => {
+				reply += utils.parseMsg(res.rows);
+				res.connection.end();
+		
+				if (session.message.text == '1') {
+					return db.queryDB('confirmService:/', 0, 1);
+				}
+				return '';
+			},
+			err => {
+				err.connection.end();
+				throw err.err;
+			})
+			.then( function(res) {
+				if (res) {
+					reply += ' || ' + utils.parseMsg(res.rows);
+					res.connection.end();
+				}
+				session.send(reply);
+			})
+			.catch(err => {
+				console.log(err.message) 
+			}) 
+	}
+])
 

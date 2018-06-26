@@ -207,9 +207,24 @@ exports.endConversation = endConversation;
 function parseMsg (rows) {
 	var msg = rows[0].message;
 	msg = decodeURIComponent(msg).replace(/\+/g, " ");
-	msg = eval('`'+ msg.replace(/`/g,'\\`') + '`');
-  
 	return msg;
 }
 exports.parseMsg = parseMsg;
+
+function getMsg(res) {
+	var msg = parseMsg(res.rows);
+	res.connection.end();
+	return msg;
+}
+exports.getMsg = getMsg;
   
+function throwErr(err) {
+	if (err.connection) {
+		err.connection.end();
+		throw err.err;
+	}
+	else {
+		throw err
+	}
+}
+exports.throwErr = throwErr;

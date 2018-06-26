@@ -5,6 +5,7 @@ var utilsTime = require('./../utils_dialog/utils_Time');
 var utilsService = require('./../utils_dialog/utils_Service');
 var lib_router = require('./../utils_bot/IntentRouter');
 var resDB = require('./../utils_bot/QueryDB');
+var db = require('./../utils_bot/QueryDB_1');
 
 var botLog = require('./../utils_bot/BotLogger');
 var botLogger = botLog.botLog;
@@ -58,32 +59,33 @@ lib.dialog('/intent.greeting', [
 
 			var sessionInfo = utils.getSessionInfo(session);
 			botLogger.info('Start opener:/intent.greeting', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
-
-			var jonName = demo.name || '';
+			
 			var modelName = session.userData.profile.default.model;
-
+			var jonName = demo.name || '';
+			var neighborhood = session.userData.profile.default.neighborhood;
 			var reply = '';
-
-			resDB.queryRes('opener:/intent.greeting', 0, 0, function (err, result) {
-				if (err) {
-					console.log(err);
-					console.log('error pulling data');
-				}
-				else {
-					var reply_new = result.message;
-					reply_new = decodeURIComponent(reply_new).replace(/\+/g, " ");
-					reply += eval('`'+ reply_new.replace(/`/g,'\\`') + '`');
-
-				  session.send(reply);
-				  
-				  var neighborhood = session.userData.profile.default.neighborhood;
-				  var data = null;
-				  data = utilsService.fillService(data);
-				  reply = `incall only in ${neighborhood} cuz i dont have license..`
-
-				  session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-        		}
-      		});
+			var data = null;
+			data = utilsService.fillService(data);
+	
+			db.queryDB('opener:/intent.greeting', 0, 0)
+				.then( res => {
+					reply += msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+					session.send(reply);	  
+				  	return db.queryDB('opener:/intent.greeting', 1, 0);	  
+				},	err => {
+					utils.throwErr(err);
+				})
+				.then ( res => {
+					reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+					session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});					
+				}, err => {
+					utils.throwErr(err);
+				})
+				.catch (err => {
+					var errInfo = utils.getErrorInfo(err);
+					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+					utils.endConversation(session, 'error');
+				})
 		}
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);
@@ -114,6 +116,51 @@ lib.dialog('/intent.availability', [
 
 			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
+
+			var reply = '';
+			db.queryDB('opener:/availability', 0, 0)
+				.then( res => {
+					reply += utils.getMsg(res);
+					var givenTime = utilsTime.fillTime(appt['exact-time'], appt['relative-time']);
+					if (givenTime.complete || givenTime.partial) {
+						if (givenTime.time == 'now') {
+							return db.queryDB('opener:/availability', 0, 4);
+						}
+						else {
+							return db.queryDB('opener:/availability', 0, 1);
+						}
+					}
+					return '';	
+				}, err => {
+					utils.throwErr(err);
+				})
+				.then ( res => {
+					if (res) {
+						reply += '. ' + eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');;
+					}
+					session.send(reply);
+
+					if (appt.location) {
+						var apptLocation = utils.getEntity('location', appt.location);
+						var neighborhood = session.userData.profile.default.neighborhood;
+						if (apptLocation['atlanta-neighborhood']) {
+							if (apptLocation['atlanta-neighborhood'] == neighborhood) {
+								return db.queryDB('opener:/availability', 0, 2);
+							}
+							else {
+								return db.queryDB('opener:/availability', 0, 3);
+							}				
+						}	
+					}
+				}, err => {
+					utils.throwErr(err);
+				})
+				.catch( err => {
+					var errInfo = utils.getErrorInfo(err);
+					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+					
+					utils.endConversation(session, 'error');						
+				})
 
 			resDB.queryRes('opener:/availability', 0, 0, function (err, result) {
 				if (err) {

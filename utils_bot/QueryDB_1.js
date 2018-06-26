@@ -1,31 +1,5 @@
 const mysql = require('mysql');
 
-class Database {
-  constructor ( config ) {
-    this.connection = mysql.createConnection( config );
-  }
-  query( sql, args) {
-    return new Promise( ( resolve, reject) => {
-      this.connection.query( sql, args, ( err, rows ) => {
-        if ( err ) {
-          return reject (err);
-        }
-        resolve ( rows );
-      });
-    });
-  }
-  close () {
-    return new Promise ( ( resolve, reject ) => {
-      this.connection.end( err => {
-        if ( err ) {
-          return reject (err);
-        }
-        resolve ();        
-      });
-    });
-  }
-}
-
 var config = {
   host: "loreleierd.ciargp61tp0d.us-east-1.rds.amazonaws.com",
   user: "lorelei_master",
@@ -71,31 +45,9 @@ function closeDB(connection) {
   });
 }
 
-async function pullRes(dialog, index, branch) {
-  var reply = await queryDB(dialog, index, branch);
-  
-  return reply;
-}
-
-
-var test = async function () {
-  return await 'test';
-}
-
-test()
-  .then(r => {
-  return r
-})
-  .then(r => {
-    let reply = r;
-    reply += test();
-    console.log(reply);
-  });
-
 module.exports = {
   queryDB: queryDB,
   closeDB: closeDB,
-  pullRes: pullRes
 };
   // queryDB('global', 0, 0)
   // .then(function (res) {
@@ -127,3 +79,28 @@ module.exports = {
 //   .then(row => console.log(row))
 //   .then(row => database.close());
 
+// class Database {
+//   constructor ( config ) {
+//     this.connection = mysql.createConnection( config );
+//   }
+//   query( sql, args) {
+//     return new Promise( ( resolve, reject) => {
+//       this.connection.query( sql, args, ( err, rows ) => {
+//         if ( err ) {
+//           return reject (err);
+//         }
+//         resolve ( rows );
+//       });
+//     });
+//   }
+//   close () {
+//     return new Promise ( ( resolve, reject ) => {
+//       this.connection.end( err => {
+//         if ( err ) {
+//           return reject (err);
+//         }
+//         resolve ();        
+//       });
+//     });
+//   }
+// }
