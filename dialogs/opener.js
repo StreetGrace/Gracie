@@ -69,8 +69,10 @@ lib.dialog('/intent.greeting', [
 	
 			db.queryDB('opener:/intent.greeting', 0, 0)
 				.then( res => {
-					reply += msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
-					session.send(reply);	  
+					reply += eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+					session.send(reply);	 
+					reply = '';
+
 				  	return db.queryDB('opener:/intent.greeting', 1, 0);	  
 				},	err => {
 					utils.throwErr(err);
@@ -105,23 +107,38 @@ lib.dialog('/intent.greeting', [
 lib.dialog('/intent.availability', [
 	function(session, args, next){
 		try {
+			var sessionInfo = utils.getSessionInfo(session);
+			botLogger.info('Start opener:/intent.availability', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
+
 			var entities = args.intent.entities;
 			utils.fillProfile(session, 'Availability', entities);
 			
 			var appt = session.userData.profile.appointment;
 			var demo = session.userData.profile.demographic;
+			var givenTime = utilsTime.fillTime(appt['exact-time'], appt['relative-time']);
+
+			if (appt.location) {
+				var apptLocation = utils.getEntity('location', appt.location);
+			}
 	
-			var sessionInfo = utils.getSessionInfo(session);
-			botLogger.info('Start opener:/intent.availability', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
+			if (appt.service) {
+				var apptService = utils.getEntity('service', appt.service);
+				var data = utilsService.fillService(apptService);
+			}
+			else {
+				var data = null;
+				data = utilsService.fillService(data);				
+				}
 
 			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
+			var neighborhood = session.userData.profile.default.neighborhood;
 
 			var reply = '';
 			db.queryDB('opener:/availability', 0, 0)
 				.then( res => {
-					reply += utils.getMsg(res);
-					var givenTime = utilsTime.fillTime(appt['exact-time'], appt['relative-time']);
+					reply += eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+					
 					if (givenTime.complete || givenTime.partial) {
 						if (givenTime.time == 'now') {
 							return db.queryDB('opener:/availability', 0, 4);
@@ -134,15 +151,27 @@ lib.dialog('/intent.availability', [
 				}, err => {
 					utils.throwErr(err);
 				})
+				.then( res => {
+					if (res) {
+						reply += (reply ? '. ' : '') + eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+					}
+					
+					if (!givenTime.complete && !givenTime.partial && session.message.text.toLowerCase().indexOf('when') > -1) {
+						return db.queryDB('opener:/availability', 0, 4);
+					}			
+					
+					return ''		
+				}, err => {
+					utils.throwErr(err);
+				})
 				.then ( res => {
 					if (res) {
-						reply += '. ' + eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');;
-					}
+						reply += (reply ? '. ' : '') + eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');;
+					}					
 					session.send(reply);
+					reply = '';
 
 					if (appt.location) {
-						var apptLocation = utils.getEntity('location', appt.location);
-						var neighborhood = session.userData.profile.default.neighborhood;
 						if (apptLocation['atlanta-neighborhood']) {
 							if (apptLocation['atlanta-neighborhood'] == neighborhood) {
 								return db.queryDB('opener:/availability', 0, 2);
@@ -151,7 +180,28 @@ lib.dialog('/intent.availability', [
 								return db.queryDB('opener:/availability', 0, 3);
 							}				
 						}	
+						return '';
 					}
+				}, err => {
+					utils.throwErr(err);
+				})
+				.then( res=> {
+					if (res) {
+						reply = (reply ? '. ' : '') + eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');;
+					}
+					
+					if (!appt.location.length && data.inout != 'incall') {
+						return db.queryDB('opener:/availability', 0, 5);
+					}
+					return '';
+				}, err => {
+					utils.throwErr(err);
+				})
+				.then( res=> {
+					if (res) {
+						reply += (reply ? '. ' : '') + eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');;
+					}
+					session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
 				}, err => {
 					utils.throwErr(err);
 				})
@@ -161,70 +211,6 @@ lib.dialog('/intent.availability', [
 					
 					utils.endConversation(session, 'error');						
 				})
-
-			resDB.queryRes('opener:/availability', 0, 0, function (err, result) {
-				if (err) {
-					console.log(err);
-					console.log('error pulling data');
-				}
-				else {
-					var reply = result.message;
-					reply = decodeURIComponent(reply).replace(/\+/g, " ").replace('there', 'here');
-					reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-				  
-					var givenTime = utilsTime.fillTime(appt['exact-time'], appt['relative-time']);
-					if (givenTime.complete || givenTime.partial) {
-						if (givenTime.time == 'now') {
-							reply += " and i have time now. first cum first serve. "
-						}
-						else {
-							reply += " and i'm free at that time ";
-						}						
-					}
-					session.send(reply);			
-					reply = '';
-	
-					if (appt.location) {
-						var apptLocation = utils.getEntity('location', appt.location);
-						var neighborhood = session.userData.profile.default.neighborhood;
-						if (apptLocation['atlanta-neighborhood']) {
-							if (apptLocation['atlanta-neighborhood'] == neighborhood) {
-								reply += ` incall only cuz im not having license ...`
-							}
-							else {
-								reply += ` buuut incall only in ${neighborhood}, dont have license.`;
-							}				
-						}	
-					}
-			
-					if (!givenTime.complete && !givenTime.partial && session.message.text.toLowerCase().indexOf('when') > -1) {
-						reply += 'i am available today lol....'
-					}
-					
-					if (appt.service) {
-						var apptService = utils.getEntity('service', appt.service);
-						var data = utilsService.fillService(apptService);
-						var neighborhood = session.userData.profile.default.neighborhood;
-						
-						if (!appt.location.length && data.inout != 'incall') {
-							var neighborhood = session.userData.profile.default.neighborhood;
-							reply += `i only do incall in ${neighborhood}. dont have license.`
-						}
-						
-						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
-					}	
-					else {
-						var data = null;
-						data = utilsService.fillService(data);				
-						if (!appt.location.length) {
-							var neighborhood = session.userData.profile.default.neighborhood;
-							reply += `i only do incall in ${neighborhood}. dont have license.`
-						}
-
-						session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});
-					}
-        }
-      });
 		}
 		catch (err) {
 			var errInfo = utils.getErrorInfo(err);
@@ -252,23 +238,42 @@ lib.dialog('/intent.service_inquiry', [
 			var sessionInfo = utils.getSessionInfo(session);
 			botLogger.info('Start opener:/intent.service_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));				
 
-			var name = demo.name || '';
-			var modelName = session.userData.profile.default.model;
-
-			var reply = `hey ${name}.....`;
-
-			session.send(reply);
-			reply = '';
-
 			var apptService = utils.getEntity('service', appt.service);
 			var data = utilsService.fillService(apptService);
 
+			var name = demo.name || '';
+			var modelName = session.userData.profile.default.model;
 			var neighborhood = session.userData.profile.default.neighborhood;
-			if ('inout' in apptService && apptService.inout == 'outcall') {
-				reply += `i only do incall in ${neighborhood}. dont have license.`
-			}		
 
-			session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
+			var reply = '';
+
+			db.queryDB('opener:/service_inquiry', 0, 0)
+				.then( res=> {
+					reply += eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+					session.send(reply);
+					reply = '';
+
+					if ('inout' in apptService && apptService.inout == 'outcall') {
+						return db.queryDB('opener:/service_inquiry', 0, 1);
+					}
+					return '';
+				}, err => {
+					utils.throwErr(err);
+				})
+				.then( res=> {
+					if (res) {
+						reply = (reply ? '. ' : '') + eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');;
+					}
+					session.beginDialog('confirmService:/', {data: data, reply: reply, reprompt: 0});	
+				}, err => {
+					utils.throwErr(err);
+				})
+				.catch( err => {
+					var errInfo = utils.getErrorInfo(err);
+					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+					
+					utils.endConversation(session, 'error');						
+				})		
 		}	
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);

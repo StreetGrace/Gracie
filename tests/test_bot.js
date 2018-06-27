@@ -26,11 +26,20 @@ let connector = new builder.ChatConnector({
 })
 
 //When the server posts to /api/messages, make the connector listen to it.
-server.post('/api/messages', connector.listen())
+// server.post('/api/messages', connector.listen())
 
-var inMemoryStorage = new builder.MemoryBotStorage();
-var bot = new builder.UniversalBot(connector, {});
-bot.set('storage', inMemoryStorage);
+// var inMemoryStorage = new builder.MemoryBotStorage();
+// var bot = new builder.UniversalBot(connector, {});
+// bot.set('storage', inMemoryStorage);
+db.queryDB('opener:/availability', 0, 2)
+	.then( res => {
+		console.log(res.rows);
+		return res
+	})
+	.then( res => {
+		var msg = utils.getMsg(res);
+		console.log(msg);
+	})
 
 bot.dialog('/', [
 	function (session, args, next) {
@@ -42,18 +51,19 @@ bot.dialog('/', [
 				.then( res => {
 					reply = utils.parseMsg(res.rows);
 					res.connection.end();
-			
+					
+					var test2 = 'test2';
 					if (session.message.text == '1') {
 						return db.queryDB('confirmService:/', 0, 1);
 					}
-					return r;
+					return '';
 				}, err => {
 					err.connection.end();
 					throw (err.err);
 				})
 				.then( res => {
 					if (res) {
-						reply += ' || ' + utils.parseMsg(res.rows);
+						reply += ' || ' + utils.parseMsg(res.rows) + test2;
 						res.connection.end();
 					}
 					session.send(reply);

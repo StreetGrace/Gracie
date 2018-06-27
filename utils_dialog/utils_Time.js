@@ -138,7 +138,7 @@ function isNow (time_str) {
 	var time = new Date();
 	var timeEles = time_str.split(':').map(Number);
 	time.setHours(timeEles[0], timeEles[1], timeEles[2]);
-	if (time - now < 300000 && time - now > 0) {
+	if (now - time < 300000000 && now - time > 0) {
 		return true;
 	}
 	else {
