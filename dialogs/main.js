@@ -2,6 +2,7 @@ var builder = require('botbuilder');
 var apiai = require('./../utils_bot/ApiaiRecognizer');
 var utils = require('./../utils_dialog/utils');
 var resDB = require('./../utils_bot/QueryDB');
+var db = require('./../utils_bot/QueryDB_1');
 
 var botLog = require('./../utils_bot/BotLogger');
 var botLogger = botLog.botLog;
@@ -20,28 +21,25 @@ lib.dialog('/', [
 				session.beginDialog('opener:/');
 			}
 			else {
-				// session.send(args.reply);
 				var reply = args.reply || '';
 				var priceGiven = session.userData.profile.confirmation.price.priceGiven;
 				var duration = session.userData.profile.confirmation.service.duration;
 				if (!priceGiven[duration]) {
 					reply += ` donation is ${utils.priceTable[duration]}. `;
 				}
-
-				resDB.queryRes('main:/', 0, 0, function (err, result) {
-					if (err) {
-					  console.log(err);
-					  console.log('error pulling data');
-					}
-					else {
-					  var reply_new = result.message;
-					  reply_new = decodeURIComponent(reply_new).replace(/\+/g, " ");
-					  reply += ' ' + eval('`'+ reply_new.replace(/`/g,'\\`') + '`');
-	
-					  builder.Prompts.text(session, reply);
-					}
-				  }
-				);			
+				db.queryDB('main:/', 0, 0)
+					.then( res=> {
+						var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
+						builder.Prompts.text(session, reply);
+					}, err => {
+						utils.throwErr(err);
+					})
+					.catch( err => {
+						var errInfo = utils.getErrorInfo(err);
+						botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+						
+						utils.endConversation(session, 'error');						
+					})	
 			}
 		} 
 		catch (err) {

@@ -53,14 +53,14 @@ var bot = new builder.UniversalBot(connector, {});
 // bot.set('storage', memoryStorage);
 bot.set('storage', mongoStorage);
 
-bot.use({
-	botbuilder: function (session, next) {
-		myMiddleware.logIncomingMessage(session, next);
-	},
-	send: function (event, next) {
-		myMiddleware.logOutgoingMessage(event, next);
-	}
-});	
+// bot.use({
+// 	botbuilder: function (session, next) {
+// 		myMiddleware.logIncomingMessage(session, next);
+// 	},
+// 	send: function (event, next) {
+// 		myMiddleware.logOutgoingMessage(event, next);
+// 	}
+// });	
 
 bot.dialog('/', [
 	function (session, args, next){
