@@ -181,8 +181,10 @@ function endConversation(session, chat_result) {
 		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
 	};
 
-	session.send('Oops....Wait');
-
+	// if (chat_result != 'boot') {
+	// 	session.send('Oops....Wait');
+	// }
+	
 	resDB.queryRes(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch, function (err, result) {
 		if (err) {
 			console.log(err);
