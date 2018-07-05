@@ -61,12 +61,10 @@ function insert (data) {
 		.collection(options.collection)
 		.update(conditions, update, { upsert: true })
 		.then(() => {
-			// console.log('insert data complete: %j', update);
 		  database.close(true);
 		})
 		.catch(err => {
 		  database.close(true);
-		  console.log('Error updating log: ' + err.toString());
 		  throw err;
 		});
 	});
@@ -96,7 +94,6 @@ function del_msg (conversation_id) {
 		})
 		.catch(err => {
 		  database.close(true);
-		  console.log('Error deleting log: ' + err.toString());
 		  throw err;
 		});
 	});

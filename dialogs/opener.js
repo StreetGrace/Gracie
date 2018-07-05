@@ -171,8 +171,9 @@ lib.dialog('/intent.availability', [
 					reply = '';
 
 					if (appt.location) {
-						if (apptLocation['atlanta-neighborhood']) {
-							if (apptLocation['atlanta-neighborhood'] == neighborhood) {
+						var key = session.userData.profile.default.city.toLowerCase();
+						if (apptLocation[key+'-neighborhood']) {
+							if (apptLocation[key+'-neighborhood'].toLowerCase() == neighborhood.toLowerCase()) {
 								return db.queryDB('opener:/availability', 0, 2);
 							}
 							else {
@@ -252,7 +253,7 @@ lib.dialog('/intent.service_inquiry', [
 					session.send(reply);
 					reply = '';
 
-					if ('inout' in apptService && apptService.inout == 'outcall') {
+					if (!('inout' in apptService && apptService.inout == 'incall')) {
 						return db.queryDB('opener:/service_inquiry', 0, 1);
 					}
 					return '';

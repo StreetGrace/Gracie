@@ -5,7 +5,7 @@ const options = {
     ip: '18.234.8.122',
     port: '27017',
     database: 'gracie',
-    collection: 'chat_logging',
+    collection: 'chat_test_logging',
     username: 'adclaimsuser@bbdo.com',
     password: 'Bbdoatl1',
     queryString: 'gracie'
@@ -37,7 +37,6 @@ function insert(data) {
 		})
 		.catch(err => {
 		  database.close(true);
-		  console.log('Error updating log: ' + err.toString());
 		  throw err;
 		});
 	});
@@ -87,12 +86,14 @@ module.exports = {
 		};		
 
 		var now = new Date();
-		var timestamp = utils.toIsoString(now);		
-		entry.timestamp = timestamp;	
-		if (message.text) {
-			var db = insert(entry);		
-		}			
-		next();
+		setTimeout(function(){
+			var timestamp = utils.toIsoString(now);		
+			entry.timestamp = timestamp;	
+			if (message.text) {
+				var db = insert(entry);		
+			}			
+			next();
+		}, 10);
 	},
 	logBlackListedMessage: function (req, res) {
 		var entry = {

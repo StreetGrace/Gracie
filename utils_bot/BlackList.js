@@ -60,12 +60,10 @@ function insert (data) {
 		.collection(options.collection)
 		.update(conditions, update, { upsert: true })
 		.then(() => {
-			// console.log('insert data complete: %j', update);
 		  database.close(true);
 		})
 		.catch(err => {
 		  database.close(true);
-		  console.log('Error inserting user id: ' + err.toString());
 		  throw err;
 		});
 	});

@@ -9,6 +9,7 @@ var myMiddleware = require('./utils_bot/MiddlewareLogging.js');
 var botbuilder_mongo=require('botbuilder-mongodb');
 var buffer = require('./utils_bot/MessageBuffer');
 var blacklist = require('./utils_bot/Blacklist');
+var profileDB = require('./utils_bot/QueryProfile.js')
 
 var botLog = require('./utils_bot/BotLogger');
 
@@ -53,24 +54,34 @@ var bot = new builder.UniversalBot(connector, {});
 // bot.set('storage', memoryStorage);
 bot.set('storage', mongoStorage);
 
-// bot.use({
-// 	botbuilder: function (session, next) {
-// 		myMiddleware.logIncomingMessage(session, next);
-// 	},
-// 	send: function (event, next) {
-// 		myMiddleware.logOutgoingMessage(event, next);
-// 	}
-// });	
+bot.use({
+	botbuilder: function (session, next) {
+		myMiddleware.logIncomingMessage(session, next);
+	},
+	send: function (event, next) {
+		myMiddleware.logOutgoingMessage(event, next);
+	}
+});	
 
 bot.dialog('/', [
 	function (session, args, next){
-        console.log('%j', session.message);
-        var sessionInfo = utils.getSessionInfo(session);
-        botLogger.info(':/, Start', sessionInfo);
-		session.userData.profile = session.userData.profile || initialProfile;
-		try {
-			session.beginDialog('main:/', {complete_open: 0});
-		}
+        try {
+            var sessionInfo = utils.getSessionInfo(session);
+            botLogger.info(':/, Start', sessionInfo);
+            
+            session.userData.profile = session.userData.profile || initialProfile;
+    
+            profileDB.getProfile(session.message.address.user.id)
+                .then( res => {
+                    session.userData.profile.default = res;
+                    session.beginDialog('main:/', {complete_open: 0});
+                })
+                .catch( err => {
+                    var errInfo = utils.getErrorInfo(err);          
+                    botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                    utils.endConversation(session, 'error')                
+                });
+        }
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);          
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
@@ -86,8 +97,11 @@ bot.library(require('./dialogs/confirmTime').createLibrary());
 
 const initialProfile = {
 	default: {
-		model: 'Gina',
-		neighborhood: 'buckhead'
+        model: '',
+        city: '',
+        neighborhood: '',
+        age: 16,
+        gender: 'Female'
 	},
 	appointment: {
 		'exact-time': [],

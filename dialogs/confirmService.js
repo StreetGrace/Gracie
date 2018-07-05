@@ -219,7 +219,7 @@ lib.dialog('/confirmIncall', [
             }
             else {
                 session.dialogData.givenService = args.data;
-                session.dialogData.prompt = args.reprompt;
+                session.dialogData.reprompt = args.reprompt;
                 session.dialogData.stored_reprompt = args.stored_reprompt;
                 builder.Prompts.text(session, args.reply);    
             }
@@ -296,7 +296,7 @@ lib.dialog('/confirmIncall', [
                     db.queryDB('confirmService:/confirmIncall', 1, 2)
                         .then( res=> {
                             var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
-                            session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.prompt+1, stored_reprompt: session.dialogData.stored_reprompt});
+                            session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.reprompt+1, stored_reprompt: session.dialogData.stored_reprompt});
                         }, err => {
                             utils.throwErr(err);
                         })
@@ -331,7 +331,7 @@ lib.dialog('/confirmIncall', [
                     db.queryDB('confirmService:/confirmIncall', 1, 4)
                         .then( res=> {
                             var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
-                            session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.prompt+1, stored_reprompt: session.dialogData.stored_reprompt});
+                            session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.reprompt+1, stored_reprompt: session.dialogData.stored_reprompt});
                         }, err => {
                             utils.throwErr(err);
                         })
@@ -356,7 +356,7 @@ lib.dialog('/confirmRaw', [
     function (session, args, next) {
         try {
             session.dialogData.givenService = args.data;
-            session.dialogData.prompt = args.reprompt;
+            session.dialogData.reprompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;
 
             var sessionInfo = utils.getSessionInfo(session);
@@ -430,7 +430,7 @@ lib.dialog('/confirmRaw', [
                         })
                 }
                 else if (intent == 'Intent.QuestionAge') {
-                    var age = 16;
+                    var age = session.userData.profile.default.age;
                     db.queryDB('confirmService:/confirmRaw', 0, 3)
                         .then( res=> {
                             var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
@@ -449,7 +449,7 @@ lib.dialog('/confirmRaw', [
                     db.queryDB('confirmService:/confirmRaw', 0, 4)
                         .then( res=> {
                             var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
-                            session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});     
+                            session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1, stored_reprompt: session.dialogData.stored_reprompt});     
                         }, err => {
                             utils.throwErr(err);
                         })
@@ -464,7 +464,7 @@ lib.dialog('/confirmRaw', [
                     db.queryDB('confirmService:/confirmRaw', 0, 5)
                         .then( res=> {
                             var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`'); 
-                            session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});    
+                            session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1, stored_reprompt: session.dialogData.stored_reprompt});    
                         }, err => {
                             utils.throwErr(err);
                         })
@@ -490,7 +490,7 @@ lib.dialog('/confirmBDSM', [
     function (session, args, next) {
         try {
             session.dialogData.givenService = args.data;
-            session.dialogData.prompt = args.reprompt;
+            session.dialogData.reprompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;
 
             var sessionInfo = utils.getSessionInfo(session);
@@ -564,7 +564,7 @@ lib.dialog('/confirmBDSM', [
                         })	
                 }
                 else if (intent == 'Intent.QuestionAge') {
-                    var age = 16;
+                    var age = session.userData.profile.default.age;
                     db.queryDB('confirmService:/confirmBDSM', 0, 3)
                         .then( res=> {
                             var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
@@ -627,7 +627,7 @@ lib.dialog('/givePrice', [
             
             session.dialogData.queryService = args.data_inquiry;
             session.dialogData.givenService = args.data;
-            session.dialogData.prompt = args.reprompt;
+            session.dialogData.reprompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;
 
             var sessionInfo = utils.getSessionInfo(session);
@@ -785,7 +785,7 @@ lib.dialog('/underAge', [
         try {
             var givenService = args.data;
             session.dialogData.givenService = args.data;
-            session.dialogData.prompt = args.reprompt;
+            session.dialogData.reprompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;    
             
             var sessionInfo = utils.getSessionInfo(session);
@@ -813,7 +813,7 @@ lib.dialog('/underAge', [
                 botLogger.info('confirmService:/underAge, Receive Response', 
                     Object.assign({}, sessionInfo, {intent: intent, entities: entities, givenService: givenService}));                   
 
-                if (session.dialogData.prompt >= 2) {
+                if (session.dialogData.reprompt >= 2) {
                     var reply = 'time is $$ and you are wasting. not talking 2 u lol.';
                     blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
                     session.endConversation(reply);

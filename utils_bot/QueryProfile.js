@@ -23,9 +23,18 @@ function queryDB(bot_id) {
 }
 
 function getProfile(bot_id) {
-    queryDB(bot_id)
+    return queryDB(bot_id)
         .then( res=> {
-            console.log(res.rows);
+            var row = res.rows[0];
+            var profile = {
+              model: row.model_name,
+              city: row.model_city,
+              neighborhood: row.model_location,
+              age: row.model_age,
+              gender: row.model_gender
+            };
+            res.connection.end();
+            return profile
         }, err => {
             if (err.connection) {
                 err.connection.end();
@@ -37,7 +46,7 @@ function getProfile(bot_id) {
         })
 }
 
-getProfile('default_user');
+getProfile('default-user');
 module.exports = {
-  getPrfile: getProfile,
+  getProfile: getProfile,
 };

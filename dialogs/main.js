@@ -25,11 +25,11 @@ lib.dialog('/', [
 				var priceGiven = session.userData.profile.confirmation.price.priceGiven;
 				var duration = session.userData.profile.confirmation.service.duration;
 				if (!priceGiven[duration]) {
-					reply += ` donation is ${utils.priceTable[duration]}. `;
+					reply +=  (reply ? '. ' : '') + ` donation is ${utils.priceTable[duration]}. `;
 				}
 				db.queryDB('main:/', 0, 0)
 					.then( res=> {
-						var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
+						reply +=  (reply ? '. ' : '') + eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
 						builder.Prompts.text(session, reply);
 					}, err => {
 						utils.throwErr(err);

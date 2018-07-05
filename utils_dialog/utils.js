@@ -54,7 +54,7 @@ const entityCategory = {
 	'exact-time': ['date', 'time', 'time-period', 'date-period'],
 	'relative-time': ['time-relative', 'date', 'time', 'time-period', 'date-period', 'duration'],
 	service: ['service-in-out', 'service-duration', 'service_addon', 'service-cardate', 'service-booking'],
-	location: ['atlanta-neighborhood']
+	location: ['atlanta-neighborhood', 'chattanooga-neighborhood']
 };
 
 function getEntity (entity_type, response) {
@@ -181,7 +181,7 @@ function endConversation(session, chat_result) {
 		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
 	};
 
-	session.send('Oops....Wait');
+	// session.send('Oops....Wait');
 
 	resDB.queryRes(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch, function (err, result) {
 		if (err) {
@@ -228,3 +228,4 @@ function throwErr(err) {
 	}
 }
 exports.throwErr = throwErr;
+
