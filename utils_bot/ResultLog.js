@@ -1,4 +1,5 @@
 var mongodb = require("mongodb");
+var utils = require("./../utils_dialog/utils_Time");
 
 const options = {
 	ip: '18.234.8.122',
@@ -40,11 +41,15 @@ function insert (data) {
 	var conditions = {
 		'user_id': data.user_id
 	};
+
+	var now = new Date();
+	var timestamp = utils.toIsoString(now);		
 	var update = {
 		'$set': { 
 			'user_id': data.user_id,
 			'user_name': data.user_name,
-			'result': data.result
+			'result': data.result,
+			'timestamp': timestamp
 		} 
 	};	
 	var connectOptions = {};
