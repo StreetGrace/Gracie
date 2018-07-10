@@ -5,7 +5,7 @@ const options = {
     ip: '18.234.8.122',
     port: '27017',
     database: 'gracie',
-    collection: 'chat_test_logging',
+    collection: 'chat_logging',
     username: 'adclaimsuser@bbdo.com',
     password: 'Bbdoatl1',
     queryString: 'gracie'
