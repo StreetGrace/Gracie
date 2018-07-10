@@ -184,27 +184,11 @@ function endConversation(session, chat_result) {
 		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
 	};
 
-<<<<<<< HEAD
-	// if (chat_result != 'boot') {
-	// 	session.send('Oops....Wait');
-	// }
-	
-	resDB.queryRes(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch, function (err, result) {
-		if (err) {
-			console.log(err);
-			console.log('error pulling data');
-		}
-		else {
-			var reply = result.message;
-			reply = decodeURIComponent(reply).replace(/\+/g, " ");
-			reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-=======
 	var sessionInfo = getSessionInfo(session);
 	botLogger.info('End Conversation', sessionInfo);
 
 	db.queryDB(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch)
 		.then( res => {
->>>>>>> develop
 
 			var reply = eval('`'+ getMsg(res).replace(/`/g,'\\`') + '`');  
 			return reply;
