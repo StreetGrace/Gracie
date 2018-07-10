@@ -4,6 +4,7 @@ var utils = require('./../utils_dialog/utils');
 var utilsService = require('./../utils_dialog/utils_Service');
 var blacklist = require('./../utils_bot/Blacklist');
 var resDB = require('./../utils_bot/QueryDB');
+var db = require('./../utils_bot/QueryDB_1');
 var _ = require('underscore');
 
 var botLog = require('./../utils_bot/BotLogger');
@@ -28,21 +29,19 @@ lib.dialog('/', [
                 session.userData.profile.confirmation.service.addon = args.data.addon;	
                 session.userData.profile.confirmation.service.complete = 1;
 
-                if (args.reply) {
-                    session.send(reply);
-                }
-                resDB.queryRes('confirmService:/', 0, 1, function (err, result) {
-                    if (err) {
-                        console.log(err);
-                        console.log('error pulling data');
-                    }
-                    else {
-                        var reply = result.message;
-                        reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                        reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                        session.replaceDialog('main:/', {reply: reply, complete_open: 1});            
-                    }
-                });
+                db.queryDB('confirmService:/', 0, 1)
+				.then( res=> {
+                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                    session.replaceDialog('main:/', {reply: reply, complete_open: 1}); 
+				}, err => {
+					utils.throwErr(err);
+				})
+				.catch( err => {
+					var errInfo = utils.getErrorInfo(err);
+					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+					
+					utils.endConversation(session, 'error');						
+                })
             }
             else if (args.reprompt >= 2) {
                 utils.endConversation(session, 'boot');
@@ -52,113 +51,97 @@ lib.dialog('/', [
             }
             else if (args.data.has_addon && args.data.flag_addon) {
                 if (args.data.addon == 'raw') {
-                    resDB.queryRes('confirmService:/', 0, 2, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ").replace('14', '16');
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.beginDialog('/confirmRaw', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
-                        }
-                    });
+                    db.queryDB('confirmService:/', 0, 2)
+                    .then( res=> {
+                        var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`').replace('14', '16');
+                        session.beginDialog('/confirmRaw', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
+                    }, err => {
+                        utils.throwErr(err);
+                    })
+                    .catch( err => {
+                        var errInfo = utils.getErrorInfo(err);
+                        botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                        
+                        utils.endConversation(session, 'error');						
+                    })
                 }
                 else if (args.data.addon == 'bdsm') {
-                    resDB.queryRes('confirmService:/', 0, 3, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.beginDialog('/confirmBDSM', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
-                        }
-                    });
+                    db.queryDB('confirmService:/', 0, 3)
+                    .then( res=> {
+                        var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                        session.beginDialog('/confirmBDSM', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
+                    }, err => {
+                        utils.throwErr(err);
+                    })
+                    .catch( err => {
+                        var errInfo = utils.getErrorInfo(err);
+                        botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                        
+                        utils.endConversation(session, 'error');						
+                    })
                 }
                 else if (args.data.addon == 'girlfriend experience') {
-                    resDB.queryRes('confirmService:/', 0, 4, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.dialogData.givenService.flag_addon = 0;
-                            builder.Prompts.text(session, reply); 
-                        }
-                    });
+                    db.queryDB('confirmService:/', 0, 4)
+                    .then( res=> {
+                        var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                        session.dialogData.givenService.flag_addon = 0;
+                        builder.Prompts.text(session, reply); 
+                    }, err => {
+                        utils.throwErr(err);
+                    })
+                    .catch( err => {
+                        var errInfo = utils.getErrorInfo(err);
+                        botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                        
+                        utils.endConversation(session, 'error');						
+                    })
                 } 
                 else {
-                    resDB.queryRes('confirmService:/', 0, 5, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.dialogData.givenService.flag_addon = 0;
-                            builder.Prompts.text(session, reply); 
-                        }
-                    });
+                    db.queryDB('confirmService:/', 0, 5)
+                    .then( res=> {
+                        var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                        session.dialogData.givenService.flag_addon = 0;
+                        builder.Prompts.text(session, reply); 
+                    }, err => {
+                        utils.throwErr(err);
+                    })
+                    .catch( err => {
+                        var errInfo = utils.getErrorInfo(err);
+                        botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                        
+                        utils.endConversation(session, 'error');						
+                    })
                 }
             }
+            else if (args.data.has_inout && !args.data.has_duration) {
+                db.queryDB('confirmService:/', 0, 6)
+                .then( res=> {
+                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                    builder.Prompts.text(session, reply); 
+                }, err => {
+                    utils.throwErr(err);
+                })
+                .catch( err => {
+                    var errInfo = utils.getErrorInfo(err);
+                    botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                    
+                    utils.endConversation(session, 'error');						
+                })
+            }
             else {
-                if (args.data.has_inout && !args.data.has_duration) {
-                    if (reply) {
-                        resDB.queryRes('confirmService:/', 0, 6, function (err, result) {
-                            if (err) {
-                                console.log(err);
-                                console.log('error pulling data');
-                            }
-                            else {
-                                var reply_new = result.message;
-                                reply_new = decodeURIComponent(reply_new).replace(/\+/g, " ");
-                                reply += ' ' + eval('`'+ reply_new.replace(/`/g,'\\`') + '`');
-                                builder.Prompts.text(session, reply);    
-                            }
-                        });
-                    }
-                    else if (args.reply){
-                        resDB.queryRes('confirmService:/', 0, 6, function (err, result) {
-                            if (err) {
-                                console.log(err);
-                                console.log('error pulling data');
-                            }
-                            else {
-                                var reply = result.message;
-                                reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                                reply = args.reply + ' ' + eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                                builder.Prompts.text(session, reply);    
-                            }
-                        });
-                    }
-                    else {
-                        resDB.queryRes('confirmService:/', 0, 6, function (err, result) {
-                            if (err) {
-                                console.log(err);
-                                console.log('error pulling data');
-                            }
-                            else {
-                                var reply = result.message;
-                                reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                                reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                                builder.Prompts.text(session, reply);    
-                            }
-                        });                        
-                    }
-                } 
-                else {
-                    var reply = 'huh? what?'
-                    builder.Prompts.text(session, reply);
-                }           
+                db.queryDB('confirmService:/', 1, 0)
+                    .then( res=> {
+                        var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');                    
+                        builder.Prompts.text(session, reply);
+                    }, err => {
+                        utils.throwErr(err);
+                    })
+                    .catch( err => {
+                        var errInfo = utils.getErrorInfo(err);
+                        botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                        
+                        utils.endConversation(session, 'error');						
+                    })	
             }
         }
         catch (err) {
@@ -200,18 +183,19 @@ lib.dialog('/', [
                     session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.reprompt+1});
                 }
                 else {
-                    resDB.queryRes('confirmService:/', 1, 0, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                    db.queryDB('confirmService:/', 1, 0)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');                                 
                             session.replaceDialog('/', {data: session.dialogData.givenService, reprompt: session.dialogData.reprompt+1, reply: reply});
-                        }
-                    });
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })	         
                 }
             });  
         }
@@ -235,7 +219,7 @@ lib.dialog('/confirmIncall', [
             }
             else {
                 session.dialogData.givenService = args.data;
-                session.dialogData.prompt = args.reprompt;
+                session.dialogData.reprompt = args.reprompt;
                 session.dialogData.stored_reprompt = args.stored_reprompt;
                 builder.Prompts.text(session, args.reply);    
             }
@@ -271,88 +255,92 @@ lib.dialog('/confirmIncall', [
                     Object.assign({}, sessionInfo, {intent: intent, entities: entities, givenService: givenService, givenService_new: givenService_new})); 
 
                 if (intent == 'Intent.Confirmation_Yes') {
-                    resDB.queryRes('confirmService:/confirmIncall', 1, 0, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                    db.queryDB('confirmService:/confirmIncall', 1, 0)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');     
                             session.userData.profile.confirmation.service.inout = 'incall';	
                             givenService.inout = 'incall';
                             givenService = utilsService.updateService(givenService, givenService);
                             givenService.flag_rejectOut = 0;
                             session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
-                        }
-                    });
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })   
                 }
                 else if (intent == 'Intent.Offer_Transportation') {
-                    resDB.queryRes('confirmService:/confirmIncall', 1, 1, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            
+                    db.queryDB('confirmService:/confirmIncall', 1, 1)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
                             session.userData.profile.confirmation.service.inout = 'outcall';
                             givenService.inout = 'outcall';
                             givenService = utilsService.updateService(givenService, givenService);
                             givenService.flag_rejectOut = 0;
                             session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
-                        }
-                    });
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })      
                 }     
                 else if (service && givenService_new.inout == 'outcall') {
-                    resDB.queryRes('confirmService:/confirmIncall', 1, 2, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.prompt+1, stored_reprompt: session.dialogData.stored_reprompt});
-                        }
-                    });
+                    db.queryDB('confirmService:/confirmIncall', 1, 2)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
+                            session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.reprompt+1, stored_reprompt: session.dialogData.stored_reprompt});
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })
                 }
                 else if (service && givenService_new.inout == 'incall') {
                     session.userData.profile.confirmation.service.inout = 'incall';	
                     givenService.inout = 'incall';
                     givenService = utilsService.updateService(givenService, givenService);
                     givenService.flag_rejectOut = 0;
-                    // session.send('%j', givenService);
-                    resDB.queryRes('confirmService:/confirmIncall', 1, 3, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
-                        }
-                    });
+                    
+                    db.queryDB('confirmService:/confirmIncall', 1, 3)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`'); 
+                            session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt}); 
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })
                 }
                 else {
-                    resDB.queryRes('confirmService:/confirmIncall', 1, 4, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.prompt+1, stored_reprompt: session.dialogData.stored_reprompt});
-                        }
-                    });
+                    db.queryDB('confirmService:/confirmIncall', 1, 4)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
+                            session.replaceDialog('/confirmIncall', {data: givenService, reply: reply, reprompt: session.dialogData.reprompt+1, stored_reprompt: session.dialogData.stored_reprompt});
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })
                 }  
            });  
         }
@@ -368,7 +356,7 @@ lib.dialog('/confirmRaw', [
     function (session, args, next) {
         try {
             session.dialogData.givenService = args.data;
-            session.dialogData.prompt = args.reprompt;
+            session.dialogData.reprompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;
 
             var sessionInfo = utils.getSessionInfo(session);
@@ -410,77 +398,82 @@ lib.dialog('/confirmRaw', [
                     Object.assign({}, sessionInfo, {intent: intent, entities: entities, givenService: givenService, givenService_new: givenService_new}));
 
                 if (intent == 'Intent.Confirmation_Yes') {
-                    resDB.queryRes('confirmService:/confirmRaw', 0, 1, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                    db.queryDB('confirmService:/confirmRaw', 0, 1)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
                             session.dialogData.givenService.flag_addon = 0;
-                        session.replaceDialog('/', {data: session.dialogData.givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
-                        }
-                    });
+                            session.replaceDialog('/', {data: session.dialogData.givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })	
                 }
                 else if (intent == 'Intent.Pregnant') {
-                    resDB.queryRes('confirmService:/confirmRaw', 0, 2, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                    db.queryDB()
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
                             session.dialogData.givenService.flag_addon = 0;
                             session.replaceDialog('/', {data: session.dialogData.givenService, reply:reply, reprompt:session.dialogData.stored_reprompt}); 
-                        }
-                    });
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })
                 }
                 else if (intent == 'Intent.QuestionAge') {
-                    var age = 16;
-                    resDB.queryRes('confirmService:/confirmRaw', 0, 3, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                    var age = session.userData.profile.default.age;
+                    db.queryDB('confirmService:/confirmRaw', 0, 3)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
                             session.replaceDialog('/underAge', {data: session.dialogData.givenService, reply:reply, stored_reprompt:session.dialogData.stored_reprompt, reprompt:0});
-                        }
-                    });
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })	                    
                 }
                 else if (service && givenService_new.addon == 'raw') {
-                    resDB.queryRes('confirmService:/confirmRaw', 0, 4, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                 
-                        }
-                    });
+                    db.queryDB('confirmService:/confirmRaw', 0, 4)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
+                            session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1, stored_reprompt: session.dialogData.stored_reprompt});     
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })	
                 }
                 else {
-                    resDB.queryRes('confirmService:/confirmRaw', 0, 5, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                          
-                        }
-                    });
+                    db.queryDB('confirmService:/confirmRaw', 0, 5)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`'); 
+                            session.replaceDialog('/confirmRaw', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1, stored_reprompt: session.dialogData.stored_reprompt});    
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })	
                 }
             })
         }
@@ -497,7 +490,7 @@ lib.dialog('/confirmBDSM', [
     function (session, args, next) {
         try {
             session.dialogData.givenService = args.data;
-            session.dialogData.prompt = args.reprompt;
+            session.dialogData.reprompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;
 
             var sessionInfo = utils.getSessionInfo(session);
@@ -539,81 +532,82 @@ lib.dialog('/confirmBDSM', [
                     Object.assign({}, sessionInfo, {intent: intent, entities: entities, givenService: givenService, givenService_new: givenService_new}));
 
                 if (intent == 'Intent.Confirmation_No') {
-                    resDB.queryRes('confirmService:/confirmBDSM', 0, 1, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                    db.queryDB('confirmService:/confirmBDSM', 0, 1)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
                             session.dialogData.givenService.flag_addon = 0;
                             session.replaceDialog('/', {data: session.dialogData.givenService, reply:reply, reprompt:session.dialogData.stored_reprompt});
-        
-                        }
-                    });
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })
                 }
                 else if (intent == 'Intent.Ensure') {
-                    resDB.queryRes('confirmService:/confirmBDSM', 0, 2, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                    db.queryDB('confirmService:/confirmBDSM', 0, 2)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
                             session.dialogData.givenService.flag_addon = 0;
                             session.replaceDialog('/', {data: session.dialogData.givenService, reply:reply, reprompt:session.dialogData.stored_reprompt}); 
-        
-                        }
-                    });                    
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })	
                 }
                 else if (intent == 'Intent.QuestionAge') {
-                    var age = 16;
-                    resDB.queryRes('confirmService:/confirmBDSM', 0, 3, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                    var age = session.userData.profile.default.age;
+                    db.queryDB('confirmService:/confirmBDSM', 0, 3)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
                             session.replaceDialog('/underAge', {data: session.dialogData.givenService, reply:reply, stored_reprompt:session.dialogData.stored_reprompt, reprompt:0});
-                        }
-                    });
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })
                 }
                 else if (service && givenService_new.addon == 'bdsm') {
-                    resDB.queryRes('confirmService:/confirmBDSM', 0, 4, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.replaceDialog('/confirmBDSM', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                 
-                        }
-                    });
-                    
-                    
+                    db.queryDB('confirmService:/confirmBDSM', 0, 4)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
+                            session.replaceDialog('/confirmBDSM', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});    
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })                    
                 }
                 else {
-                    resDB.queryRes('confirmService:/confirmBDSM', 0, 5, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
-                            session.replaceDialog('/confirmBDSM', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});                          
-                        }
-                    });
+                    db.queryDB('confirmService:/confirmBDSM', 0, 5)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
+                            session.replaceDialog('/confirmBDSM', {data: givenService, reply:reply, reprompt:session.dialogData.reprompt+1});       
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })
                 }
             })
         }
@@ -633,7 +627,7 @@ lib.dialog('/givePrice', [
             
             session.dialogData.queryService = args.data_inquiry;
             session.dialogData.givenService = args.data;
-            session.dialogData.prompt = args.reprompt;
+            session.dialogData.reprompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;
 
             var sessionInfo = utils.getSessionInfo(session);
@@ -725,36 +719,38 @@ lib.dialog('/givePrice', [
                     Object.assign({}, sessionInfo, {intent: intent, entities: entities, givenService: givenService, givenService_new: givenService_new}));                 
                 
                 if (intent == 'Intent.Confirmation_Yes') {
-                    resDB.queryRes('confirmService:/givePrice', 1, 0, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                            console.log('error pulling data');
-                        }
-                        else {
-                            var reply = result.message;
-                            reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                            reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                    db.queryDB('confirmService:/givePrice', 1, 0)
+                        .then( res=> {
+                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
                             session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
-                        }
-                    });
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error');						
+                        })                    
                 }
                 else if (intent == 'Intent.Price_Inquiry') {
                     session.replaceDialog('/givePrice', {data: givenService, data_inquiry: givenService_new, reply: '', stored_reprompt: session.dialogData.stored_reprompt, reprompt: session.dialogData.reprompt+1});
                 }
                 else if (givenService_new) {
                     if (_.isEqual(givenService, session.dialogData.givenService)) {
-                        resDB.queryRes('confirmService:/givePrice', 1, 1, function (err, result) {
-                            if (err) {
-                                console.log(err);
-                                console.log('error pulling data');
-                            }
-                            else {
-                                var reply = result.message;
-                                reply = decodeURIComponent(reply).replace(/\+/g, " ");
-                                reply = eval('`'+ reply.replace(/`/g,'\\`') + '`');
+                        db.queryDB('confirmService:/givePrice', 1, 1)
+                            .then( res=> {
+                                var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
                                 session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
-                            }
-                        });
+                            }, err => {
+                                utils.throwErr(err);
+                            })
+                            .catch( err => {
+                                var errInfo = utils.getErrorInfo(err);
+                                botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                                
+                                utils.endConversation(session, 'error');						
+                            })	                        
                     }
                     else {
                         var priceGiven = session.userData.profile.confirmation.price.priceGiven;
@@ -789,7 +785,7 @@ lib.dialog('/underAge', [
         try {
             var givenService = args.data;
             session.dialogData.givenService = args.data;
-            session.dialogData.prompt = args.reprompt;
+            session.dialogData.reprompt = args.reprompt;
             session.dialogData.stored_reprompt = args.stored_reprompt;    
             
             var sessionInfo = utils.getSessionInfo(session);
@@ -817,7 +813,7 @@ lib.dialog('/underAge', [
                 botLogger.info('confirmService:/underAge, Receive Response', 
                     Object.assign({}, sessionInfo, {intent: intent, entities: entities, givenService: givenService}));                   
 
-                if (session.dialogData.prompt >= 2) {
+                if (session.dialogData.reprompt >= 2) {
                     var reply = 'time is $$ and you are wasting. not talking 2 u lol.';
                     blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
                     session.endConversation(reply);

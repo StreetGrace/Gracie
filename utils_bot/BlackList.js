@@ -1,4 +1,5 @@
 var mongodb = require("mongodb");
+var utils = require("./../utils_dialog/utils_Time");
 
 const options = {
 	ip: '18.234.8.122',
@@ -40,10 +41,15 @@ function insert (data) {
 	var conditions = {
 		'user_id': data.user_id
 	};
+
+	var now = new Date();
+	var timestamp = utils.toIsoString(now);		
+
 	var update = {
 		'$set': { 
 			'user_id': data.user_id,
-			'user_name': data.user_name
+			'user_name': data.user_name,
+			'timestamp': timestamp
 		} 
 	};	
 	var connectOptions = {};
@@ -60,12 +66,10 @@ function insert (data) {
 		.collection(options.collection)
 		.update(conditions, update, { upsert: true })
 		.then(() => {
-			// console.log('insert data complete: %j', update);
 		  database.close(true);
 		})
 		.catch(err => {
 		  database.close(true);
-		  console.log('Error inserting user id: ' + err.toString());
 		  throw err;
 		});
 	});
