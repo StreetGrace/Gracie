@@ -61,7 +61,7 @@ lib.dialog('/', [
             }
             else {
                 var givenTime_new = utilsTime.fillTime(exactTime, relativeTime);     
-                console.log('New givenTime: %j', givenTime_new);
+                // console.log('New givenTime: %j', givenTime_new);
                 session.send('Newly Accepted Time input: %j', givenTime_new);
                 if (givenTime && givenTime.date && givenTime.date != 'today' && (!exactTime || !exactTime.date)) {
                     givenTime_new.date = givenTime.date;

@@ -104,7 +104,7 @@ function parseDate (date_str) {
 		var dateEles = date_str.split('-').map(Number);
 		date.setFullYear(dateEles[0], dateEles[1] - 1, dateEles[2]);
 		var dateDelta = (date - now)/1000/3600/24;
-		console.log(dateDelta);
+		// console.log(dateDelta);
 		if (dateDelta >= 1 && dateDelta < 2) {
 			date_parsed = 'tomorrow';
 		}

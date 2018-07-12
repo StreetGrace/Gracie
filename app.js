@@ -156,7 +156,7 @@ function concatMsg () {
                     if (result) {
                         req.body.text = result.msg + ' ' + req.body.text;
                     }
-                    console.log('Text: %j', req.body);
+                    // console.log('Text: %j', req.body);
                     data = {
                         conversation_id: req.body.conversation.id,
                         msg: req.body.text,
@@ -214,9 +214,7 @@ function filteruser () {
                     blacklist.find(req.body.from.id, function (result) {
                         if (result) {
                             res.status(202);
-                            myMiddleware.logBlackListedMessage(req, res);
-                            // console.log('%j', utl.inspect(req));
-                            // res.end();                           
+                            myMiddleware.logBlackListedMessage(req, res);                      
                         }
                         else {
                             next();
