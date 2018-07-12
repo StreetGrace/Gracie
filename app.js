@@ -39,11 +39,11 @@ server.post('/api/messages', [
 const mongoOptions = {
     ip: '18.234.8.122',
     port: '27017',
-    database: 'gracie',
+    database: 'test',
     collection: 'state_data',
     username: 'adclaimsuser@bbdo.com',
     password: 'Bbdoatl1',
-    queryString: 'gracie'
+    queryString: 'test'
 }
 
 // Set State Data Storage to MongoDB

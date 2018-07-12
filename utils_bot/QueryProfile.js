@@ -17,6 +17,7 @@ function queryDB(bot_id) {
       if (err) {
         return reject ({connection: connection, err:err});
       }
+      // console.log('%j', rows[0]);
       resolve ({connection: connection, rows: rows});
     })
   });
@@ -24,7 +25,7 @@ function queryDB(bot_id) {
 
 function getProfile(bot_id) {
     return queryDB(bot_id)
-        .then( res=> {
+        .then( res => {
             var row = res.rows[0];
             var profile = {
               model: row.model_name,
@@ -46,7 +47,12 @@ function getProfile(bot_id) {
         })
 }
 
-getProfile('default-user');
-module.exports = {
-  getProfile: getProfile,
-};
+// getProfile('default-user');
+// module.exports = {
+//   getProfile: getProfile,
+// };
+
+getProfile('+14232502508')
+  .then( res=> {
+    console.log('%j', res);
+  });
