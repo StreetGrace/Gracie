@@ -71,7 +71,7 @@ bot.dialog('/', [
             
             session.userData.profile = session.userData.profile || initialProfile;
     
-            profileDB.getProfile(session.message.address.user.id)
+            profileDB.getProfile(session.message.address.bot.id)
                 .then( res => {
                     session.userData.profile.default = res;
                     session.beginDialog('main:/', {complete_open: 0});

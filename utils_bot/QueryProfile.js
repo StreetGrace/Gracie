@@ -18,7 +18,6 @@ function queryDB(bot_id) {
       if (err) {
         return reject ({connection: connection, err:err});
       }
-      botLogger.info('queryProfile', {bot_id: bot_id, rows: rows});
       resolve ({connection: connection, rows: rows});
     })
   });
@@ -28,7 +27,6 @@ function getProfile(bot_id) {
     return queryDB(bot_id)
         .then( res=> {
             var row = res.rows[0];
-            botLogger.info('returnProfile', {row: row});
             var profile = {
               model: row.model_name,
               city: row.model_city,
