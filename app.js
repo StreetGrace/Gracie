@@ -147,14 +147,14 @@ function concatMsg () {
     return function (req, res, next) {
         try {
             if (req.body.type != 'message') {
-                botLog.info('concatMsg: not message', {body: req.body});
+                botLogger.info('concatMsg: not message', {body: req.body});
                 next();
                 
             }
             else {
                 var time_stored;
                 var time_received = new Date().getTime();    
-                botLog.info('concatMsg: message', {req: req, time_received: time_received});
+                botLogger.info('concatMsg: message', {req: req, time_received: time_received});
                 buffer.find(req.body.conversation.id, function (result) {
                     if (result) {
                         req.body.text = result.msg + ' ' + req.body.text;
@@ -168,7 +168,7 @@ function concatMsg () {
                 });     
                 setTimeout(function () {
                     var now = new Date().getTime();
-                    botLog.info('concatmsg: Timeout', {now: now, time_received: time_received, req:req});
+                    botLogger.info('concatmsg: Timeout', {now: now, time_received: time_received, req:req});
                     buffer.find(req.body.conversation.id, function (result) {
                         if (result && result.timestamp) {
                             time_stored = result.timestamp;
@@ -203,7 +203,7 @@ function filteruser () {
     // now = new Date();
     return function (req, res, next) {
         if (req.body) {
-            botLog.info('filterUser: found body', {body: req.body});
+            botLogger.info('filterUser: found body', {body: req.body});
             next();
         }
         else {
@@ -220,7 +220,7 @@ function filteruser () {
                             myMiddleware.logBlackListedMessage(req, res);                      
                         }
                         else {
-                            botLog.info('filterUser: chunk end', {body: req.body});
+                            botLogger.info('filterUser: chunk end', {body: req.body});
                             next();
                         }
                     })         
