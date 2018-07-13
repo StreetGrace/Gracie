@@ -216,10 +216,11 @@ function filteruser () {
                     req.body = JSON.parse(requestData);
                     blacklist.find(req.body.from.id, function (result) {
                         if (result) {
-                            res.status(202);
+                            res.status(202).send(202);
                             myMiddleware.logBlackListedMessage(req, res);                      
                         }
                         else {
+                            res.status(202).send(202);
                             botLogger.info('filterUser: chunk end', {body: req.body});
                             next();
                         }
