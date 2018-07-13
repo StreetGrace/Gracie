@@ -1,13 +1,9 @@
 const mysql = require('mysql');
 var botLog = require('./BotLogger');
 var botLogger = botLog.botLog;
+var connConfig = require('./../config').config;
 
-var config = {
-  host: "loreleierd.ciargp61tp0d.us-east-1.rds.amazonaws.com",
-  user: "lorelei_master",
-  password: "Gracie2018",
-  database: "lorelei_erd"
-};
+var config = connConfig.responseConn;
 
 function queryDB(bot_id) {
   var connection = mysql.createConnection(config);

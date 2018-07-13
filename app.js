@@ -12,6 +12,7 @@ var blacklist = require('./utils_bot/Blacklist');
 var profileDB = require('./utils_bot/QueryProfile.js')
 
 var botLog = require('./utils_bot/BotLogger');
+var config = require('config').config;
 
 //Setup Logger
 var botLogger = botLog.botLog;
@@ -36,16 +37,7 @@ server.post('/api/messages', [
     concatMsg(), 
     connector.listen()]);
 
-const mongoOptions = {
-    ip: '18.234.8.122',
-    port: '27017',
-    database: 'test',
-    collection: 'state_data',
-    username: 'adclaimsuser@bbdo.com',
-    password: 'Bbdoatl1',
-    queryString: 'test'
-}
-
+const mongoOptions = config.stateConn;
 // Set State Data Storage to MongoDB
 mongoStorage=botbuilder_mongo.GetMongoDBLayer(mongoOptions)
 

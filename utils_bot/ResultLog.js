@@ -1,15 +1,8 @@
 var mongodb = require("mongodb");
 var utils = require("./../utils_dialog/utils_Time");
+var connConfig = require('./../config').config;
 
-const options = {
-	ip: '18.234.8.122',
-	port: '27017',
-	database: 'gracie',
-	collection: 'result_logging',
-	username: 'adclaimsuser@bbdo.com',
-	password: 'Bbdoatl1',
-	queryString: 'gracie'
-}
+const options = connConfig.resultConn;
 
 function find (user_id, cb) {
     var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
