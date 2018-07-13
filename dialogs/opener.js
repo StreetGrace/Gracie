@@ -317,7 +317,7 @@ lib.dialog('/intent.price_inquiry', [
 	
 					if (data) {
 						if (!session.userData.profile.confirmation.price.priceListGiven) {
-							reply += ' donations are 100 for HH, 150 for H. ';
+							reply += ' donations are 80 for HH, 120 for H. ';
 							session.userData.profile.confirmation.price.priceListGiven = 1;
 							session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
 							session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;

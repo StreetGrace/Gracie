@@ -640,7 +640,7 @@ lib.dialog('/givePrice', [
                 var reply = '';
                 if (inquiryService) {
                     if (!session.userData.profile.confirmation.price.priceListGiven) {
-                        reply += 'donations are 100 for HH, 150 for H. ';
+                        reply += 'donations are 80 for HH, 120 for H. ';
                         session.userData.profile.confirmation.price.priceListGiven = 1;
                         session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
                         session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
@@ -674,13 +674,13 @@ lib.dialog('/givePrice', [
                     }
                     else {
                         if (!session.userData.profile.confirmation.price.priceListGiven) {
-                            reply += 'donations are 100 for HH, 150 for H. ';
+                            reply += 'donations are 80 for HH, 120 for H. ';
                             session.userData.profile.confirmation.price.priceListGiven = 1;
                             session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
                             session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
                         }
                         else {
-                            reply += '100 for HH, 150 for H, fetish things 50 extra. didnt i tell you already';
+                            reply += '80 for HH, 120 for H, fetish things 50 extra. didnt i tell you already';
                             session.userData.profile.confirmation.price.priceGiven.addon = 1;
                         }
             
