@@ -39,11 +39,11 @@ server.post('/api/messages', [
 const mongoOptions = {
     ip: '18.234.8.122',
     port: '27017',
-    database: 'test',
+    database: 'gracie',
     collection: 'state_data',
     username: 'adclaimsuser@bbdo.com',
     password: 'Bbdoatl1',
-    queryString: 'test'
+    queryString: 'gracie'
 }
 
 // Set State Data Storage to MongoDB
@@ -143,18 +143,17 @@ const initialProfile = {
 };
 
 function concatMsg () {
-    // now = new Date();
     return function (req, res, next) {
         try {
             if (req.body.type != 'message') {
-                botLogger.info('concatMsg: not message', {body: req.body});
+                // botLogger.info('concatMsg: not message', {body: req.body});
                 next();
                 
             }
             else {
                 var time_stored;
                 var time_received = new Date().getTime();    
-                botLogger.info('concatMsg: message', {req: req, time_received: time_received});
+                // botLogger.info('concatMsg: message', {req: req, time_received: time_received});
                 buffer.find(req.body.conversation.id, function (result) {
                     if (result) {
                         req.body.text = result.msg + ' ' + req.body.text;
@@ -168,7 +167,7 @@ function concatMsg () {
                 });     
                 setTimeout(function () {
                     var now = new Date().getTime();
-                    botLogger.info('concatmsg: Timeout', {now: now, time_received: time_received, req:req});
+                    // botLogger.info('concatmsg: Timeout', {now: now, time_received: time_received, req:req});
                     buffer.find(req.body.conversation.id, function (result) {
                         if (result && result.timestamp) {
                             time_stored = result.timestamp;
@@ -200,10 +199,9 @@ function concatMsg () {
 
 // const utl = require('util');
 function filteruser () {
-    // now = new Date();
     return function (req, res, next) {
         if (req.body) {
-            botLogger.info('filterUser: found body', {body: req.body});
+            // botLogger.info('filterUser: found body', {body: req.body});
             next();
         }
         else {
@@ -221,7 +219,7 @@ function filteruser () {
                         }
                         else {
                             res.send(202);
-                            botLogger.info('filterUser: chunk end', {body: req.body});
+                            // botLogger.info('filterUser: chunk end', {body: req.body});
                             next();
                         }
                     })         
