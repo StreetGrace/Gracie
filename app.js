@@ -71,7 +71,7 @@ bot.dialog('/', [
             
             session.userData.profile = session.userData.profile || initialProfile;
     
-            profileDB.getProfile(session.message.address.user.id)
+            profileDB.getProfile(session.message.address.bot.id)
                 .then( res => {
                     session.userData.profile.default = res;
                     session.beginDialog('main:/', {complete_open: 0});
@@ -143,20 +143,21 @@ const initialProfile = {
 };
 
 function concatMsg () {
-    // now = new Date();
     return function (req, res, next) {
         try {
             if (req.body.type != 'message') {
+                // botLogger.info('concatMsg: not message', {body: req.body});
                 next();
+                
             }
             else {
                 var time_stored;
                 var time_received = new Date().getTime();    
+                // botLogger.info('concatMsg: message', {req: req, time_received: time_received});
                 buffer.find(req.body.conversation.id, function (result) {
                     if (result) {
                         req.body.text = result.msg + ' ' + req.body.text;
                     }
-                    console.log('Text: %j', req.body);
                     data = {
                         conversation_id: req.body.conversation.id,
                         msg: req.body.text,
@@ -164,9 +165,9 @@ function concatMsg () {
                     };
                     buffer.insert(data);
                 });     
-                // res.status(202);
                 setTimeout(function () {
                     var now = new Date().getTime();
+                    // botLogger.info('concatmsg: Timeout', {now: now, time_received: time_received, req:req});
                     buffer.find(req.body.conversation.id, function (result) {
                         if (result && result.timestamp) {
                             time_stored = result.timestamp;
@@ -198,9 +199,9 @@ function concatMsg () {
 
 // const utl = require('util');
 function filteruser () {
-    // now = new Date();
     return function (req, res, next) {
         if (req.body) {
+            // botLogger.info('filterUser: found body', {body: req.body});
             next();
         }
         else {
@@ -213,12 +214,12 @@ function filteruser () {
                     req.body = JSON.parse(requestData);
                     blacklist.find(req.body.from.id, function (result) {
                         if (result) {
-                            res.status(202);
-                            myMiddleware.logBlackListedMessage(req, res);
-                            // console.log('%j', utl.inspect(req));
-                            // res.end();                           
+                            res.send(202);
+                            myMiddleware.logBlackListedMessage(req, res);                      
                         }
                         else {
+                            res.send(202);
+                            // botLogger.info('filterUser: chunk end', {body: req.body});
                             next();
                         }
                     })         

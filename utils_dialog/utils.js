@@ -124,6 +124,7 @@ function getSessionInfo(session) {
 			conversation_id: session.message.address.conversation.id,
 			user_id: session.message.address.user.id,
 			user_name: session.message.address.user.name,
+			bot_id: session.message.address.bot.id,
 			received_message: session.message.text,
 			stack: getDialogID(session.sessionState.callstack)
 		}
@@ -189,7 +190,6 @@ function endConversation(session, chat_result) {
 
 	db.queryDB(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch)
 		.then( res => {
-
 			var reply = eval('`'+ getMsg(res).replace(/`/g,'\\`') + '`');  
 			return reply;
 		}, err => {

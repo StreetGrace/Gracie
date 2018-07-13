@@ -50,7 +50,7 @@ winston.loggers.add('UncaughtExceptionLog', {
     transports : [
         new(winston.transports.MongoDB) ({
             db: 'mongodb://adclaimsuser%40bbdo.com:Bbdoatl1@18.234.8.122:27017/gracie',
-            collection : 'bot_test_logging',
+            collection : 'bot_logging',
             level: 'info',
             label: 'Uncaught Exception',
             handleExceptions: true,

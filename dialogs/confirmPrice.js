@@ -81,7 +81,7 @@ lib.dialog('/', [
             }
             else if (intent == 'Intent.Service_Inquiry' || service) {
                 var givenService_new = utilsService.fillService(service);     
-                console.log('New givenService: %j', givenService_new);
+                // console.log('New givenService: %j', givenService_new);
                 session.send('Newly Accepted Service input: %j', givenService_new);
                 givenService = utilsService.updateService(givenService, givenService_new);
                 
