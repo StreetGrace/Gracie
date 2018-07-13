@@ -61,10 +61,10 @@ function recognize(context) {
         })
 }
 
-recognize({message: {text: 'are you with police'}, inputContexts: ['police', 'all']})
-    .then(res => {
-        console.log('%j', res);
-    })
-    .catch(err => {
-        console.log(err.message);
-    })
+// recognize({message: {text: 'are you with police'}, inputContexts: ['police', 'all']})
+//     .then(res => {
+//         console.log('%j', res);
+//     })
+//     .catch(err => {
+//         console.log(err.message);
+//     })

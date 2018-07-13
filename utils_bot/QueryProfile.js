@@ -49,7 +49,3 @@ function getProfile(bot_id) {
 //   getProfile: getProfile,
 // };
 
-getProfile('+14232502508')
-  .then( res=> {
-    console.log('%j', res);
-  });

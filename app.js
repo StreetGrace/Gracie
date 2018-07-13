@@ -12,7 +12,7 @@ var blacklist = require('./utils_bot/Blacklist');
 var profileDB = require('./utils_bot/QueryProfile.js')
 
 var botLog = require('./utils_bot/BotLogger');
-var config = require('config').config;
+var config = require('./config').config;
 
 //Setup Logger
 var botLogger = botLog.botLog;
