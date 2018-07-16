@@ -86,7 +86,7 @@ module.exports = {
 				var db = insert(entry);		
 			}			
 			next();
-		}, 10);
+		}, 1000);
 	},
 	logBlackListedMessage: function (req, res) {
 		var entry = {

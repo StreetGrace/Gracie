@@ -44,8 +44,7 @@ function getProfile(bot_id) {
         })
 }
 
-// getProfile('default-user');
-// module.exports = {
-//   getProfile: getProfile,
-// };
+module.exports = {
+  getProfile: getProfile,
+};
 
