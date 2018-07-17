@@ -51,6 +51,47 @@ lib.dialog('/', [
 	function (session, args, next) {
 		try {
 			var msg = args.response;
+			var sessionInfo = utils.getSessionInfo(session);
+
+			apiai.recognize({message: {text: msg}, inputContexts: ['confirm']})
+				.then(res => {
+					var intent = res.intent;
+					var entities = res.entities;
+					var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
+					var price = entities['price'] ? entities['price'] : null;		
+					
+					if (intent == 'Confirm.Confirmation_Yes') {
+						botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
+						utils.endConversation(session, 'complete');
+					}				
+					else if (intent == 'Confirm.Confirmation_No' || intent == 'Confirm.Cancel' ) {
+						botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
+						utils.endConversation(session, 'complete_n');
+					}
+					else {
+						return recognize({message:{text: msg}})
+							.then( res => {
+								var intent = res.intent;
+								var entities = res.entities;
+								var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
+								var price = entities['price'] ? entities['price'] : null;	
+
+								botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
+									if (intent == 'General.Location_Inquiry') {
+										utils.endConversation(session, 'complete');
+									}
+									else {
+										utils.endConversation(session, 'complete');
+									}								
+							});
+					}
+				})
+				.catch(err => {
+					var errInfo = utils.getErrorInfo(err);
+					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+					utils.endConversation(session, 'error');					
+				})
+
 			apiai.recognizer.recognize({message:{text:msg}}, function(error, response) {
 				var intent = response.intent;
 				var entities = response.entities;
@@ -60,13 +101,13 @@ lib.dialog('/', [
 				var sessionInfo = utils.getSessionInfo(session);
 				botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
 
-				if (intent == 'Intent.Confirmation_Yes') {
+				if (intent == 'General.Confirmation_Yes') {
 					utils.endConversation(session, 'complete');
 				}
-				else if (intent == 'Intent.Location_Inquiry') {
+				else if (intent == 'General.Location_Inquiry') {
 					utils.endConversation(session, 'complete');
 				}
-				else if (intent == 'Intent.confirmation_No') {				
+				else if (intent == 'General.confirmation_No') {				
 					utils.endConversation(session, 'complete_n');
 				}
 				else {
@@ -75,6 +116,7 @@ lib.dialog('/', [
 			});  		
 		}
 		catch (err) {
+			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			utils.endConversation(session, 'error');
 		}

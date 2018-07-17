@@ -27,17 +27,17 @@ lib.dialog('/', function(session, args, next){
 		utils.endConversation(session, 'error');
 	}
 })
-.beginDialogAction('openGreetingAction', '/intent.greeting', {matches: 'Intent.Greeting'})
-.beginDialogAction('openGreetingAction_givename', '/intent.greeting', {matches: 'Intent.GiveName'})
-.beginDialogAction('openGreetingAction_flattery', '/intent.greeting', {matches: 'Intent.Flattery'})
-.beginDialogAction('openGreetingAction_getpic', '/intent.greeting', {matches: 'Intent.Get_Pic'})
+.beginDialogAction('openGreetingAction', '/intent.greeting', {matches: 'General.Greeting'})
+.beginDialogAction('openGreetingAction_givename', '/intent.greeting', {matches: 'General.GiveName'})
+.beginDialogAction('openGreetingAction_flattery', '/intent.greeting', {matches: 'General.Flattery'})
+.beginDialogAction('openGreetingAction_getpic', '/intent.greeting', {matches: 'General.Get_Pic'})
 
-.beginDialogAction('openAvailAction', '/intent.availability', {matches: 'Intent.Availability'})
-.beginDialogAction('openAvailAction_time', '/intent.availability', {matches: 'Intent.Give_TimeSlot'})
-.beginDialogAction('openLocationAction', '/intent.location_inquiry', {matches: 'Intent.Location_Inquiry'})
-.beginDialogAction('openPriceAction', '/intent.price_inquiry', {matches: 'Intent.Price_Inquiry'})
-.beginDialogAction('openServiceAction', '/intent.service_inquiry', {matches: 'Intent.Service_Inquiry'})
-.beginDialogAction('openServiceAction_giveloc', '/intent.service_inquiry', {matches: 'Intent.Give_Location'})
+.beginDialogAction('openAvailAction', '/intent.availability', {matches: 'General.Availability'})
+.beginDialogAction('openAvailAction_time', '/intent.availability', {matches: 'General.Give_TimeSlot'})
+.beginDialogAction('openLocationAction', '/intent.location_inquiry', {matches: 'General.Location_Inquiry'})
+.beginDialogAction('openPriceAction', '/intent.price_inquiry', {matches: 'General.Price_Inquiry'})
+.beginDialogAction('openServiceAction', '/intent.service_inquiry', {matches: 'General.Service_Inquiry'})
+.beginDialogAction('openServiceAction_giveloc', '/intent.service_inquiry', {matches: 'General.Give_Location'})
 
 .beginDialogAction('openUnhandled', '/intent.unhandled', {matches: 'Default Fallback Intent'})
 .beginDialogAction('openUnhandled_any', '/intent.unhandled', {matches: utils.intentList_nonOpen})

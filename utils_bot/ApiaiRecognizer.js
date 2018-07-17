@@ -1,11 +1,13 @@
 var apiai = require('apiai'); 
-var app = apiai('95f0b71700704fac9c60319c677545e8'); 
+// var app = apiai('95f0b71700704fac9c60319c677545e8'); 
+var app = apiai('953300dc09c647e0a767db02a7e020e7'); 
+
 
 function apiaiRequest (context) {
     return new Promise( function(resolve, reject) {
         if (context && context.message && context.message.text){
             var msg = context.message.text;
-            var inputContexts = context.inputContexts || [];
+            var inputContexts = context.inputContexts || ['general'];
             var request = app.textRequest(msg, { 
                 sessionId: Math.random(),
                 contexts: inputContexts
@@ -47,7 +49,7 @@ module.exports.recognizer = {
         var result = { score: 0.0, intent: null, entities: null};
         if (context && context.message && context.message.text){
             var msg = context.message.text;
-            var inputContexts = context.inputContexts || [];
+            var inputContexts = context.inputContexts || ['general'];
             
             var request = app.textRequest(msg, { 
                 sessionId: Math.random(),
@@ -75,11 +77,24 @@ module.exports.recognizer = {
 };
 
 
-
-// recognize({message: {text: ''}, inputContexts: ['police', 'all']})
-//     .then(res => {
-//         console.log('%j', res);
-//     })
-//     .catch(err => {
-//         console.log(err.message);
-//     })
+var msg = 'yes. your donation?';
+recognize({message:{text: msg}, inputContexts: ['confirm']})
+    .then(res => {
+        var intent = res.intent;
+        if (intent == 'Confirm.Confirmation_No') {
+            var code = 1;
+            console.log(code);
+            console.log('%j', res);
+        }
+        else {
+            return recognize({message:{text: msg}})
+                .then( res=> {
+                    var code = 2;
+                    console.log(code);
+                    console.log('%j', res);
+                })
+        }
+    })
+    .catch(err => {
+        console.log(err.message);
+    })
