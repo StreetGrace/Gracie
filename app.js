@@ -9,6 +9,7 @@ var myMiddleware = require('./utils_bot/MiddlewareLogging.js');
 var botbuilder_mongo=require('botbuilder-mongodb');
 var buffer = require('./utils_bot/MessageBuffer');
 var blacklist = require('./utils_bot/Blacklist');
+var ongoingList = require('./utils_bot/OngoingList');
 var profileDB = require('./utils_bot/QueryProfile.js')
 
 var botLog = require('./utils_bot/BotLogger');
@@ -33,7 +34,8 @@ var connector = new builder.ChatConnector({
 
 // Listen for messages from users 
 server.post('/api/messages', [
-    // filteruser(), 
+    filteruser(), 
+    filterOngoinguser(), 
     // concatMsg(), 
     connector.listen()]);
 
@@ -63,16 +65,16 @@ bot.dialog('/', [
             
             session.userData.profile = session.userData.profile || initialProfile;
     
-            profileDB.getProfile(session.message.address.bot.id)
-                .then( res => {
-                    session.userData.profile.default = res;
-                    session.beginDialog('main:/', {complete_open: 0});
-                })
-                .catch( err => {
-                    var errInfo = utils.getErrorInfo(err);          
-                    botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-                    utils.endConversation(session, 'error')                
-                });
+            // profileDB.getProfile(session.message.address.bot.id)
+            //     .then( res => {
+            //         session.userData.profile.default = res;
+            //         session.beginDialog('main:/', {complete_open: 0});
+            //     })
+            //     .catch( err => {
+            //         var errInfo = utils.getErrorInfo(err);          
+            //         botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+            //         utils.endConversation(session, 'error')                
+            //     });
         }
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);          
@@ -189,7 +191,6 @@ function concatMsg () {
     }
 }
 
-// const utl = require('util');
 function filteruser () {
     return function (req, res, next) {
         if (req.body) {
@@ -211,7 +212,8 @@ function filteruser () {
                         }
                         else {
                             res.send(202);
-                            // botLogger.info('filterUser: chunk end', {body: req.body});
+                            botLogger.info('filterUser: chunk end', {body: req.body});
+                            botLogger.info('filterUser: chunk end from', {body: req.body.from});
                             next();
                         }
                     })         
@@ -223,6 +225,40 @@ function filteruser () {
                     return;
                 }
             });
+        }
+    };
+}
+
+function filterOngoinguser () {
+    return function (req, res, next) {
+        if (req.body.type != 'message') {
+            next();           
+        }
+        else {
+            try {
+                ongoingList.find(req.body.from.id, function (result) {
+                    if (result) {
+                        // myMiddleware.logBlackListedMessage(req, res);  
+                        if (result.bot_id == req.body.recipient.id) {
+                            next();
+                        }
+                        else {
+                            myMiddleware.logBlackListedMessage(req, res);                           
+                        }
+                    }
+                    else {
+                        // botLogger.info('filterUser: chunk end', {body: req.body});
+                        ongoingList.insert({user_id: req.body.from.id, bot_id: req.body.recipient.id});
+                        next();
+                    }
+                })         
+            }
+            catch (err) {
+                console.error('Custom Handler: receive - invalid request data received.');
+                res.send(400);
+                res.end();
+                return;
+            }
         }
     };
 }
