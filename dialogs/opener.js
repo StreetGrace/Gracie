@@ -40,7 +40,7 @@ lib.dialog('/', function(session, args, next){
 .beginDialogAction('openServiceAction_giveloc', '/intent.service_inquiry', {matches: 'Intent.Give_Location'})
 
 .beginDialogAction('openUnhandled', '/intent.unhandled', {matches: 'Default Fallback Intent'})
-.beginDialogAction('openUnhandled_any', '/intent.unhandled', {matches: utils.intentList_nonOpen})
+.beginDialogAction('openUnhandled_any', '/intent.unhandled', {matches: utils.IntentList_nonOpen})
 ;
 
 /*
@@ -61,6 +61,9 @@ lib.dialog('/intent.greeting', [
 			
 			var modelName = session.userData.profile.default.model;
 			var jonName = demo.name || '';
+			if (jonName.toLowerCase() == modelName.toLowerCase()) {
+				jonName = '';
+			}
 			var neighborhood = session.userData.profile.default.neighborhood;
 			var reply = '';
 			var data = null;
@@ -130,6 +133,9 @@ lib.dialog('/intent.availability', [
 				}
 
 			var jonName = demo.name || '';
+			if (jonName.toLowerCase() == modelName.toLowerCase()) {
+				jonName = '';
+			}
 			var modelName = session.userData.profile.default.model;
 			var neighborhood = session.userData.profile.default.neighborhood;
 
@@ -304,6 +310,9 @@ lib.dialog('/intent.price_inquiry', [
 			botLogger.info('Start opener:/intent.price_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
 
 			var jonName = demo.name || '';
+			if (jonName.toLowerCase() == modelName.toLowerCase()) {
+				jonName = '';
+			}
 			var modelName = session.userData.profile.default.model;
 			var neighborhood = session.userData.profile.default.neighborhood;
 
@@ -390,6 +399,9 @@ lib.dialog('/intent.location_inquiry', [
 			botLogger.info('Start opener:/intent.location_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));
 
 			var jonName = demo.name || '';
+			if (jonName.toLowerCase() == modelName.toLowerCase()) {
+				jonName = '';
+			}
 			var modelName = session.userData.profile.default.model;
 
 			var reply = '';
