@@ -132,11 +132,11 @@ lib.dialog('/intent.availability', [
 				data = utilsService.fillService(data);				
 				}
 
+			var modelName = session.userData.profile.default.model;
 			var jonName = demo.name || '';
 			if (jonName.toLowerCase() == modelName.toLowerCase()) {
 				jonName = '';
 			}
-			var modelName = session.userData.profile.default.model;
 			var neighborhood = session.userData.profile.default.neighborhood;
 
 			var reply = '';
@@ -309,11 +309,11 @@ lib.dialog('/intent.price_inquiry', [
 			var sessionInfo = utils.getSessionInfo(session);
 			botLogger.info('Start opener:/intent.price_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
 
+			var modelName = session.userData.profile.default.model;
 			var jonName = demo.name || '';
 			if (jonName.toLowerCase() == modelName.toLowerCase()) {
 				jonName = '';
 			}
-			var modelName = session.userData.profile.default.model;
 			var neighborhood = session.userData.profile.default.neighborhood;
 
 			var reply = '';
@@ -398,12 +398,12 @@ lib.dialog('/intent.location_inquiry', [
 			var sessionInfo = utils.getSessionInfo(session);
 			botLogger.info('Start opener:/intent.location_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));
 
+			var modelName = session.userData.profile.default.model;
 			var jonName = demo.name || '';
 			if (jonName.toLowerCase() == modelName.toLowerCase()) {
 				jonName = '';
 			}
-			var modelName = session.userData.profile.default.model;
-
+			
 			var reply = '';
 
 			db.queryDB('opener:/location_inquiry', 0, 0)
