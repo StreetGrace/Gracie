@@ -40,7 +40,7 @@ lib.dialog('/', function(session, args, next){
 .beginDialogAction('openServiceAction_giveloc', '/intent.service_inquiry', {matches: 'General.Give_Location'})
 
 .beginDialogAction('openUnhandled', '/intent.unhandled', {matches: 'Default Fallback Intent'})
-.beginDialogAction('openUnhandled_any', '/intent.unhandled', {matches: utils.intentList_nonOpen})
+.beginDialogAction('openUnhandled_any', '/intent.unhandled', {matches: utils.IntentList_nonOpen})
 ;
 
 /*
