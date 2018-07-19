@@ -77,24 +77,25 @@ module.exports.recognizer = {
 };
 
 
-var msg = 'yes. your donation?';
-recognize({message:{text: msg}, inputContexts: ['confirm']})
-    .then(res => {
-        var intent = res.intent;
-        if (intent == 'Confirm.Confirmation_No') {
-            var code = 1;
-            console.log(code);
-            console.log('%j', res);
-        }
-        else {
-            return recognize({message:{text: msg}})
-                .then( res=> {
-                    var code = 2;
-                    console.log(code);
-                    console.log('%j', res);
-                })
-        }
-    })
-    .catch(err => {
-        console.log(err.message);
-    })
+// var msg = 'no. your donation?';
+// recognize({message:{text: msg}, inputContexts: ['confirm']})
+//     .then(res => {
+//         var intent = res.intent;
+//         console.log('1:' + intent)
+//         if (intent == 'Confirm.Confirmation_No') {
+//             var code = 1;
+//             console.log(code);
+//             console.log('%j', res);
+//         }
+//         else {
+//             return recognize({message:{text: msg}})
+//                 .then( res=> {
+//                     var code = 2;
+//                     console.log(code);
+//                     console.log('%j', res);
+//                 })
+//         }
+//     })
+//     .catch(err => {
+//         console.log(err.message);
+//     })

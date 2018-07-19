@@ -85,10 +85,10 @@ function getEntity (entity_type, response) {
 exports.getEntity = getEntity;
 
 const priceTable = {
-	'15min': '65',
-	'30min': '100',
-	'1 hour': '150',
-    '2 hours': '300',
+	'15min': '40',
+	'30min': '80',
+	'1 hour': '120',
+    '2 hours': '240',
     'overnight': '1000'
 }
 

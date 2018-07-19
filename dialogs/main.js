@@ -77,12 +77,12 @@ lib.dialog('/', [
 								var price = entities['price'] ? entities['price'] : null;	
 
 								botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
-									if (intent == 'General.Location_Inquiry') {
-										utils.endConversation(session, 'complete');
-									}
-									else {
-										utils.endConversation(session, 'complete');
-									}								
+								if (intent == 'General.Location_Inquiry') {
+									utils.endConversation(session, 'complete');
+								}
+								else {
+									utils.endConversation(session, 'complete');
+								}								
 							});
 					}
 				})
@@ -90,30 +90,7 @@ lib.dialog('/', [
 					var errInfo = utils.getErrorInfo(err);
 					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 					utils.endConversation(session, 'error');					
-				})
-
-			apiai.recognizer.recognize({message:{text:msg}}, function(error, response) {
-				var intent = response.intent;
-				var entities = response.entities;
-				var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
-				var price = entities['price'] ? entities['price'] : null;
-			
-				var sessionInfo = utils.getSessionInfo(session);
-				botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
-
-				if (intent == 'General.Confirmation_Yes') {
-					utils.endConversation(session, 'complete');
-				}
-				else if (intent == 'General.Location_Inquiry') {
-					utils.endConversation(session, 'complete');
-				}
-				else if (intent == 'General.confirmation_No') {				
-					utils.endConversation(session, 'complete_n');
-				}
-				else {
-					utils.endConversation(session, 'complete');
-				}
-			});  		
+				})		
 		}
 		catch (err) {
 			var errInfo = utils.getErrorInfo(err);
