@@ -66,7 +66,7 @@ lib.dialog('/', [
 				else if (intent == 'Intent.Location_Inquiry') {
 					utils.endConversation(session, 'complete');
 				}
-				else if (intent == 'Intent.confirmation_No') {				
+				else if (intent == 'Intent.Confirmation_No' || intent == 'Intent.Cancel') {				
 					utils.endConversation(session, 'complete_n');
 				}
 				else {

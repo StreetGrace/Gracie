@@ -182,6 +182,7 @@ function endConversation(session, chat_result) {
 		'error': {dialog: 'global', index: 0, branch: 0},
 		'complete': {dialog: 'global', index:0, branch: 0},
 		'complete_n': {dialog: 'global', index:0, branch: 1},
+		'complete_noincall': {dialog: 'global', index:0, branch: 2},
 		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
 	};
 
