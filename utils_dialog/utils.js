@@ -106,7 +106,7 @@ var IntentList_nonOpen = [
 	'Intent.AskAge',
 	'Intent.AskProof',
 	'Intent.Confirmation_No',
-	'Intent.confirmation_Yes',
+	'Intent.Confirmation_Yes',
 	'Intent.Ensure',
 	'Intent.Negotiate_Price',
 	'Intent.Offer_Transportation',
