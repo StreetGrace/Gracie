@@ -214,7 +214,7 @@ lib.dialog('/confirmIncall', [
             var sessionInfo = utils.getSessionInfo(session);
             botLogger.info('confirmService:/confirmIncall, Start', Object.assign({}, sessionInfo, {data: args.data, reprompt: args.reprompt, stored_reprompt: args.stored_reprompt}));        
 
-            if (args.reprompt >= 3) {
+            if (args.reprompt >= 2) {
                 utils.endConversation(session, 'boot');
             }
             else {
@@ -273,6 +273,9 @@ lib.dialog('/confirmIncall', [
                             utils.endConversation(session, 'error');						
                         })   
                 }
+                else if (intent == 'Confirm.Confirmation_No' || intent == 'Confirm.Cancel') {
+                    utils.endConversation(session, 'complete_noincall');
+                }	
                 else if (intent == 'Intent.Offer_Transportation') {
                     db.queryDB('confirmService:/confirmIncall', 1, 1)
                         .then( res=> {
