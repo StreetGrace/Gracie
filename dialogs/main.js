@@ -84,11 +84,6 @@ lib.dialog('/', [
 									utils.endConversation(session, 'complete');
 								}								
 							})
-							.catch(err => {
-								var errInfo = utils.getErrorInfo(err);
-								botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-								utils.endConversation(session, 'error');					
-							});
 					}
 				})
 				.catch(err => {

@@ -20,7 +20,6 @@ apiai.recognize({message:{text: msg}, inputContexts: ['confirm']})
                     return db.queryDB('confirmService:/givePrice', 1, 0)
                     .then( res=> {
                         var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
-                        session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
                     }, err => {
                         utils.throwErr(err);
                     })       
