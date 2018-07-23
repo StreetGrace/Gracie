@@ -69,7 +69,7 @@ lib.dialog('/', [
 						utils.endConversation(session, 'complete_n');
 					}
 					else {
-						return recognize({message:{text: msg}})
+						return apiai.recognize({message:{text: msg}})
 							.then( res => {
 								var intent = res.intent;
 								var entities = res.entities;
