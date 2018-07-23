@@ -273,7 +273,7 @@ lib.dialog('/confirmIncall', [
                     var givenService_new = res.givenService_new;
                     var givenService = res.givenService;
 
-                    return recognize({message: {text: msg}, inputContexts: ['confirm']})
+                    return apiai.recognize({message: {text: msg}, inputContexts: ['confirm']})
                         .then( res => {
                             var intent_c = res.intent;
 
