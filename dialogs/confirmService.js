@@ -158,8 +158,8 @@ lib.dialog('/', [
 
             apiai.recognize({message: {text: msg}, inputContexts: ['confirm']})
 				.then(res => {
-                    var intent = response.intent;
-                    var entities = response.entities;
+                    var intent = res.intent;
+                    var entities = res.entities;
                     var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
                     var price = entities['price'] ? entities['price'] : null;
                     var givenService = session.dialogData.givenService;
@@ -244,8 +244,8 @@ lib.dialog('/confirmIncall', [
             var sessionInfo = utils.getSessionInfo(session);
             apiai.recognize({message: {text: msg}})
 				.then(res => {
-                    var intent = response.intent;
-                    var entities = response.entities;
+                    var intent = res.intent;
+                    var entities = res.entities;
                     var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
                     
                     if (service) {
