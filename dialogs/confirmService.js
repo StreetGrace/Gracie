@@ -292,7 +292,12 @@ lib.dialog('/confirmIncall', [
                                     session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt});
                                 }, err => {
                                     utils.throwErr(err);
-                                })                           
+                                })            
+                                .catch(err => {
+                                    var errInfo = utils.getErrorInfo(err);
+                                    botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                                    utils.endConversation(session, 'error');					
+                                })		               
                             }
                             else if (intent_c == 'Confirm.Confirmation_No' || intent == 'Confirm.Cancel') {
                                 utils.endConversation(session, 'complete_noincall');
@@ -309,6 +314,11 @@ lib.dialog('/confirmIncall', [
                                     }, err => {
                                         utils.throwErr(err);
                                     })    
+                                    .catch(err => {
+                                        var errInfo = utils.getErrorInfo(err);
+                                        botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                                        utils.endConversation(session, 'error');					
+                                    })		
                             }     
                             else if (service && givenService_new.inout == 'outcall') {
                                 db.queryDB('confirmService:/confirmIncall', 1, 2)
@@ -318,6 +328,11 @@ lib.dialog('/confirmIncall', [
                                     }, err => {
                                         utils.throwErr(err);
                                     })
+                                    .catch(err => {
+                                        var errInfo = utils.getErrorInfo(err);
+                                        botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                                        utils.endConversation(session, 'error');					
+                                    })		
                             }
                             else if (service && givenService_new.inout == 'incall') {
                                 session.userData.profile.confirmation.service.inout = 'incall';	
@@ -332,6 +347,11 @@ lib.dialog('/confirmIncall', [
                                     }, err => {
                                         utils.throwErr(err);
                                     })
+                                    .catch(err => {
+                                        var errInfo = utils.getErrorInfo(err);
+                                        botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                                        utils.endConversation(session, 'error');					
+                                    })		
                             }
                             else {
                                 db.queryDB('confirmService:/confirmIncall', 1, 4)
@@ -341,6 +361,11 @@ lib.dialog('/confirmIncall', [
                                     }, err => {
                                         utils.throwErr(err);
                                     })
+                                    .catch(err => {
+                                        var errInfo = utils.getErrorInfo(err);
+                                        botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                                        utils.endConversation(session, 'error');					
+                                    })		
                             }  							
                         });
                 })
@@ -704,79 +729,101 @@ lib.dialog('/givePrice', [
     function (session, args, next) {
         try {
             var msg = args.response;
-            apiai.recognizer.recognize({message:{text:msg}}, function(error, response){
-                var intent = response.intent;
-                var entities = response.entities;
-                var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
-                var price = entities['price'] ? entities['price'] : null;
-            
-                if (service) {
-                    var service = utils.getEntity('service', service);
-                    var givenService_new = utilsService.fillService(service);    
-                    var givenService = utilsService.updateService(session.dialogData.givenService, givenService_new);
-                }         
-                else {
-                    var givenService = session.dialogData.givenService;
-                    var givenService_new = null;
-                }            
-    
-                var sessionInfo = utils.getSessionInfo(session);
-                botLogger.info('confirmService:/givePrice, Receive Response', 
-                    Object.assign({}, sessionInfo, {intent: intent, entities: entities, givenService: givenService, givenService_new: givenService_new}));                 
+
+            apiai.recognize({message: {text:msg}})
+                .then(res => {
+                    var intent = res.intent;
+                    var entities = res.entities;
+                    var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
+                    var price = entities['price'] ? entities['price'] : null;
                 
-                if (intent == 'General.Confirmation_Yes') {
-                    db.queryDB('confirmService:/givePrice', 1, 0)
-                        .then( res=> {
-                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
-                            session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
-                        }, err => {
-                            utils.throwErr(err);
-                        })
-                        .catch( err => {
-                            var errInfo = utils.getErrorInfo(err);
-                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-                            
-                            utils.endConversation(session, 'error');						
-                        })                    
-                }
-                else if (intent == 'General.Price_Inquiry') {
-                    session.replaceDialog('/givePrice', {data: givenService, data_inquiry: givenService_new, reply: '', stored_reprompt: session.dialogData.stored_reprompt, reprompt: session.dialogData.reprompt+1});
-                }
-                else if (givenService_new) {
-                    if (_.isEqual(givenService, session.dialogData.givenService)) {
-                        db.queryDB('confirmService:/givePrice', 1, 1)
-                            .then( res=> {
-                                var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
-                                session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
-                            }, err => {
-                                utils.throwErr(err);
-                            })
-                            .catch( err => {
-                                var errInfo = utils.getErrorInfo(err);
-                                botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-                                
-                                utils.endConversation(session, 'error');						
-                            })	                        
-                    }
+                    if (service) {
+                        var service = utils.getEntity('service', service);
+                        var givenService_new = utilsService.fillService(service);    
+                        var givenService = utilsService.updateService(session.dialogData.givenService, givenService_new);
+                    }         
                     else {
-                        var priceGiven = session.userData.profile.confirmation.price.priceGiven;
-                        if ((givenService_new.has_duration && priceGiven[givenService_new.duration]) ||
-                        (givenService_new.has_inout && priceGiven.inout) || 
-                        (givenService_new.addon && priceGiven.addon)) {
-                            var reply = 'good..';
-                            session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})                            
-                        }
-                        else {
-                            var reply = '';
-                            session.replaceDialog('/givePrice', {data: givenService, data_inquiry: givenService_new, reply: '', stored_reprompt: session.dialogData.stored_reprompt, reprompt: session.dialogData.reprompt+1});
-                        }
-                    }
-                }
-                else {
-                    var reply = 'you fine with price then?';
-                    session.replaceDialog('/givePrice', {data: givenService, data_inquiry: '', reply: reply, stored_reprompt: session.dialogData.stored_reprompt, reprompt: session.dialogData.reprompt+1});
-                }
-            });              
+                        var givenService = session.dialogData.givenService;
+                        var givenService_new = null;
+                    }    
+
+                    return {
+                        intent: intent,
+                        entities: entities,
+                        service: service,
+                        price:price,
+                        givenService_new: givenService_new,
+                        givenService: givenService
+                    };                   
+                })
+                .then(res => {
+                    var intent = res.intent;
+                    var entities = res.entites;
+                    var service = res.service;
+                    var price = res.price;
+                    var givenService_new = res.givenService_new;
+                    var givenService = res.givenService;
+
+                    return apiai.recognize({message: {text: msg}, inputContexts: ['confirm']})
+                        .then(res => {
+                            var intent_c = res.intent;
+
+                            botLogger.info('confirmService:/confirmincall, Receive Response', 
+                            Object.assign({}, sessionInfo, 
+                            {intent: intent, intent_c: intent_c, entities: entities, givenService: givenService, givenService_new: givenService_new})); 
+                            
+                            if (intent_c == 'Confirm.Confirmation_Yes') {
+                                db.queryDB('confirmService:/givePrice', 1, 0)
+                                    .then( res=> {
+                                        var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
+                                        session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
+                                    }, err => {
+                                        utils.throwErr(err);
+                                    })       
+                                    .catch(err => {
+                                        var errInfo = utils.getErrorInfo(err);
+                                        botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                                        utils.endConversation(session, 'error');					
+                                    })	            
+                            }
+                            else if (intent == 'General.Price_Inquiry') {
+                                session.replaceDialog('/givePrice', {data: givenService, data_inquiry: givenService_new, reply: '', stored_reprompt: session.dialogData.stored_reprompt, reprompt: session.dialogData.reprompt+1});
+                            }
+                            else if (givenService_new) {
+                                if (_.isEqual(givenService, session.dialogData.givenService)) {
+                                    db.queryDB('confirmService:/givePrice', 1, 1)
+                                        .then( res=> {
+                                            var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
+                                            session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})
+                                        }, err => {
+                                            utils.throwErr(err);
+                                        })                        
+                                }
+                                else {
+                                    var priceGiven = session.userData.profile.confirmation.price.priceGiven;
+                                    if ((givenService_new.has_duration && priceGiven[givenService_new.duration]) ||
+                                    (givenService_new.has_inout && priceGiven.inout) || 
+                                    (givenService_new.addon && priceGiven.addon)) {
+                                        var reply = 'good..';
+                                        session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})                            
+                                    }
+                                    else {
+                                        var reply = '';
+                                        session.replaceDialog('/givePrice', {data: givenService, data_inquiry: givenService_new, reply: '', stored_reprompt: session.dialogData.stored_reprompt, reprompt: session.dialogData.reprompt+1});
+                                    }
+                                }
+                            }
+                            else {
+                                var reply = 'you fine with price then?';
+                                session.replaceDialog('/givePrice', {data: givenService, data_inquiry: '', reply: reply, stored_reprompt: session.dialogData.stored_reprompt, reprompt: session.dialogData.reprompt+1});
+                            }                           
+                        })
+                })
+                .catch(err => {
+					var errInfo = utils.getErrorInfo(err);
+					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+					utils.endConversation(session, 'error');					
+                })	     
         }
         catch (err) {
             var errInfo = utils.getErrorInfo(err);
