@@ -156,7 +156,7 @@ lib.dialog('/', [
             var msg = args.response;
             var sessionInfo = utils.getSessionInfo(session);
 
-            apiai.recognize({message: {text: msg}, inputContexts: ['confirm']})
+            apiai.recognize({message: {text: msg}})
 				.then(res => {
                     var intent = res.intent;
                     var entities = res.entities;
