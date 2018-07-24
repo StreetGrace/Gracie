@@ -34,9 +34,9 @@ var connector = new builder.ChatConnector({
 
 // Listen for messages from users 
 server.post('/api/messages', [
-    filteruser(), 
-    filterOngoinguser(), 
-    concatMsg(), 
+    // filteruser(), 
+    // filterOngoinguser(), 
+    // concatMsg(), 
     connector.listen()]);
 
 const mongoOptions = config.stateConn;
@@ -73,13 +73,13 @@ bot.dialog('/', [
                 .catch( err => {
                     var errInfo = utils.getErrorInfo(err);          
                     botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-                    utils.endConversation(session, 'error')                
+                    utils.endConversation(session, 'error', botLogger)                
                 });
         }
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);          
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-            utils.endConversation(session, 'error')
+            utils.endConversation(session, 'error', botLogger)
 		}
 	}
 ]);

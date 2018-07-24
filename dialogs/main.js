@@ -38,14 +38,14 @@ lib.dialog('/', [
 						var errInfo = utils.getErrorInfo(err);
 						botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 						
-						utils.endConversation(session, 'error');						
+						utils.endConversation(session, 'error', botLogger);						
 					})	
 			}
 		} 
 		catch (err) {
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-				utils.endConversation(session, 'error');
+				utils.endConversation(session, 'error', botLogger);
 		}
 	},
 	function (session, args, next) {
@@ -62,11 +62,11 @@ lib.dialog('/', [
 					
 					if (intent == 'Confirm.Confirmation_Yes') {
 						botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
-						utils.endConversation(session, 'complete');
+						utils.endConversation(session, 'complete', botLogger);
 					}				
 					else if (intent == 'Confirm.Confirmation_No' || intent == 'Confirm.Cancel' ) {
 						botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
-						utils.endConversation(session, 'complete_n');
+						utils.endConversation(session, 'complete_n', botLogger);
 					}
 					else {
 						return apiai.recognize({message:{text: msg}})
@@ -78,10 +78,10 @@ lib.dialog('/', [
 
 								botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
 								if (intent == 'General.Location_Inquiry') {
-									utils.endConversation(session, 'complete');
+									utils.endConversation(session, 'complete', botLogger);
 								}
 								else {
-									utils.endConversation(session, 'complete');
+									utils.endConversation(session, 'complete', botLogger);
 								}								
 							})
 					}
@@ -89,13 +89,13 @@ lib.dialog('/', [
 				.catch(err => {
 					var errInfo = utils.getErrorInfo(err);
 					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-					utils.endConversation(session, 'error');					
+					utils.endConversation(session, 'error', botLogger);					
 				})		
 		}
 		catch (err) {
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-			utils.endConversation(session, 'error');
+			utils.endConversation(session, 'error', botLogger);
 		}
 	}
 ]);

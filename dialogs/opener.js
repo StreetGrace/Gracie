@@ -24,7 +24,7 @@ lib.dialog('/', function(session, args, next){
 	catch (err) {
 		var errInfo = utils.getErrorInfo(err);
 		botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-		utils.endConversation(session, 'error');
+		utils.endConversation(session, 'error', botLogger);
 	}
 })
 .beginDialogAction('openGreetingAction', '/intent.greeting', {matches: 'General.Greeting'})
@@ -88,13 +88,13 @@ lib.dialog('/intent.greeting', [
 				.catch (err => {
 					var errInfo = utils.getErrorInfo(err);
 					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-					utils.endConversation(session, 'error');
+					utils.endConversation(session, 'error', botLogger);
 				})
 		}
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-			utils.endConversation(session, 'error');
+			utils.endConversation(session, 'error', botLogger);
 		}
 	}
 ]);
@@ -215,14 +215,14 @@ lib.dialog('/intent.availability', [
 					var errInfo = utils.getErrorInfo(err);
 					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 					
-					utils.endConversation(session, 'error');						
+					utils.endConversation(session, 'error', botLogger);						
 				})
 		}
 		catch (err) {
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			
-			utils.endConversation(session, 'error');			
+			utils.endConversation(session, 'error', botLogger);			
 		}
 	}
 ]);
@@ -278,14 +278,14 @@ lib.dialog('/intent.service_inquiry', [
 					var errInfo = utils.getErrorInfo(err);
 					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 					
-					utils.endConversation(session, 'error');						
+					utils.endConversation(session, 'error', botLogger);						
 				})		
 		}	
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 								
-			utils.endConversation(session, 'error');
+			utils.endConversation(session, 'error', botLogger);
 		}
 	}
 ]);
@@ -365,14 +365,14 @@ lib.dialog('/intent.price_inquiry', [
 					var errInfo = utils.getErrorInfo(err);
 					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 					
-					utils.endConversation(session, 'error');						
+					utils.endConversation(session, 'error', botLogger);						
 				})		
 		}
 		catch (err) {
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			
-			utils.endConversation(session, 'error');
+			utils.endConversation(session, 'error', botLogger);
 		}
 	}
 ]);
@@ -428,14 +428,14 @@ lib.dialog('/intent.location_inquiry', [
 					var errInfo = utils.getErrorInfo(err);
 					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 					
-					utils.endConversation(session, 'error');						
+					utils.endConversation(session, 'error', botLogger);						
 				})				
 		}
 		catch (err) {
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			
-			utils.endConversation(session, 'error');
+			utils.endConversation(session, 'error', botLogger);
 		}
 	}
 ]);
@@ -476,14 +476,14 @@ lib.dialog('/intent.unhandled', [
 				var errInfo = utils.getErrorInfo(err);
 				botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 				
-				utils.endConversation(session, 'error');						
+				utils.endConversation(session, 'error', botLogger);						
 			})				
 		}
 		catch (err) {
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 			
-			utils.endConversation(session, 'error');
+			utils.endConversation(session, 'error', botLogger);
 		}
 	}
 ]);

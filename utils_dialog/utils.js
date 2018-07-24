@@ -198,16 +198,14 @@ exports.throwErr = throwErr;
 var db = require('./../utils_bot/QueryDB_1');
 var blacklist = require('./../utils_bot/Blacklist');
 var resultLogger = require('./../utils_bot/ResultLog');
-var botLog = require('./../utils_bot/BotLogger');
 
-var botLogger = botLog.botLog;
-
-function endConversation(session, chat_result) {
+function endConversation(session, chat_result, botLogger) {
 	var table = {
 		'error': {dialog: 'global', index: 0, branch: 0},
 		'complete': {dialog: 'global', index:0, branch: 0},
 		'complete_n': {dialog: 'global', index:0, branch: 1},
 		'complete_noincall': {dialog: 'global', index:0, branch: 2},
+		'complete_noprice': {dialog: 'global', index:0, branch: 3},
 		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
 	};
 
