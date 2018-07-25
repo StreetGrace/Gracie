@@ -1,6 +1,14 @@
 const db = 'test';
 
 const config = {
+	metaConn: {
+		ip: '18.234.8.122',
+		port: '27017',
+		database: db,		
+		username: 'adclaimsuser@bbdo.com',
+		password: 'Bbdoatl1',
+		queryString: db	
+	}, 
 	stateConn: {
 		ip: '18.234.8.122',
 		port: '27017',
@@ -18,6 +26,12 @@ const config = {
 		username: 'adclaimsuser@bbdo.com',
 		password: 'Bbdoatl1',
 		queryString: db	
+	},
+	whitelistConn: {
+		host: "loreleierd.ciargp61tp0d.us-east-1.rds.amazonaws.com",
+		user: "lorelei_master",
+		password: "Gracie2018",
+		database: "lorelei_erd"	
 	},
 	ongoingConn: {
 		ip: '18.234.8.122',

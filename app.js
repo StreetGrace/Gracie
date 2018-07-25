@@ -203,20 +203,19 @@ function filteruser () {
                 requestData += chunk;
             });
             req.on('end', function () {
+                res.send(202);
                 try {
-                    req.body = JSON.parse(requestData);
-                    blacklist.find(req.body.from.id, function (result) {
-                        if (result) {
-                            res.send(202);
-                            myMiddleware.logBlackListedMessage(req, res);                      
-                        }
-                        else {
-                            res.send(202);
-                            // botLogger.info('filterUser: chunk end', {body: req.body});
-                            // botLogger.info('filterUser: chunk end from', {body: req.body.from});
-                            next();
-                        }
-                    })         
+                    setTimeout(function() {
+                        req.body = JSON.parse(requestData);
+                        blacklist.find(req.body.from.id, function (result) {
+                            if (result) {
+                                myMiddleware.logBlackListedMessage(req, res);                      
+                            }
+                            else {
+                                next();
+                            }
+                        })       
+                    }, 750);
                 }
                 catch (err) {
                     console.error('Custom Handler: receive - invalid request data received.');
