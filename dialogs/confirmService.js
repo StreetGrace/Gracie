@@ -174,7 +174,10 @@ lib.dialog('/', [
                         if (service) {
                             inquiryService = utilsService.fillService(service)
                         }
-                        session.replaceDialog('/givePrice', {data: givenService, data_inquiry: inquiryService, stored_reprompt: session.dialogData.reprompt, reply: ''});
+                        session.replaceDialog('/givePrice', 
+                        {data: givenService, data_inquiry: inquiryService, 
+                        stored_reprompt: session.dialogData.reprompt, 
+                        reply: '', defaultCount: 0});
                     }
                     else if (intent == 'General.Service_Inquiry' || service) {
                         var givenService_new = utilsService.fillService(service);    
@@ -276,7 +279,7 @@ lib.dialog('/confirmIncall', [
                             else if (intent_c == 'Confirm.Confirmation_No' || intent == 'Confirm.Cancel') {
                                 utils.endConversation(session, 'complete_n', botLogger);
                             }
-                            else if (intent == 'General.Offer_Transportation') {
+                            else if (intent == 'General.Suggest_Transportation') {
                                 return db.queryDB('confirmService:/confirmIncall', 1, 1)
                                     .then( res=> {
                                         var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
@@ -355,12 +358,14 @@ lib.dialog('/givePrice', [
             session.dialogData.queryService = args.data_inquiry;
             session.dialogData.givenService = args.data;
             session.dialogData.reprompt = args.reprompt;
+            session.dialogData.defaultCount = args.defaultCount;
             session.dialogData.stored_reprompt = args.stored_reprompt;
 
             var sessionInfo = utils.getSessionInfo(session);
-            botLogger.info('confirmService:/givePrice, Start', Object.assign({}, sessionInfo, {data: args.data, reprompt: args.reprompt, stored_reprompt: args.stored_reprompt}));            
+            botLogger.info('confirmService:/givePrice, Start', Object.assign({}, sessionInfo, 
+                {data: args.data, reprompt: args.reprompt, defaultCount: args.defaultCount, stored_reprompt: args.stored_reprompt}));            
 
-            if (args.reprompt >= 2) {
+            if (args.defaultCount >= 2 || args.reprompt > 2) {
                 utils.endConversation(session, 'boot', botLogger);
             }
             else {
@@ -425,6 +430,7 @@ lib.dialog('/givePrice', [
     function (session, args, next) {
         try {
             var msg = args.response;
+            var sessionInfo = utils.getSessionInfo(session);
 
             apiai.recognize({message: {text:msg}})
                 .then(res => {
@@ -447,7 +453,7 @@ lib.dialog('/givePrice', [
                         .then(res => {
                             var intent_c = res.intent;
 
-                            botLogger.info('confirmService:/confirmincall, Receive Response', 
+                            botLogger.info('confirmService:/givePrice, Receive Response', 
                             Object.assign({}, sessionInfo, 
                             {intent: intent, intent_c: intent_c, entities: entities, givenService: givenService, givenService_new: givenService_new})); 
                             
@@ -467,7 +473,10 @@ lib.dialog('/givePrice', [
                                 utils.endConversation(session, 'complete_noprice', botLogger);
                             }
                             else if (intent == 'General.Price_Inquiry') {
-                                session.replaceDialog('/givePrice', {data: givenService, data_inquiry: givenService_new, reply: '', stored_reprompt: session.dialogData.stored_reprompt, reprompt: session.dialogData.reprompt+1});
+                                session.replaceDialog('/givePrice', 
+                                {data: givenService, data_inquiry: givenService_new, reply: '', 
+                                stored_reprompt: session.dialogData.stored_reprompt, 
+                                reprompt: session.dialogData.reprompt+1, defaultCount: session.dialogData.defaultCount});
                             }
                             else if (givenService_new) {
                                 if (_.isEqual(givenService, session.dialogData.givenService)) {
@@ -489,13 +498,19 @@ lib.dialog('/givePrice', [
                                     }
                                     else {
                                         var reply = '';
-                                        session.replaceDialog('/givePrice', {data: givenService, data_inquiry: givenService_new, reply: '', stored_reprompt: session.dialogData.stored_reprompt, reprompt: session.dialogData.reprompt+1});
+                                        session.replaceDialog('/givePrice', 
+                                        {data: givenService, data_inquiry: givenService_new, reply: '', 
+                                        stored_reprompt: session.dialogData.stored_reprompt, 
+                                        reprompt: session.dialogData.reprompt+1, defaultCount: session.dialogData.defaultCount});
                                     }
                                 }
                             }
                             else {
                                 var reply = 'you fine with price then?';
-                                session.replaceDialog('/givePrice', {data: givenService, data_inquiry: '', reply: reply, stored_reprompt: session.dialogData.stored_reprompt, reprompt: session.dialogData.reprompt+1});
+                                session.replaceDialog('/givePrice', 
+                                {data: givenService, data_inquiry: '', reply: reply, 
+                                stored_reprompt: session.dialogData.stored_reprompt, 
+                                reprompt: session.dialogData.reprompt+1, defaultCount: session.dialogData.defaultCount});
                             }                           
                         })
                 })

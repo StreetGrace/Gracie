@@ -1,7 +1,7 @@
 var apiai = require('./../utils_bot/ApiaiRecognizer');
 var db = require('./../utils_bot/QueryDB_1');
 var utils = require('./../utils_dialog/utils');
-var msg = 'how much for quickie?';
+var msg = 'i can pick you';
 
 apiai.recognize({message:{text: msg}, inputContexts: ['confirm']})
     .then(res => {
