@@ -112,8 +112,10 @@ function archiveWL(user_id) {
 	var condTable = {
 		'chat': {conversation_id: user_id},
 		'bot_log': {'meta.conversation_id': user_id},
-		'state_data': {}
+		'state_data': {'internal_id': {'$in': [user_id+','+user_id, user_id+',userData', user_id+',conversationData']}}
 	}
+
+	
 }
 
 // insertMany([{id:'test5'}, {id:'test6'}], 'archive', 'test');
