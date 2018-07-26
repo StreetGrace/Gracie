@@ -1,16 +1,13 @@
 var mongodb = require("mongodb");
 const mysql = require('mysql');
-var utils = require("./../utils_dialog/utils_Time");
 var config = require('./../config').config;
 
 const conn = config.whitelistConn;
 const metaConn = config.metaConn;
 
-function find (user_id, collection, cb) {
-    var uri = "mongodb://" + metaConn.ip + ":" + port + "/" + metaConn.queryString;
-    var conditions = {
-        'user_id': user_id
-    }    
+function find (id_condition, db, collection) {
+	var uri = "mongodb://" + metaConn.ip + ":" + metaConn.port + "/" + db;
+	var conditions = id_condition
     
 	var connectOptions = {};
 	if (metaConn.username && metaConn.password) {
@@ -20,63 +17,78 @@ function find (user_id, collection, cb) {
 	}	    
 
   var mongoClient = mongodb.MongoClient;
-    mongoClient.connect(uri, connectOptions)
+  return mongoClient.connect(uri, connectOptions)
     .then(database => {
-	  return database
-		.db(metaConn.database)
-		.collection(collection)
-		.findOne(conditions, function (err, result) {
-			database.close(true);
-			cb(result); 
-		});
+			return database
+			.db(db)
+			.collection(collection)
+			.find(conditions)
+			.toArray()
+			.then(res => {
+				database.close();
+				return res
+			}, err=> {
+				database.close();
+				throw err;
+			}) 
 	})	
 }
 
-function insert (data) {
-	var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
-	var conditions = {
-		'user_id': data.user_id
-	};
-
-	var now = new Date();
-	var timestamp = utils.toIsoString(now);		
-
-	var update = {
-		'$set': { 
-			'user_id': data.user_id,
-			'user_name': data.user_name,
-			'timestamp': timestamp
-		} 
-	};	
+function insertMany (docs, db, collection) {
+	var uri = "mongodb://" + metaConn.ip + ":" + metaConn.port + "/" + db;
+	
 	var connectOptions = {};
-	if (options.username && options.password) {
+	if (metaConn.username && metaConn.password) {
 		connectOptions.auth = {};
-		connectOptions.auth.user = options.username;
-		connectOptions.auth.password = options.password;
+		connectOptions.auth.user = metaConn.username;
+		connectOptions.auth.password = metaConn.password;
 	}	
 	
 	var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
-	  return database
-		.db(options.database)
-		.collection(options.collection)
-		.update(conditions, update, { upsert: true })
+	return mongoClient.connect(uri, connectOptions)
+		.then(database => {
+			return database
+			.db(metaConn.database)
+			.collection(collection)
+			.insertMany(docs)
+			.then(() => {
+				database.close(true);
+			})
+			.catch(err => {
+				database.close(true);
+				throw err;
+			});
+		})
+	}
+
+function deleteMany (docs, db, collection) {
+	var uri = "mongodb://" + metaConn.ip + ":" + metaConn.port + "/" + db;
+	
+	var connectOptions = {};
+	if (metaConn.username && metaConn.password) {
+		connectOptions.auth = {};
+		connectOptions.auth.user = metaConn.username;
+		connectOptions.auth.password = metaConn.password;
+	}	
+	
+	var mongoClient = mongodb.MongoClient;
+	mongoClient.connect(uri, connectOptions)
+	.then(database => {
+		return database
+		.db(db)
+		.collection(collection)
+		.deleteMany(docs)
 		.then(() => {
-		  database.close(true);
+			database.close(true);
 		})
 		.catch(err => {
-		  database.close(true);
-		  throw err;
+			database.close(true);
+			throw err;
 		});
 	});
-  }
+}
 
-module.exports = {
-	find: find,
-	insert: insert
-};
-
-function queryDB(user_id) {
+function queryWL(user_id) {
   var connection = mysql.createConnection(conn);
   
   params = {
@@ -96,18 +108,25 @@ function queryDB(user_id) {
   });
 }
 
-function archive_log(user_id) {
-
+function archiveWL(user_id) {
+	var condTable = {
+		'chat': {conversation_id: user_id},
+		'bot_log': {'meta.conversation_id': user_id},
+		'state_data': {}
+	}
 }
 
-queryDB('+14703058666')
-    .then(res => {
-        res.connection.end();
-        console.log('%j', Object.values(res.rows[0])[0])
-    })
+// insertMany([{id:'test5'}, {id:'test6'}], 'archive', 'test');
+// deleteMany({'id': {'$in': ['test5', 'test3']}}, 'archive', 'test');
+var user_id = '+14703058666';
+var cond = {'internal_id': {'$in': [user_id+','+user_id, user_id+',userData', user_id+',conversationData']}};
+find(cond, 'archive', 'state_data')
+	.then(result => {
+		console.log('%j', result)
+	})
+// queryDB('+14703058666')
+//     .then(res => {
+//         res.connection.end();
+//         console.log('%j', Object.values(res.rows[0])[0])
+//     })
 
-
-module.exports = {
-  queryDB: queryDB,
-};
- 

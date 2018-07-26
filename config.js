@@ -3,11 +3,9 @@ const db = 'test';
 const config = {
 	metaConn: {
 		ip: '18.234.8.122',
-		port: '27017',
-		database: db,		
+		port: '27017',	
 		username: 'adclaimsuser@bbdo.com',
 		password: 'Bbdoatl1',
-		queryString: db	
 	}, 
 	stateConn: {
 		ip: '18.234.8.122',
