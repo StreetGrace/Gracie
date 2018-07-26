@@ -112,20 +112,47 @@ function archiveWL(user_id) {
 	var condTable = {
 		'chat': {conversation_id: user_id},
 		'bot_log': {'meta.conversation_id': user_id},
-		'state_data': {'internal_id': {'$in': [user_id+','+user_id, user_id+',userData', user_id+',conversationData']}}
+		'state_data': {'internal_id': {'$in': [user_id+','+user_id, user_id+',userData', user_id+',conversationData']}},
+		'chat_del': {conversation_id: {'$in': [user_id]}},
+		'bot_log_del': {'meta.conversation_id': {'$in': [user_id]}},
 	}
 
-	
+	find(condTable.chat, 'archive', 'test')
+		.then(result => {
+			insertMany(result, 'archive', 'test2')
+		})
+		.then( () => {
+			deleteMany(condTable.chat_del, 'archive', 'test')
+		})
+		.then( () => {
+			find(condTable.bot_log, 'archive', 'bot_log')
+		})
+		.then(result => {
+			insertMany(result, 'archive', 'test')
+		})
+		.then( () => {
+			deleteMany(condTable.chat_del, 'archive', 'test2')
+		})
+		.then( () => {
+			find(condTable.state_data, 'archive', 'bot_log')
+		})
+		.then(result => {
+			insertMany(result, 'archive', 'test')
+		})
+		.then( () => {
+			deleteMany(condTable.chat_del, 'archive', 'test2')
+		})
 }
 
+archiveWL('+14703058666');
 // insertMany([{id:'test5'}, {id:'test6'}], 'archive', 'test');
 // deleteMany({'id': {'$in': ['test5', 'test3']}}, 'archive', 'test');
-var user_id = '+14703058666';
-var cond = {'internal_id': {'$in': [user_id+','+user_id, user_id+',userData', user_id+',conversationData']}};
-find(cond, 'archive', 'state_data')
-	.then(result => {
-		console.log('%j', result)
-	})
+// var user_id = '+14703058666';
+// var cond = {'internal_id': {'$in': [user_id+','+user_id, user_id+',userData', user_id+',conversationData']}};
+// find(cond, 'archive', 'state_data')
+// 	.then(result => {
+// 		console.log('%j', result)
+// 	})
 // queryDB('+14703058666')
 //     .then(res => {
 //         res.connection.end();
