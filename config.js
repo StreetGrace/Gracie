@@ -91,3 +91,4 @@ const config = {
 }
 
 exports.config = config;
+exports.db = db;

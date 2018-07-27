@@ -1,6 +1,7 @@
 var mongodb = require("mongodb");
 const mysql = require('mysql');
 var config = require('./../config').config;
+var sourceDB = require('./../config').db
 
 const conn = config.whitelistConn;
 const metaConn = config.metaConn;
@@ -96,11 +97,12 @@ function queryWL(user_id) {
     column: 'phone_number'
   }
 
-  var query =  `select exists(select 1 from ${params.table} where ${params.column} = ${user_id} limit 1)`
+  var query =  `select exists(select 1 from ${params.table} where ${params.column} = "${user_id}" limit 1)`
   
   return new Promise ( (resolve, reject) => {
     connection.query(query, (err, rows) => {
       if (err) {
+		  console.log(err.message);
         return reject ({connection: connection, err:err});
       }
       resolve ({connection: connection, rows: rows});
@@ -108,43 +110,63 @@ function queryWL(user_id) {
   });
 }
 
-function archiveWL(user_id) {
-	var condTable = {
-		'chat': {conversation_id: user_id},
-		'bot_log': {'meta.conversation_id': user_id},
-		'state_data': {'internal_id': {'$in': [user_id+','+user_id, user_id+',userData', user_id+',conversationData']}},
-		'chat_del': {conversation_id: {'$in': [user_id]}},
-		'bot_log_del': {'meta.conversation_id': {'$in': [user_id]}},
-	}
-
-	find(condTable.chat, 'archive', 'test')
-		.then(result => {
-			insertMany(result, 'archive', 'test2')
-		})
-		.then( () => {
-			deleteMany(condTable.chat_del, 'archive', 'test')
-		})
-		.then( () => {
-			find(condTable.bot_log, 'archive', 'bot_log')
-		})
-		.then(result => {
-			insertMany(result, 'archive', 'test')
-		})
-		.then( () => {
-			deleteMany(condTable.chat_del, 'archive', 'test2')
-		})
-		.then( () => {
-			find(condTable.state_data, 'archive', 'bot_log')
-		})
-		.then(result => {
-			insertMany(result, 'archive', 'test')
-		})
-		.then( () => {
-			deleteMany(condTable.chat_del, 'archive', 'test2')
+function ifWL(user_id) {
+	return queryWL(user_id)
+	    .then(res => {
+			res.connection.end();
+			return Object.values(res.rows[0])[0];
+		},
+		err => {
+			err.connection.end();
+			throw err;
 		})
 }
 
-archiveWL('+14703058666');
+function archiveWL(user_id) {
+	var condTable = {
+		'chat': {'data.user_id': user_id},
+		'bot_log': {'meta.user_id': user_id},
+		'state_data': {'internal_id': {'$in': [user_id+','+user_id, user_id+',userData', user_id+',conversationData']}},
+		'chat_del': {'data.user_id': {'$in': [user_id]}},
+		'bot_log_del': {'meta.user_id': {'$in': [user_id]}},
+		'state_data_del': {'internal_id': {'$in': [user_id+','+user_id, user_id+',userData', user_id+',conversationData']}}
+	}
+
+	return find(condTable.chat, sourceDB, 'chat_logging')
+		.then(result => {
+			insertMany(result, 'archive', 'chat_logging')
+		})
+		.then( () => {
+			deleteMany(condTable.chat_del, sourceDB, 'chat_logging')
+		})
+		.then( () => {
+			return find(condTable.bot_log, sourceDB, 'bot_logging')
+		})
+		.then(result => {
+			insertMany(result, 'archive', 'bot_logging')
+		})
+		.then( () => {
+			deleteMany(condTable.bot_log_del, sourceDB, 'bot_logging')
+		})
+		.then( () => {
+			return find(condTable.state_data, sourceDB, 'state_data')
+		})
+		.then(result => {
+			insertMany(result, 'archive', 'state_data')
+		})
+		.then( () => {
+			deleteMany(condTable.state_data_del, sourceDB, 'state_data')
+		})
+		.catch(err => {
+			throw err
+		})
+}
+
+module.exports = {
+	ifWL: ifWL,
+	archiveWL: archiveWL
+  };
+   
 // insertMany([{id:'test5'}, {id:'test6'}], 'archive', 'test');
 // deleteMany({'id': {'$in': ['test5', 'test3']}}, 'archive', 'test');
 // var user_id = '+14703058666';

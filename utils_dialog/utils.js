@@ -197,6 +197,7 @@ exports.throwErr = throwErr;
 
 var db = require('./../utils_bot/QueryDB_1');
 var blacklist = require('./../utils_bot/Blacklist');
+var whitelist = require('./../utils_bot/Whitelist');
 var resultLogger = require('./../utils_bot/ResultLog');
 
 function endConversation(session, chat_result, botLogger) {
@@ -215,20 +216,23 @@ function endConversation(session, chat_result, botLogger) {
 	db.queryDB(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch)
 		.then( res => {
 			var reply = eval('`'+ getMsg(res).replace(/`/g,'\\`') + '`');  
-			return reply;
+			session.endConversation(reply);
 		}, err => {
 			throwErr(err);
 		})
 		.then( reply => {
-			blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-			return reply;
+			return whitelist.ifWL(session.message.user.id)
 		})
-		.then( reply => {
-			resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: chat_result});
-			return reply;
-		})
-		.then( reply => {
-			session.endConversation(reply);
+		.then( isWL => {
+			if (isWL) {
+				return whitelist.archiveWL(session.message.user.id)
+			}
+			else {
+				return blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name})
+					.then(() => {
+						return resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: chat_result});
+					})
+			}
 		})
 		.catch( err => {
 			blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});

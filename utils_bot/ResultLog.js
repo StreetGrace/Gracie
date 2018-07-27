@@ -4,31 +4,6 @@ var connConfig = require('./../config').config;
 
 const options = connConfig.resultConn;
 
-function find (user_id, cb) {
-    var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
-    var conditions = {
-        'user_id': user_id
-    }    
-    
-	var connectOptions = {};
-	if (options.username && options.password) {
-		connectOptions.auth = {};
-		connectOptions.auth.user = options.username;
-		connectOptions.auth.password = options.password;
-	}	    
-
-  var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
-	  return database
-		.db(options.database)
-		.collection(options.collection)
-		.findOne(conditions, function (err, result) {
-			database.close(true);
-			cb(result); 
-		});
-	})	
-}
-
 function insert (data) {
 	var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
 	var conditions = {
@@ -53,7 +28,7 @@ function insert (data) {
 	}	
 	
 	var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
+	return mongoClient.connect(uri, connectOptions).then(database => {
 	  return database
 		.db(options.database)
 		.collection(options.collection)
@@ -66,9 +41,35 @@ function insert (data) {
 		  throw err;
 		});
 	});
-  }
+	}
+	
+// function find (user_id, cb) {
+//     var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
+//     var conditions = {
+//         'user_id': user_id
+//     }    
+    
+// 	var connectOptions = {};
+// 	if (options.username && options.password) {
+// 		connectOptions.auth = {};
+// 		connectOptions.auth.user = options.username;
+// 		connectOptions.auth.password = options.password;
+// 	}	    
+
+//   var mongoClient = mongodb.MongoClient;
+// 	mongoClient.connect(uri, connectOptions).then(database => {
+// 	  return database
+// 		.db(options.database)
+// 		.collection(options.collection)
+// 		.findOne(conditions, function (err, result) {
+// 			database.close(true);
+// 			cb(result); 
+// 		});
+// 	})	
+// }
+
 
 module.exports = {
-	find: find,
+	// find: find,
 	insert: insert
 };

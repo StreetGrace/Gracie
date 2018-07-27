@@ -41,7 +41,7 @@ server.post('/api/messages', [
 
 const mongoOptions = config.stateConn;
 // Set State Data Storage to MongoDB
-mongoStorage=botbuilder_mongo.GetMongoDBLayer(mongoOptions)
+var mongoStorage = botbuilder_mongo.GetMongoDBLayer(mongoOptions);
 
 // var memoryStorage = new builder.MemoryBotStorage();
 var bot = new builder.UniversalBot(connector, {});
