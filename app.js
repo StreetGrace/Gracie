@@ -1,5 +1,5 @@
 
-let patch = require('./utils_bot/patches');
+// let patch = require('./utils_bot/patches');
 
 var restify = require('restify');
 var builder = require('botbuilder');
@@ -204,26 +204,26 @@ function filteruser () {
                 requestData += chunk;
             });
             req.on('end', function () {
-                res.send(202);
-                try {
-                    setTimeout(function() {
-                        req.body = JSON.parse(requestData);
-                        blacklist.find(req.body.from.id, function (result) {
-                            if (result) {
-                                myMiddleware.logBlackListedMessage(req, res);                      
-                            }
-                            else {
-                                next();
-                            }
-                        })       
-                    }, 100);
-                }
-                catch (err) {
-                    console.error('Custom Handler: receive - invalid request data received.');
-                    res.send(400);
-                    res.end();
-                    return;
-                }
+                res.send(202);                
+                setTimeout(function() {
+                    req.body = JSON.parse(requestData);
+                    blacklist.find(req.body.from.id)
+                    .then( result => {
+                        if (result) {
+                            myMiddleware.logBlackListedMessage(req, res);                      
+                        }
+                        else {
+                            next()
+                        }
+                    })
+                    .catch( err => {
+                        var errInfo = util.getErrorInfo(err);
+                        botLogger.error("Exception Caught", errInfo);
+                        res.send(400);
+                        res.end();
+                        return;
+                    })    
+                }, 100);
             });
         }
     };
@@ -235,30 +235,30 @@ function filterOngoinguser () {
             next();           
         }
         else {
-            try {
-                ongoingList.find(req.body.from.id, function (result) {
-                    if (result) {
-                        // myMiddleware.logBlackListedMessage(req, res);  
-                        if (result.bot_id == req.body.recipient.id) {
+            ongoingList.find(req.body.from.id)
+            .then(result => {
+                if (result) {
+                    if (result.bot_id == req.body.recipient.id) { 
+                        next(); 
+                    }
+                    else { 
+                        myMiddleware.logBlackListedMessage(req, res); 
+                    }
+                }
+                else {
+                    return ongoingList.insert({user_id: req.body.from.id, bot_id: req.body.recipient.id})
+                        .then( () => {
                             next();
-                        }
-                        else {
-                            myMiddleware.logBlackListedMessage(req, res);                           
-                        }
-                    }
-                    else {
-                        // botLogger.info('filterUser: chunk end', {body: req.body});
-                        ongoingList.insert({user_id: req.body.from.id, bot_id: req.body.recipient.id});
-                        next();
-                    }
-                })         
-            }
-            catch (err) {
-                console.error('Custom Handler: receive - invalid request data received.');
+                        });
+                }
+            })   
+            .catch( err => {
+                var errInfo = util.getErrorInfo(err);
+                botLogger.error("Exception Caught", errInfo);
                 res.send(400);
                 res.end();
                 return;
-            }
+            })    
         }
-    };
-}
+    }
+};

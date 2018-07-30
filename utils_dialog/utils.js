@@ -215,44 +215,44 @@ function endConversation(session, chat_result, botLogger) {
 	botLogger.info('End Conversation', sessionInfo);
 
 	db.queryDB(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch)
-		.then( res => {
-			var reply = eval('`'+ getMsg(res).replace(/`/g,'\\`') + '`');  
-			return reply;		
-		}, err => {
-			throwErr(err);
-		})
-		.then( reply => {
-			return whitelist.ifWL(session.message.user.id)
-					.then( isWL => {
-						return {isWL: isWL, reply: reply};
-					})
-		})
-		.then( res => {
-			if (res.isWL) {
-				return whitelist.archiveWL(session.message.user.id)
-					.then(() => {
-						return res.reply;
-					})
-			}
-			else {
-				return blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name})
-					.then(() => {
-						return resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: chat_result});
-					})
-					.then(() => {
-						return res.reply;
-					})
-			}
-		})
-		.then( reply => {
-			session.endConversation(reply);
-		})
-		.catch( err => {
-			blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-			resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: 'error'});
+	.then( res => {
+		var reply = eval('`'+ getMsg(res).replace(/`/g,'\\`') + '`');  
+		return reply;		
+	}, err => {
+		throwErr(err);
+	})
+	.then( reply => {
+		return whitelist.ifWL(session.message.user.id)
+				.then( isWL => {
+					return {isWL: isWL, reply: reply};
+				})
+	})
+	.then( res => {
+		if (res.isWL) {
+			return whitelist.archiveWL(session.message.user.id)
+				.then(() => {
+					return res.reply;
+				})
+		}
+		else {
+			return blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name})
+				.then(() => {
+					return resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: chat_result});
+				})
+				.then(() => {
+					return res.reply;
+				})
+		}
+	})
+	.then( reply => {
+		session.endConversation(reply);
+	})
+	.catch( err => {
+		blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+		resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: 'error'});
 
-			var errInfo = getErrorInfo(err);
-			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-		})		
+		var errInfo = getErrorInfo(err);
+		botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+	})		
 }
 exports.endConversation = endConversation;

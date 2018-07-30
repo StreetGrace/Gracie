@@ -4,7 +4,7 @@ var config = require('./../config').config;
 
 const options = config.blacklistConn;
 
-function find (user_id, cb) {
+function find (user_id) {
     var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
     var conditions = {
         'user_id': user_id
@@ -22,9 +22,13 @@ function find (user_id, cb) {
 	  return database
 		.db(options.database)
 		.collection(options.collection)
-		.findOne(conditions, function (err, result) {
-			database.close(true);
-			cb(result); 
+		.findOne(conditions)
+		.then(res => {
+			database.close();
+			return res
+		}, err => {
+			database.close();
+			throw err;
 		});
 	})	
 }

@@ -4,7 +4,7 @@ var config = require('./../config').config;
 
 const options = config.ongoingConn;
 
-function find (user_id, cb) {
+function find (user_id) {
     var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
     var conditions = {
         'user_id': user_id
@@ -18,14 +18,18 @@ function find (user_id, cb) {
 	}	    
 
   var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
-	  return database
-		.db(options.database)
-		.collection(options.collection)
-		.findOne(conditions, function (err, result) {
-			database.close(true);
-			cb(result); 
-		});
+	return mongoClient.connect(uri, connectOptions).then(database => {
+		return database
+			.db(options.database)
+			.collection(options.collection)
+			.findOne(conditions)
+			.then(res => {
+				database.close();
+				return res
+			}, err => {
+				database.close();
+				throw err;
+			});
 	})	
 }
 
@@ -53,7 +57,7 @@ function insert (data) {
 	}	
 	
 	var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
+	return mongoClient.connect(uri, connectOptions).then(database => {
 	  return database
 		.db(options.database)
 		.collection(options.collection)
@@ -72,3 +76,9 @@ module.exports = {
 	find: find,
 	insert: insert
 };
+
+find('UBZHRDB0V:TBSVD522U1')
+	.then(res => {console.log('%j', res)})
+	.catch(err => {
+		console.log('%j', err)
+	})
