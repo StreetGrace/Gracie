@@ -103,16 +103,17 @@ var givenTime_default = {
 };
 
 var IntentList_nonOpen = [
-	'Intent.AskAge',
-	'Intent.AskProof',
-	'Intent.Confirmation_No',
-	'Intent.confirmation_Yes',
-	'Intent.Ensure',
-	'Intent.Negotiate_Price',
-	'Intent.Offer_Transportation',
-	'Intent.Police',
-	'Intent.Pregnant',
-	'Intent.QuestionAge'
+	'General.AskAge',
+	'General.AskProof',
+	'General.Confirmation_No',
+	'General.Confirmation_Yes',
+	'General.Cancel',
+	'General.Ensure',
+	'General.Negotiate_Price',
+	'General.Suggest_Transportation',
+	'General.Police',
+	'General.Pregnant',
+	'General.QuestionAge'
 ];
 
 exports.IntentList_nonOpen = IntentList_nonOpen;

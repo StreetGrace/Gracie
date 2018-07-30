@@ -60,10 +60,11 @@ lib.dialog('/intent.greeting', [
 			botLogger.info('Start opener:/intent.greeting', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
 			
 			var modelName = session.userData.profile.default.model;
-			var jonName = demo.name || '';
-			if (jonName.toLowerCase() == modelName.toLowerCase()) {
-				jonName = '';
-			}
+			// var jonName = demo.name || '';
+			// if (jonName.toLowerCase() == modelName.toLowerCase()) {
+			// 	jonName = '';
+			// }
+			var jonName = '';
 			var neighborhood = session.userData.profile.default.neighborhood;
 			var reply = '';
 			var data = null;
@@ -133,10 +134,11 @@ lib.dialog('/intent.availability', [
 				}
 
 			var modelName = session.userData.profile.default.model;
-			var jonName = demo.name || '';
-			if (jonName.toLowerCase() == modelName.toLowerCase()) {
-				jonName = '';
-			}
+			// var jonName = demo.name || '';
+			// if (jonName.toLowerCase() == modelName.toLowerCase()) {
+			// 	jonName = '';
+			// }
+			var jonName = '';
 			var neighborhood = session.userData.profile.default.neighborhood;
 
 			var reply = '';
@@ -310,10 +312,11 @@ lib.dialog('/intent.price_inquiry', [
 			botLogger.info('Start opener:/intent.price_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
 
 			var modelName = session.userData.profile.default.model;
-			var jonName = demo.name || '';
-			if (jonName.toLowerCase() == modelName.toLowerCase()) {
-				jonName = '';
-			}
+			// var jonName = demo.name || '';
+			// if (jonName.toLowerCase() == modelName.toLowerCase()) {
+			// 	jonName = '';
+			// }
+			var jonName = '';
 			var neighborhood = session.userData.profile.default.neighborhood;
 
 			var reply = '';
@@ -399,11 +402,11 @@ lib.dialog('/intent.location_inquiry', [
 			botLogger.info('Start opener:/intent.location_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));
 
 			var modelName = session.userData.profile.default.model;
-			var jonName = demo.name || '';
-			if (jonName.toLowerCase() == modelName.toLowerCase()) {
-				jonName = '';
-			}
-
+			// var jonName = demo.name || '';
+			// if (jonName.toLowerCase() == modelName.toLowerCase()) {
+			// 	jonName = '';
+			// }
+			var jonName = '';
 			var reply = '';
 
 			db.queryDB('opener:/location_inquiry', 0, 0)
