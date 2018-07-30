@@ -114,7 +114,7 @@ function ifWL(user_id) {
 	return queryWL(user_id)
 	    .then(res => {
 			res.connection.end();
-			return Object.values(res.rows[0])[0];
+			return Object.keys(res.rows[0]).map( key => {return res.rows[0][key]} )[0];
 		},
 		err => {
 			err.connection.end();
@@ -172,3 +172,4 @@ module.exports = {
 //         console.log('%j', Object.values(res.rows[0])[0])
 //     })
 
+// ifWL('+147030586661').then(res=>{console.log(res)});
