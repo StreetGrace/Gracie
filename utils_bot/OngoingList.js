@@ -77,8 +77,8 @@ module.exports = {
 	insert: insert
 };
 
-find('UBZHRDB0V:TBSVD522U1')
-	.then(res => {console.log('%j', res)})
-	.catch(err => {
-		console.log('%j', err)
-	})
+// find('UBZHRDB0V:TBSVD522U1')
+// 	.then(res => {console.log('%j', res)})
+// 	.catch(err => {
+// 		console.log('%j', err)
+// 	})

@@ -18,7 +18,7 @@ function find (user_id) {
 	}	    
 
   var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
+	return mongoClient.connect(uri, connectOptions).then(database => {
 	  return database
 		.db(options.database)
 		.collection(options.collection)
@@ -78,3 +78,8 @@ module.exports = {
 };
 
 
+// find('UBZHRDB0V:TBSVD522U1')
+// 	.then(res => {console.log('%j', res)})
+// 	.catch(err => {
+// 		console.log('%j', err)
+// 	})
