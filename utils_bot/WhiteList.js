@@ -132,16 +132,7 @@ function archiveWL(user_id) {
 		'state_data_del': {'internal_id': {'$in': [user_id+','+user_id, user_id+',userData', user_id+',conversationData']}}
 	}
 
-	return find(condTable.chat, sourceDB, 'chat_logging')
-		.then(result => {
-			insertMany(result, 'archive', 'chat_logging')
-		})
-		.then( () => {
-			deleteMany(condTable.chat_del, sourceDB, 'chat_logging')
-		})
-		.then( () => {
-			return find(condTable.bot_log, sourceDB, 'bot_logging')
-		})
+	return find(condTable.bot_log, sourceDB, 'bot_logging')
 		.then(result => {
 			insertMany(result, 'archive', 'bot_logging')
 		})
