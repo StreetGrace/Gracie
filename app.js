@@ -137,6 +137,7 @@ const initialProfile = {
 };
 
 function concatMsg () {
+    const bufferTime = 20000;
     return function (req, res, next) {
         try {
             if (req.body.type != 'message') {
@@ -169,7 +170,7 @@ function concatMsg () {
                         else {
                             time_stored = time_received;
                         }
-                        if (now - time_stored > 15000) {
+                        if (now - time_stored > bufferTime) {
                             buffer.del_msg(req.body.conversation.id);                              
                             next();
                         }
@@ -178,7 +179,7 @@ function concatMsg () {
                             res.end();
                         }
                     });
-                }, 20000);
+                }, bufferTime);
 
             }              
         }
@@ -215,7 +216,7 @@ function filteruser () {
                                 next();
                             }
                         })       
-                    }, 750);
+                    }, 100);
                 }
                 catch (err) {
                     console.error('Custom Handler: receive - invalid request data received.');
