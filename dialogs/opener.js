@@ -249,7 +249,7 @@ lib.dialog('/intent.service_inquiry', [
 			var apptService = utils.getEntity('service', appt.service);
 			var data = utilsService.fillService(apptService);
 
-			var name = demo.name || '';
+			var jonName = demo.name || '';
 			var modelName = session.userData.profile.default.model;
 			var neighborhood = session.userData.profile.default.neighborhood;
 
