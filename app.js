@@ -178,7 +178,7 @@ function concatMsg () {
                             res.end();
                         }
                     });
-                }, 15000);
+                }, 20000);
 
             }              
         }
