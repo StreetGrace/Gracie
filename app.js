@@ -137,7 +137,7 @@ const initialProfile = {
 };
 
 function concatMsg () {
-    const bufferTime = 20000;
+    const bufferTime = 18000;
     return function (req, res, next) {
         try {
             if (req.body.type != 'message') {

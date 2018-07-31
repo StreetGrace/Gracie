@@ -87,6 +87,7 @@ exports.getEntity = getEntity;
 const priceTable = {
 	'15min': '40',
 	'30min': '80',
+	'45min': '100',
 	'1 hour': '120',
     '2 hours': '240',
     'overnight': '1000'
@@ -113,7 +114,8 @@ var IntentList_nonOpen = [
 	'General.Suggest_Transportation',
 	'General.Police',
 	'General.Pregnant',
-	'General.QuestionAge'
+	'General.QuestionAge',
+	'General.Confused'
 ];
 
 exports.IntentList_nonOpen = IntentList_nonOpen;
