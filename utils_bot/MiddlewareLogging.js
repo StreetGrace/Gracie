@@ -1,15 +1,8 @@
 var mongodb= require("mongodb");
 var utils = require('./../utils_dialog/utils_Time');
+var config = require('./../config').config;
 
-const options = {
-    ip: '18.234.8.122',
-    port: '27017',
-    database: 'gracie',
-    collection: 'chat_logging',
-    username: 'adclaimsuser@bbdo.com',
-    password: 'Bbdoatl1',
-    queryString: 'gracie'
-}
+const options = config.chatConn;
 
 function insert(data) {
 	var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
@@ -93,7 +86,7 @@ module.exports = {
 				var db = insert(entry);		
 			}			
 			next();
-		}, 10);
+		}, 1000);
 	},
 	logBlackListedMessage: function (req, res) {
 		var entry = {

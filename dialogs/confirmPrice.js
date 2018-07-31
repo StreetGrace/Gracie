@@ -134,7 +134,7 @@ lib.dialog('/confirmIncall', [
                 givenService.flag_rejectOut = 0;
                 session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_prompt});
             }
-            else if (intent == 'Intent.Offer_Transportation') {
+            else if (intent == 'Intent.Suggest_Transportation') {
                 var reply = 'ooook, fine i guess i could trust u.'
                 session.userData.profile.confirmation.service.inout = 'outcall';
                 givenService.flag_rejectOut = 0;

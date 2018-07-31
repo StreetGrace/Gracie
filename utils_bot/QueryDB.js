@@ -1,4 +1,5 @@
 var mysql = require('mysql');
+var connConfig = require('./../config').config;
 
 function queryRes(dialog, index, branch, cb) {
   var param = {
@@ -9,12 +10,7 @@ function queryRes(dialog, index, branch, cb) {
     branch: branch
   };
 
-  var con = mysql.createConnection({
-    host: "loreleierd.ciargp61tp0d.us-east-1.rds.amazonaws.com",
-    user: "lorelei_master",
-    password: "Gracie2018",
-    database: "lorelei_erd"
-  });
+  var con = mysql.createConnection(connConfig.responseConn);
 
   con.connect();
   con.query(

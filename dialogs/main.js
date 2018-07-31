@@ -38,45 +38,64 @@ lib.dialog('/', [
 						var errInfo = utils.getErrorInfo(err);
 						botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 						
-						utils.endConversation(session, 'error');						
+						utils.endConversation(session, 'error', botLogger);						
 					})	
 			}
 		} 
 		catch (err) {
 			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-				utils.endConversation(session, 'error');
+				utils.endConversation(session, 'error', botLogger);
 		}
 	},
 	function (session, args, next) {
 		try {
 			var msg = args.response;
-			apiai.recognizer.recognize({message:{text:msg}}, function(error, response) {
-				var intent = response.intent;
-				var entities = response.entities;
-				var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
-				var price = entities['price'] ? entities['price'] : null;
-			
-				var sessionInfo = utils.getSessionInfo(session);
-				botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
+			var sessionInfo = utils.getSessionInfo(session);
 
-				if (intent == 'Intent.Confirmation_Yes') {
-					utils.endConversation(session, 'complete');
-				}
-				else if (intent == 'Intent.Location_Inquiry') {
-					utils.endConversation(session, 'complete');
-				}
-				else if (intent == 'Intent.Confirmation_No' || intent == 'Intent.Cancel') {				
-					utils.endConversation(session, 'complete_n');
-				}
-				else {
-					utils.endConversation(session, 'complete');
-				}
-			});  		
+			apiai.recognize({message: {text: msg}, inputContexts: ['confirm']})
+				.then(res => {
+					var intent = res.intent;
+					var entities = res.entities;
+					var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
+					var price = entities['price'] ? entities['price'] : null;		
+					
+					if (intent == 'Confirm.Confirmation_Yes') {
+						botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
+						utils.endConversation(session, 'complete', botLogger);
+					}				
+					else if (intent == 'Confirm.Confirmation_No' || intent == 'Confirm.Cancel' ) {
+						botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
+						utils.endConversation(session, 'complete_n', botLogger);
+					}
+					else {
+						return apiai.recognize({message:{text: msg}})
+							.then( res => {
+								var intent = res.intent;
+								var entities = res.entities;
+								var service = (entities['service'] && entities['service'].length > 0) ? entities['service'] : null;
+								var price = entities['price'] ? entities['price'] : null;	
+
+								botLogger.info('main:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent}));
+								if (intent == 'General.Location_Inquiry') {
+									utils.endConversation(session, 'complete', botLogger);
+								}
+								else {
+									utils.endConversation(session, 'complete', botLogger);
+								}								
+							})
+					}
+				})
+				.catch(err => {
+					var errInfo = utils.getErrorInfo(err);
+					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+					utils.endConversation(session, 'error', botLogger);					
+				})		
 		}
 		catch (err) {
+			var errInfo = utils.getErrorInfo(err);
 			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-			utils.endConversation(session, 'error');
+			utils.endConversation(session, 'error', botLogger);
 		}
 	}
 ]);

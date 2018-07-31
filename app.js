@@ -9,9 +9,11 @@ var myMiddleware = require('./utils_bot/MiddlewareLogging.js');
 var botbuilder_mongo=require('botbuilder-mongodb');
 var buffer = require('./utils_bot/MessageBuffer');
 var blacklist = require('./utils_bot/Blacklist');
+var ongoingList = require('./utils_bot/OngoingList');
 var profileDB = require('./utils_bot/QueryProfile.js')
 
 var botLog = require('./utils_bot/BotLogger');
+var config = require('./config').config;
 
 //Setup Logger
 var botLogger = botLog.botLog;
@@ -33,21 +35,13 @@ var connector = new builder.ChatConnector({
 // Listen for messages from users 
 server.post('/api/messages', [
     filteruser(), 
+    filterOngoinguser(), 
     concatMsg(), 
     connector.listen()]);
 
-const mongoOptions = {
-    ip: '18.234.8.122',
-    port: '27017',
-    database: 'gracie',
-    collection: 'state_data',
-    username: 'adclaimsuser@bbdo.com',
-    password: 'Bbdoatl1',
-    queryString: 'gracie'
-}
-
+const mongoOptions = config.stateConn;
 // Set State Data Storage to MongoDB
-mongoStorage=botbuilder_mongo.GetMongoDBLayer(mongoOptions)
+var mongoStorage = botbuilder_mongo.GetMongoDBLayer(mongoOptions);
 
 // var memoryStorage = new builder.MemoryBotStorage();
 var bot = new builder.UniversalBot(connector, {});
@@ -79,13 +73,13 @@ bot.dialog('/', [
                 .catch( err => {
                     var errInfo = utils.getErrorInfo(err);          
                     botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-                    utils.endConversation(session, 'error')                
+                    utils.endConversation(session, 'error', botLogger)                
                 });
         }
 		catch (err) {
             var errInfo = utils.getErrorInfo(err);          
             botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-            utils.endConversation(session, 'error')
+            utils.endConversation(session, 'error', botLogger)
 		}
 	}
 ]);
@@ -143,6 +137,7 @@ const initialProfile = {
 };
 
 function concatMsg () {
+    const bufferTime = 18000;
     return function (req, res, next) {
         try {
             if (req.body.type != 'message') {
@@ -175,7 +170,7 @@ function concatMsg () {
                         else {
                             time_stored = time_received;
                         }
-                        if (now - time_stored > 15000) {
+                        if (now - time_stored > bufferTime) {
                             buffer.del_msg(req.body.conversation.id);                              
                             next();
                         }
@@ -184,7 +179,7 @@ function concatMsg () {
                             res.end();
                         }
                     });
-                }, 15000);
+                }, bufferTime);
 
             }              
         }
@@ -197,7 +192,6 @@ function concatMsg () {
     }
 }
 
-// const utl = require('util');
 function filteruser () {
     return function (req, res, next) {
         if (req.body) {
@@ -210,27 +204,61 @@ function filteruser () {
                 requestData += chunk;
             });
             req.on('end', function () {
-                try {
+                res.send(202);                
+                setTimeout(function() {
                     req.body = JSON.parse(requestData);
-                    blacklist.find(req.body.from.id, function (result) {
+                    blacklist.find(req.body.from.id)
+                    .then( result => {
                         if (result) {
-                            res.send(202);
                             myMiddleware.logBlackListedMessage(req, res);                      
                         }
                         else {
-                            res.send(202);
-                            // botLogger.info('filterUser: chunk end', {body: req.body});
-                            next();
+                            next()
                         }
-                    })         
-                }
-                catch (err) {
-                    console.error('Custom Handler: receive - invalid request data received.');
-                    res.send(400);
-                    res.end();
-                    return;
-                }
+                    })
+                    .catch( err => {
+                        var errInfo = util.getErrorInfo(err);
+                        botLogger.error("Exception Caught", errInfo);
+                        res.send(400);
+                        res.end();
+                        return;
+                    })    
+                }, 100);
             });
         }
     };
 }
+
+function filterOngoinguser () {
+    return function (req, res, next) {
+        if (req.body.type != 'message') {
+            next();           
+        }
+        else {
+            ongoingList.find(req.body.from.id)
+            .then(result => {
+                if (result) {
+                    if (result.bot_id == req.body.recipient.id) { 
+                        next(); 
+                    }
+                    else { 
+                        myMiddleware.logBlackListedMessage(req, res); 
+                    }
+                }
+                else {
+                    return ongoingList.insert({user_id: req.body.from.id, bot_id: req.body.recipient.id})
+                        .then( () => {
+                            next();
+                        });
+                }
+            })   
+            .catch( err => {
+                var errInfo = util.getErrorInfo(err);
+                botLogger.error("Exception Caught", errInfo);
+                res.send(400);
+                res.end();
+                return;
+            })    
+        }
+    }
+};

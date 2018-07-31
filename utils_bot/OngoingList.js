@@ -2,7 +2,7 @@ var mongodb = require("mongodb");
 var utils = require("./../utils_dialog/utils_Time");
 var config = require('./../config').config;
 
-const options = config.blacklistConn;
+const options = config.ongoingConn;
 
 function find (user_id) {
     var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
@@ -19,17 +19,17 @@ function find (user_id) {
 
   var mongoClient = mongodb.MongoClient;
 	return mongoClient.connect(uri, connectOptions).then(database => {
-	  return database
-		.db(options.database)
-		.collection(options.collection)
-		.findOne(conditions)
-		.then(res => {
-			database.close();
-			return res
-		}, err => {
-			database.close();
-			throw err;
-		});
+		return database
+			.db(options.database)
+			.collection(options.collection)
+			.findOne(conditions)
+			.then(res => {
+				database.close();
+				return res
+			}, err => {
+				database.close();
+				throw err;
+			});
 	})	
 }
 
@@ -45,7 +45,7 @@ function insert (data) {
 	var update = {
 		'$set': { 
 			'user_id': data.user_id,
-			'user_name': data.user_name,
+			'bot_id': data.bot_id,
 			'timestamp': timestamp
 		} 
 	};	
@@ -76,7 +76,6 @@ module.exports = {
 	find: find,
 	insert: insert
 };
-
 
 // find('UBZHRDB0V:TBSVD522U1')
 // 	.then(res => {console.log('%j', res)})

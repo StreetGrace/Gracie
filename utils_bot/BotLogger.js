@@ -2,6 +2,7 @@
 var winston = require('winston')
 var logger = new winston.Logger()
 require('winston-mongodb').MongoDB
+var config = require('./../config').config;
 
 function extend (origin, add) {
     // Don't do anything if add isn't an object
@@ -36,26 +37,13 @@ function getErrMeta(err, user_id) {
 // Set up Bot Logger 
 winston.loggers.add('botLog', {
     transports : [
-        new(winston.transports.MongoDB) ({
-            db: 'mongodb://adclaimsuser%40bbdo.com:Bbdoatl1@18.234.8.122:27017/gracie',
-            collection : 'bot_logging',
-            level: 'info',
-            label: 'Standard',
-            capped: true
-        }),    
+        new(winston.transports.MongoDB) (config.botLogConn),    
     ]
 })
 
 winston.loggers.add('UncaughtExceptionLog', {
     transports : [
-        new(winston.transports.MongoDB) ({
-            db: 'mongodb://adclaimsuser%40bbdo.com:Bbdoatl1@18.234.8.122:27017/gracie',
-            collection : 'bot_logging',
-            level: 'info',
-            label: 'Uncaught Exception',
-            handleExceptions: true,
-            capped: true,   
-        }),    
+        new(winston.transports.MongoDB) (config.botErrConn),    
     ]
 })
 

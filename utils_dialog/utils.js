@@ -87,6 +87,7 @@ exports.getEntity = getEntity;
 const priceTable = {
 	'15min': '40',
 	'30min': '80',
+	'45min': '100',
 	'1 hour': '120',
     '2 hours': '240',
     'overnight': '1000'
@@ -103,16 +104,18 @@ var givenTime_default = {
 };
 
 var IntentList_nonOpen = [
-	'Intent.AskAge',
-	'Intent.AskProof',
-	'Intent.Confirmation_No',
-	'Intent.Confirmation_Yes',
-	'Intent.Ensure',
-	'Intent.Negotiate_Price',
-	'Intent.Offer_Transportation',
-	'Intent.Police',
-	'Intent.Pregnant',
-	'Intent.QuestionAge'
+	'General.AskAge',
+	'General.AskProof',
+	'General.Confirmation_No',
+	'General.Confirmation_Yes',
+	'General.Cancel',
+	'General.Ensure',
+	'General.Negotiate_Price',
+	'General.Suggest_Transportation',
+	'General.Police',
+	'General.Pregnant',
+	'General.QuestionAge',
+	'General.Confused'
 ];
 
 exports.IntentList_nonOpen = IntentList_nonOpen;
@@ -170,53 +173,6 @@ function getDialogID(callstack) {
 	return dialogStack;
 };
 
-var db = require('./../utils_bot/QueryDB_1');
-var blacklist = require('./../utils_bot/Blacklist');
-var resultLogger = require('./../utils_bot/ResultLog');
-var botLog = require('./../utils_bot/BotLogger');
-
-var botLogger = botLog.botLog;
-
-function endConversation(session, chat_result) {
-	var table = {
-		'error': {dialog: 'global', index: 0, branch: 0},
-		'complete': {dialog: 'global', index:0, branch: 0},
-		'complete_n': {dialog: 'global', index:0, branch: 1},
-		'complete_noincall': {dialog: 'global', index:0, branch: 2},
-		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
-	};
-
-	var sessionInfo = getSessionInfo(session);
-	botLogger.info('End Conversation', sessionInfo);
-
-	db.queryDB(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch)
-		.then( res => {
-			var reply = eval('`'+ getMsg(res).replace(/`/g,'\\`') + '`');  
-			return reply;
-		}, err => {
-			throwErr(err);
-		})
-		.then( reply => {
-			blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-			return reply;
-		})
-		.then( reply => {
-			resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: chat_result});
-			return reply;
-		})
-		.then( reply => {
-			session.endConversation(reply);
-		})
-		.catch( err => {
-			blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
-			resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: 'error'});
-
-			var errInfo = getErrorInfo(err);
-			botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-		})		
-}
-exports.endConversation = endConversation;
-
 function parseMsg (rows) {
 	var msg = rows[0].message;
 	msg = decodeURIComponent(msg).replace(/\+/g, " ");
@@ -242,3 +198,63 @@ function throwErr(err) {
 }
 exports.throwErr = throwErr;
 
+var db = require('./../utils_bot/QueryDB_1');
+var blacklist = require('./../utils_bot/Blacklist');
+var whitelist = require('./../utils_bot/Whitelist');
+var resultLogger = require('./../utils_bot/ResultLog');
+
+function endConversation(session, chat_result, botLogger) {
+	var table = {
+		'error': {dialog: 'global', index: 0, branch: 0},
+		'complete': {dialog: 'global', index:0, branch: 0},
+		'complete_n': {dialog: 'global', index:0, branch: 1},
+		'complete_noincall': {dialog: 'global', index:0, branch: 2},
+		'complete_noprice': {dialog: 'global', index:0, branch: 3},
+		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
+	};
+
+	var sessionInfo = getSessionInfo(session);
+	botLogger.info('End Conversation', sessionInfo);
+
+	db.queryDB(table[chat_result].dialog, table[chat_result].index, table[chat_result].branch)
+	.then( res => {
+		var reply = eval('`'+ getMsg(res).replace(/`/g,'\\`') + '`');  
+		return reply;		
+	}, err => {
+		throwErr(err);
+	})
+	.then( reply => {
+		return whitelist.ifWL(session.message.user.id)
+				.then( isWL => {
+					return {isWL: isWL, reply: reply};
+				})
+	})
+	.then( res => {
+		if (res.isWL) {
+			return whitelist.archiveWL(session.message.user.id)
+				.then(() => {
+					return res.reply;
+				})
+		}
+		else {
+			return blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name})
+				.then(() => {
+					return resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: chat_result});
+				})
+				.then(() => {
+					return res.reply;
+				})
+		}
+	})
+	.then( reply => {
+		session.endConversation(reply);
+	})
+	.catch( err => {
+		blacklist.insert({user_id: session.message.user.id, user_name: session.message.user.name});
+		resultLogger.insert({user_id: session.message.user.id, user_name: session.message.user.name, result: 'error'});
+
+		var errInfo = getErrorInfo(err);
+		botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+	})		
+}
+exports.endConversation = endConversation;
