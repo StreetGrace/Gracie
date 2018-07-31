@@ -276,7 +276,7 @@ lib.dialog('/confirmIncall', [
                                     utils.throwErr(err);
                                 })            		               
                             }
-                            else if (intent_c == 'Confirm.Confirmation_No' || intent == 'Confirm.Cancel') {
+                            else if (intent_c == 'Confirm.Confirmation_No' || intent_c == 'Confirm.Cancel') {
                                 utils.endConversation(session, 'complete_n', botLogger);
                             }
                             else if (intent == 'General.Suggest_Transportation') {
