@@ -47,6 +47,7 @@ var mongoStorage = botbuilder_mongo.GetMongoDBLayer(mongoOptions);
 var bot = new builder.UniversalBot(connector, {});
 // bot.set('storage', memoryStorage);
 bot.set('storage', mongoStorage);
+bot.set(`persistUserData`, false);
 
 bot.use({
 	botbuilder: function (session, next) {

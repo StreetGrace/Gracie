@@ -66,7 +66,8 @@ lib.dialog('/intent.greeting', [
 			// }
 			var jonName = '';
 			var neighborhood = session.userData.profile.default.neighborhood;
-			var reply = '';
+			var reply = demo.name || '';
+			reply += ' ';
 			var data = null;
 			data = utilsService.fillService(data);
 	
