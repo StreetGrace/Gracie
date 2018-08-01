@@ -56,51 +56,7 @@ bot.use({
 
 bot.dialog('/', [
 	function (session, args, next){
-		var test =  {
-			default: {
-				model: '',
-				city: '',
-				neighborhood: '',
-				age: 16,
-				gender: 'Female'
-			},
-			appointment: {
-				'exact-time': [],
-				'relative-time': [],
-				service: [],
-				price: [],
-				location: [],	
-				model: ''
-			},
-			demographic: {
-				name: ''
-			},
-			confirmation: {
-				time: {
-					hour: null, minute: null, date: null, complete: 0
-				},
-				location: {
-					neighborhood: '', site: '', address: '', complete: 0
-				},
-				service: {
-					inout: 'incall', duration: '', addon: '', complete: 0
-				},
-				price: {
-					priceListGiven: 0,
-					priceGiven: {
-						'30min': 0,
-						'1 hour': 0,
-						'15min': 0,
-						'addon': 0,
-						'2 hours': 0,
-						'overnight': 0,
-						'addon': 0,
-						'inout': 0,
-						'bare': 0
-					}
-				}
-			}
-		};
+		var test = config.initialProfile;
 		session.send('%j', test);
 		// utils.endConversation(session, 'complete',botLogger);
 		

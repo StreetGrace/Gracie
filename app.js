@@ -63,14 +63,11 @@ bot.dialog('/', [
         try {
             var sessionInfo = utils.getSessionInfo(session);
             botLogger.info(':/, Start', sessionInfo);
-        
-            var init = config.initialProfile;
-            console.log('%j', config.initialProfile);
+         
             session.userData.profile = config.initialProfile;
             session.save();
-            session.send('%j', init);
-            session.send('%j', session.userData.profile);
-    
+            botLogger.info(':/, initialProfile', session.userData)
+
             profileDB.getProfile(session.message.address.bot.id)
                 .then( res => {
                     session.userData.profile.default = res;
