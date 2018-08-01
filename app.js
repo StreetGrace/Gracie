@@ -47,7 +47,7 @@ var mongoStorage = botbuilder_mongo.GetMongoDBLayer(mongoOptions);
 var bot = new builder.UniversalBot(connector, {});
 // bot.set('storage', memoryStorage);
 bot.set('storage', mongoStorage);
-bot.set(`persistUserData`, false);
+// bot.set(`persistUserData`, false);
 
 bot.use({
 	botbuilder: function (session, next) {
@@ -65,7 +65,7 @@ bot.dialog('/', [
             botLogger.info(':/, Start', sessionInfo);
             
             session.userData.profile = session.userData.profile || initialProfile;
-            // session.send('%j', session.userData.profile);
+            session.send('%j', session.userData.profile);
     
             profileDB.getProfile(session.message.address.bot.id)
                 .then( res => {
