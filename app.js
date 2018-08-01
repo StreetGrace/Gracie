@@ -63,8 +63,9 @@ bot.dialog('/', [
         try {
             var sessionInfo = utils.getSessionInfo(session);
             botLogger.info(':/, Start', sessionInfo);
-            
+        
             session.userData.profile = initialProfile;
+            session.save();
             session.send('%j', session.userData.profile);
     
             profileDB.getProfile(session.message.address.bot.id)
