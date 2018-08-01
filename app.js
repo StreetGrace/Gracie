@@ -64,8 +64,11 @@ bot.dialog('/', [
             var sessionInfo = utils.getSessionInfo(session);
             botLogger.info(':/, Start', sessionInfo);
         
-            session.userData.profile = initialProfile;
+            var init = config.initialProfile;
+            console.log('%j', config.initialProfile);
+            session.userData.profile = config.initialProfile;
             session.save();
+            session.send('%j', init);
             session.send('%j', session.userData.profile);
     
             profileDB.getProfile(session.message.address.bot.id)
@@ -91,53 +94,6 @@ bot.library(require('./dialogs/main').createLibrary());
 bot.library(require('./dialogs/opener').createLibrary());
 bot.library(require('./dialogs/confirmService').createLibrary());
 bot.library(require('./dialogs/confirmTime').createLibrary());
-
-const initialProfile = {
-	default: {
-        model: '',
-        city: '',
-        neighborhood: '',
-        age: 16,
-        gender: 'Female'
-	},
-	appointment: {
-		'exact-time': [],
-		'relative-time': [],
-		service: [],
-		price: [],
-		location: [],	
-		model: ''
-	},
-	demographic: {
-		name: ''
-	},
-	confirmation: {
-		time: {
-			hour: null, minute: null, date: null, complete: 0
-		},
-		location: {
-			neighborhood: '', site: '', address: '', complete: 0
-		},
-		service: {
-			inout: 'incall', duration: '', addon: '', complete: 0
-		},
-		price: {
-			priceListGiven: 0,
-			priceGiven: {
-				'30min': 0,
-				'1 hour': 0,
-				'15min': 0,
-				'addon': 0,
-				'2 hours': 0,
-				'overnight': 0,
-				'addon': 0,
-                'inout': 0,
-                'bare': 0
-			}
-		}
-	},
-	
-};
 
 function concatMsg () {
     const bufferTime = 18000;
