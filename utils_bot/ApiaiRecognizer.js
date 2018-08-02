@@ -77,7 +77,7 @@ module.exports.recognizer = {
 };
 
 
-// var msg = 'no. your donation?';
+// var msg = 'Yes my homegirl wants 60 so ur better';
 // recognize({message:{text: msg}, inputContexts: ['confirm']})
 //     .then(res => {
 //         var intent = res.intent;

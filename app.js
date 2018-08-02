@@ -47,6 +47,7 @@ var mongoStorage = botbuilder_mongo.GetMongoDBLayer(mongoOptions);
 var bot = new builder.UniversalBot(connector, {});
 // bot.set('storage', memoryStorage);
 bot.set('storage', mongoStorage);
+// bot.set(`persistUserData`, false);
 
 bot.use({
 	botbuilder: function (session, next) {
@@ -62,9 +63,9 @@ bot.dialog('/', [
         try {
             var sessionInfo = utils.getSessionInfo(session);
             botLogger.info(':/, Start', sessionInfo);
-            
-            session.userData.profile = session.userData.profile || initialProfile;
-    
+         
+            session.userData.profile = JSON.parse(JSON.stringify(config.initialProfile));
+
             profileDB.getProfile(session.message.address.bot.id)
                 .then( res => {
                     session.userData.profile.default = res;
@@ -88,53 +89,6 @@ bot.library(require('./dialogs/main').createLibrary());
 bot.library(require('./dialogs/opener').createLibrary());
 bot.library(require('./dialogs/confirmService').createLibrary());
 bot.library(require('./dialogs/confirmTime').createLibrary());
-
-const initialProfile = {
-	default: {
-        model: '',
-        city: '',
-        neighborhood: '',
-        age: 16,
-        gender: 'Female'
-	},
-	appointment: {
-		'exact-time': [],
-		'relative-time': [],
-		service: [],
-		price: [],
-		location: [],	
-		model: ''
-	},
-	demographic: {
-		name: ''
-	},
-	confirmation: {
-		time: {
-			hour: null, minute: null, date: null, complete: 0
-		},
-		location: {
-			neighborhood: '', site: '', address: '', complete: 0
-		},
-		service: {
-			inout: 'incall', duration: '', addon: '', complete: 0
-		},
-		price: {
-			priceListGiven: 0,
-			priceGiven: {
-				'30min': 0,
-				'1 hour': 0,
-				'15min': 0,
-				'addon': 0,
-				'2 hours': 0,
-				'overnight': 0,
-				'addon': 0,
-                'inout': 0,
-                'bare': 0
-			}
-		}
-	},
-	
-};
 
 function concatMsg () {
     const bufferTime = 18000;

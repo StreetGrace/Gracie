@@ -56,10 +56,9 @@ bot.use({
 
 bot.dialog('/', [
 	function (session, args, next){
-		var sessionInfo = utils.getSessionInfo(session);
-		botLogger.info(':/, Start', sessionInfo);
-		session.send(session.message.user.id);
-		utils.endConversation(session, 'complete',botLogger);
+		var test = config.initialProfile;
+		session.send('%j', test);
+		// utils.endConversation(session, 'complete',botLogger);
 		
 	}
 ]);

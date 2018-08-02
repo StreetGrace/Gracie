@@ -60,16 +60,17 @@ lib.dialog('/intent.greeting', [
 			botLogger.info('Start opener:/intent.greeting', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
 			
 			var modelName = session.userData.profile.default.model;
-			// var jonName = demo.name || '';
-			// if (jonName.toLowerCase() == modelName.toLowerCase()) {
-			// 	jonName = '';
-			// }
-			var jonName = '';
+			var jonName = demo.name || '';
+			if (jonName.toLowerCase() == modelName.toLowerCase()) {
+				jonName = '';
+			}
+		
 			var neighborhood = session.userData.profile.default.neighborhood;
-			var reply = '';
+			
 			var data = null;
 			data = utilsService.fillService(data);
-	
+			
+			var reply = '';
 			db.queryDB('opener:/intent.greeting', 0, 0)
 				.then( res => {
 					reply += eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
@@ -134,11 +135,11 @@ lib.dialog('/intent.availability', [
 				}
 
 			var modelName = session.userData.profile.default.model;
-			// var jonName = demo.name || '';
-			// if (jonName.toLowerCase() == modelName.toLowerCase()) {
-			// 	jonName = '';
-			// }
-			var jonName = '';
+			var jonName = demo.name || '';
+			if (jonName.toLowerCase() == modelName.toLowerCase()) {
+				jonName = '';
+			}
+			
 			var neighborhood = session.userData.profile.default.neighborhood;
 
 			var reply = '';
@@ -249,8 +250,15 @@ lib.dialog('/intent.service_inquiry', [
 			var apptService = utils.getEntity('service', appt.service);
 			var data = utilsService.fillService(apptService);
 
+<<<<<<< HEAD
 			var jonName = demo.name || '';
+=======
+>>>>>>> develop
 			var modelName = session.userData.profile.default.model;
+			var jonName = demo.name || '';
+			if (jonName.toLowerCase() == modelName.toLowerCase()) {
+				jonName = '';
+			}
 			var neighborhood = session.userData.profile.default.neighborhood;
 
 			var reply = '';
@@ -312,11 +320,11 @@ lib.dialog('/intent.price_inquiry', [
 			botLogger.info('Start opener:/intent.price_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));	
 
 			var modelName = session.userData.profile.default.model;
-			// var jonName = demo.name || '';
-			// if (jonName.toLowerCase() == modelName.toLowerCase()) {
-			// 	jonName = '';
-			// }
-			var jonName = '';
+			var jonName = demo.name || '';
+			if (jonName.toLowerCase() == modelName.toLowerCase()) {
+				jonName = '';
+			}
+			
 			var neighborhood = session.userData.profile.default.neighborhood;
 
 			var reply = '';
@@ -402,11 +410,11 @@ lib.dialog('/intent.location_inquiry', [
 			botLogger.info('Start opener:/intent.location_inquiry', Object.assign({}, sessionInfo, {appt: appt, demo: demo}));
 
 			var modelName = session.userData.profile.default.model;
-			// var jonName = demo.name || '';
-			// if (jonName.toLowerCase() == modelName.toLowerCase()) {
-			// 	jonName = '';
-			// }
-			var jonName = '';
+			var jonName = demo.name || '';
+			if (jonName.toLowerCase() == modelName.toLowerCase()) {
+				jonName = '';
+			}
+			
 			var reply = '';
 
 			db.queryDB('opener:/location_inquiry', 0, 0)
