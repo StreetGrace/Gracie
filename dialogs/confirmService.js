@@ -39,7 +39,7 @@ lib.dialog('/', [
 					var errInfo = utils.getErrorInfo(err);
 					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 					
-					utils.endConversation(session, 'error', botLogger);						
+					utils.endConversation(session, 'error', botLogger);					
                 })
             }
             else if (args.reprompt >= 2) {

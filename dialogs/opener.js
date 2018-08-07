@@ -230,7 +230,6 @@ lib.dialog('/intent.availability', [
 	}
 ]);
 
-
 /*
 *	1. Greet user.
 *	2. dialog confirmService.
@@ -326,39 +325,14 @@ lib.dialog('/intent.price_inquiry', [
 			var reply = '';
 
 			db.queryDB('opener:/price_inquiry', 0, 0)
-				.then( res=> {
+				.then( res => {
 					reply += eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
 					session.send(reply);
-					reply = '';
-	
-					if (data) {
-						if (!session.userData.profile.confirmation.price.priceListGiven) {
-							reply += ' donations are 80 for HH, 120 for H. ';
-							session.userData.profile.confirmation.price.priceListGiven = 1;
-							session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
-							session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
-						}
-						if (data.has_duration && data.duration != '30min' && data.duration != '1 hour') {
-							reply += utils.priceTable[data.duration] + ' for ' + data.duration + '.';
-							session.userData.profile.confirmation.price.priceGiven[data.duration] = 1;
-						}
-						if (data.has_inout && data.inout == 'outcall') {
-							reply += " i dont have license soo you'll need to buy me uber or lyft.";
-							session.userData.profile.confirmation.price.priceGiven.inout = 1;
-							data.flag_rejectOut = 0;
-						}
-						if (data.has_addon) {
-							reply += ' any fetish thing is 50 extra..';
-							session.userData.profile.confirmation.price.priceGiven.addon = 1;
-						}
-					}	
-
-					if (!(data.has_inout && data.inout == 'incall') && data.flag_rejectOut) {
-						return db.queryDB('opener:/price_inquiry', 0, 4);
-					}
-					return '';
 				}, err => {
 					utils.throwErr(err);
+				})
+				.then( () => {
+					
 				})
 				.then( res=> {
 					if (res) {
@@ -498,3 +472,60 @@ lib.dialog('/intent.unhandled', [
 module.exports.createLibrary = function(){
     return lib.clone();
 };
+
+					if (data) {
+						if (!session.userData.profile.confirmation.price.priceListGiven) {
+							return db.queryDB('opener:/price_inquiry', 1, 1)
+								.then( res => {
+									var price_30 = utils.priceTable['30min'];
+									var price_60 = utils.priceTable['1 hour'];
+									var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+									reply += msg;
+									session.userData.profile.confirmation.price.priceListGiven = 1;
+									session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
+									session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
+									
+								}, err => {
+									utils.throwErr(err);
+								})
+						}
+						if (data.has_duration && data.duration != '30min' && data.duration != '1 hour') {
+							return db.queryDB('opener:/price_inquiry', 1, 2)
+								.then( res => {
+									var duration = data.duration;
+									var price = utils.priceTable[duration];
+									var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+									reply += msg;
+									session.userData.profile.confirmation.price.priceGiven[data.duration] = 1;
+								}, err => {
+									utils.throwErr(err);
+								})							
+						}
+						if (data.has_inout && data.inout == 'outcall') {
+							return db.queryDB('opener:/price_inquiry', 1, 3)
+								.then( res => {
+									var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+									reply += msg;
+									session.userData.profile.confirmation.price.priceGiven.inout = 1;
+									data.flag_rejectOut = 0;
+								}, err => {
+									utils.throwErr(err);
+								})								
+						}
+						if (data.has_addon) {
+							return db.queryDB('opener:/price_inquiry', 1, 4)
+								.then( res => {
+									var price_addon = utils.priceTable['addon']
+									var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+									reply += msg;
+									session.userData.profile.confirmation.price.priceGiven.addon = 1;
+								}, err => {
+									utils.throwErr(err);
+								})									
+						}
+					}	
+					if (!(data.has_inout && data.inout == 'incall') && data.flag_rejectOut) {
+						return db.queryDB('opener:/price_inquiry', 2, 1);
+					}
+					return '';
+					
