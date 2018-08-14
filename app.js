@@ -1,4 +1,4 @@
-let patch = require('./utils_bot/patches');
+// let patch = require('./utils_bot/patches');
 
 var restify = require('restify');
 var builder = require('botbuilder');
@@ -35,7 +35,7 @@ var connector = new builder.ChatConnector({
 server.post('/api/messages', [
     filteruser(), 
     filterOngoinguser(), 
-    concatMsg(), 
+    // concatMsg(), 
     connector.listen()]);
 
 const mongoOptions = config.stateConn;
