@@ -1,4 +1,4 @@
-// let patch = require('./utils_bot/patches');
+let patch = require('./utils_bot/patches');
 
 var restify = require('restify');
 var builder = require('botbuilder');
@@ -35,7 +35,7 @@ var connector = new builder.ChatConnector({
 server.post('/api/messages', [
     filteruser(), 
     filterOngoinguser(), 
-    // concatMsg(), 
+    concatMsg(), 
     connector.listen()]);
 
 const mongoOptions = config.stateConn;
@@ -95,8 +95,7 @@ function concatMsg () {
         try {
             if (req.body.type != 'message') {
                 // botLogger.info('concatMsg: not message', {body: req.body});
-                next();
-                
+                next();         
             }
             else {
                 var time_stored;
@@ -104,7 +103,14 @@ function concatMsg () {
                 // botLogger.info('concatMsg: message', {req: req, time_received: time_received});
                 buffer.find(req.body.conversation.id, function (result) {
                     if (result) {
+                        if (req.body.attachments && req.body.attachments.length > 0) {
+                            var attm = req.body.attachments 
+                        }
+                        else {
+                            var attm = []
+                        }
                         req.body.text = result.msg + ' ' + req.body.text;
+                        req.body.attachments = result.attm.concat(req.body.attachments)
                     }
                     data = {
                         conversation_id: req.body.conversation.id,
@@ -157,9 +163,12 @@ function filteruser () {
                 requestData += chunk;
             });
             req.on('end', function () {
-                res.send(202);                
+                res.send(202);            
                 setTimeout(function() {
                     req.body = JSON.parse(requestData);
+                    if (req.body.attachments && req.body.attachments.length > 0) {
+                        req.body.text = 'Default: Attachment Received' + ' >>>' + JSON.stringify(req.body.attachments);
+                    }    
                     blacklist.find(req.body.from.id)
                     .then( result => {
                         if (result) {

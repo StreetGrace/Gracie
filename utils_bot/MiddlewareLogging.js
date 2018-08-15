@@ -3,28 +3,37 @@ var utils = require('./../utils_dialog/utils_Time');
 var config = require('./../config').config;
 
 const options = config.chatConn;
+const options_attm = config.chatConnAttm;
 
-function insert(data) {
-	var uri = "mongodb://" + options.ip + ":" + options.port + "/" + options.queryString;
+function insert(data, attm) {
+	if (attm) {
+		var opt = options_attm;
+	}
+	else {
+		var opt = options
+	}
+
+	var uri = "mongodb://" + opt.ip + ":" + opt.port + "/" + opt.queryString;
+
 	var conditions = {
 		'conversation_id': data.conversation_id
 	};
 	var update = {
 		'$push': { 'data': data } 
 	};	
-	var connectOptions = {};
-	if (options.username && options.password) {
+	var connectOptions = {useNewUrlParser: true};
+	if (opt.username && opt.password) {
 		connectOptions.auth = {};
-		connectOptions.auth.user = options.username;
-		connectOptions.auth.password = options.password;
+		connectOptions.auth.user = opt.username;
+		connectOptions.auth.password = opt.password;
 	}	
 	
 	var mongoClient = mongodb.MongoClient;
 	return mongoClient.connect(uri, connectOptions).then(database => {
 	  return database
-		.db(options.database)
-		.collection(options.collection)
-		.update(conditions, update, { upsert: true })
+		.db(opt.database)
+		.collection(opt.collection)
+		.updateOne(conditions, update, { upsert: true })
 		.then(() => {
 		  database.close(true);
 		})
@@ -49,14 +58,27 @@ module.exports = {
 			user_name: message.user.name,
 			bot_id: message.address.bot.id,
 			bot_name: message.address.bot.name,
-			text: message.text
+			text: message.text,
+			attachment: message.attachments
 		};
+
 		var now = new Date();
 		var timestamp = utils.toIsoString(now);		
 		entry.timestamp = timestamp;		
-		var db = insert(entry);
 
-		if (session.message.text) {
+		if (message.attachments && message.attachments.length > 0) {
+			entry.has_attm = true;
+		}
+		else {
+			entry.has_attm = false;
+		}
+		
+		insert(entry, false);
+		if (entry.has_attm) {
+			insert(entry, true);
+		}
+
+		if (session.message.text && !entry.has_attm) {
 			session.message.text = session.message.text.replace(/q.v./gi, 'qv');
 		}
 		 
@@ -100,13 +122,21 @@ module.exports = {
 			user_name: req.body.from.name,
 			bot_id: req.body.recipient.id,
 			bot_name: req.body.recipient.name,
-			text: req.body.text
+			text: req.body.text,
+			attachments: req.body.attachments
 		};
 
 		var now = new Date();
 		var timestamp = utils.toIsoString(now);
 		entry.timestamp = timestamp;
-		var db = insert(entry);
+
+		if (req.body.attachments && req.body.attachments.length > 0) {
+			var db = insert(entry, true);
+		}
+		else {
+			var db = insert(entry, false);
+		}
+		
 		res.end();
 	}
 };

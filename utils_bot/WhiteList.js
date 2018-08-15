@@ -10,7 +10,7 @@ function find (id_condition, db, collection) {
 	var uri = "mongodb://" + metaConn.ip + ":" + metaConn.port + "/" + db;
 	var conditions = id_condition
     
-	var connectOptions = {};
+	var connectOptions = {useNewUrlParser: true};
 	if (metaConn.username && metaConn.password) {
 		connectOptions.auth = {};
 		connectOptions.auth.user = metaConn.username;
@@ -38,7 +38,7 @@ function find (id_condition, db, collection) {
 function insertMany (docs, db, collection) {
 	var uri = "mongodb://" + metaConn.ip + ":" + metaConn.port + "/" + db;
 	
-	var connectOptions = {};
+	var connectOptions = {useNewUrlParser: true};
 	if (metaConn.username && metaConn.password) {
 		connectOptions.auth = {};
 		connectOptions.auth.user = metaConn.username;
@@ -65,7 +65,7 @@ function insertMany (docs, db, collection) {
 function deleteMany (docs, db, collection) {
 	var uri = "mongodb://" + metaConn.ip + ":" + metaConn.port + "/" + db;
 	
-	var connectOptions = {};
+	var connectOptions = {useNewUrlParser: true};
 	if (metaConn.username && metaConn.password) {
 		connectOptions.auth = {};
 		connectOptions.auth.user = metaConn.username;

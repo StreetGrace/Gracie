@@ -10,7 +10,7 @@ function find (user_id) {
         'user_id': user_id
     }    
     
-	var connectOptions = {};
+	var connectOptions = {useNewUrlParser: true};
 	if (options.username && options.password) {
 		connectOptions.auth = {};
 		connectOptions.auth.user = options.username;
@@ -61,7 +61,7 @@ function insert (data) {
 	  return database
 		.db(options.database)
 		.collection(options.collection)
-		.update(conditions, update, { upsert: true })
+		.updateOne(conditions, update, { upsert: true })
 		.then(() => {
 		  database.close(true);
 		})
