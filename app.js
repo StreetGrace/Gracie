@@ -173,7 +173,7 @@ function filteruser () {
                 setTimeout(function() {
                     req.body = JSON.parse(requestData);
                     if (req.body.attachments && req.body.attachments.length > 0) {
-                        req.body.text = 'Default: Attachment Received' + ' >>>';
+                        req.body.text = 'Default: Attachment Received';
                     }    
                     blacklist.find(req.body.from.id)
                     .then( result => {
@@ -210,6 +210,9 @@ function filterOngoinguser () {
                         next(); 
                     }
                     else { 
+                        if (req.body.attachments && req.body.attachments.length > 0) {
+                            req.body.text = 'Default: Attachment Received';
+                        }    
                         myMiddleware.logBlackListedMessage(req, res); 
                     }
                 }
