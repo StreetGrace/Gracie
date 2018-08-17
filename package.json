@@ -11,13 +11,13 @@
   "dependencies": {
     "api-ai-recognizer": "^1.1.1",
     "apiai": "^4.0.3",
-    "botbuilder": "^3.14.0",
-    "botbuilder-mongodb": "^3.0.9",
-    "dotenv-extended": "^2.0.1",
-    "express": "^4.16.2",
-    "mysql": "^2.15.0",
-    "restify": "^6.3.4",
-    "winston": "^2.4.2",
+    "botbuilder": "^3.15.0",
+    "botbuilder-mongodb": "^3.1.1",
+    "dotenv-extended": "^2.2.0",
+    "express": "^4.16.3",
+    "mysql": "^2.16.0",
+    "restify": "^6.4.0",
+    "winston": "^2.4.3",
     "winston-mongodb": "^3.0.2"
   }
 }

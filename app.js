@@ -1,4 +1,3 @@
-
 let patch = require('./utils_bot/patches');
 
 var restify = require('restify');
@@ -96,21 +95,30 @@ function concatMsg () {
         try {
             if (req.body.type != 'message') {
                 // botLogger.info('concatMsg: not message', {body: req.body});
-                next();
-                
+                next();         
             }
             else {
                 var time_stored;
                 var time_received = new Date().getTime();    
                 // botLogger.info('concatMsg: message', {req: req, time_received: time_received});
                 buffer.find(req.body.conversation.id, function (result) {
-                    if (result) {
-                        req.body.text = result.msg + ' ' + req.body.text;
+                    if (req.body.attachments && req.body.attachments.length > 0) {
+                        req.body.text = ''
                     }
+                    else {
+                        req.body.attachments = []
+                    }
+
+                    if (result) {
+                        req.body.text = result.msg + req.body.text
+                        req.body.attachments = result.attm.concat(req.body.attachments)
+                    }
+                    
                     data = {
                         conversation_id: req.body.conversation.id,
                         msg: req.body.text,
-                        timestamp: time_received
+                        timestamp: time_received,
+                        attm: req.body.attachments
                     };
                     buffer.insert(data);
                 });     
@@ -125,7 +133,10 @@ function concatMsg () {
                             time_stored = time_received;
                         }
                         if (now - time_stored > bufferTime) {
-                            buffer.del_msg(req.body.conversation.id);                              
+                            buffer.del_msg(req.body.conversation.id);   
+                            if (req.body.attachments && req.body.attachments.length > 0 && !req.body.text) {
+                                req.body.text = 'Default: Attachment Received';
+                            }                       
                             next();
                         }
                         else {
@@ -158,9 +169,12 @@ function filteruser () {
                 requestData += chunk;
             });
             req.on('end', function () {
-                res.send(202);                
+                res.send(202);            
                 setTimeout(function() {
                     req.body = JSON.parse(requestData);
+                    if (req.body.attachments && req.body.attachments.length > 0) {
+                        req.body.text = 'Default: Attachment Received';
+                    }    
                     blacklist.find(req.body.from.id)
                     .then( result => {
                         if (result) {
@@ -196,6 +210,9 @@ function filterOngoinguser () {
                         next(); 
                     }
                     else { 
+                        if (req.body.attachments && req.body.attachments.length > 0) {
+                            req.body.text = 'Default: Attachment Received';
+                        }    
                         myMiddleware.logBlackListedMessage(req, res); 
                     }
                 }

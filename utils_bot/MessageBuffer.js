@@ -9,7 +9,7 @@ function find (conversation_id, cb) {
         'conversation_id': conversation_id
     }    
     
-	var connectOptions = {};
+	var connectOptions = {useNewUrlParser: true};
 	if (options.username && options.password) {
 		connectOptions.auth = {};
 		connectOptions.auth.user = options.username;
@@ -37,10 +37,11 @@ function insert (data) {
 		'$set': { 
 			'conversation_id': data.conversation_id,
 			'msg': data.msg,
-			'timestamp': data.timestamp
+			'timestamp': data.timestamp,
+			'attm': data.attm
 		} 
 	};	
-	var connectOptions = {};
+	var connectOptions = {useNewUrlParser: true};
 	if (options.username && options.password) {
 		connectOptions.auth = {};
 		connectOptions.auth.user = options.username;
@@ -48,11 +49,11 @@ function insert (data) {
 	}	
 	
 	var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
+	return mongoClient.connect(uri, connectOptions).then(database => {
 	  return database
 		.db(options.database)
 		.collection(options.collection)
-		.update(conditions, update, { upsert: true })
+		.updateOne(conditions, update, { upsert: true })
 		.then(() => {
 		  database.close(true);
 		})
@@ -69,7 +70,7 @@ function del_msg (conversation_id) {
 		'conversation_id': conversation_id
 	};
 		
-	var connectOptions = {};
+	var connectOptions = {useNewUrlParser: true};
 	if (options.username && options.password) {
 		connectOptions.auth = {};
 		connectOptions.auth.user = options.username;
@@ -77,7 +78,7 @@ function del_msg (conversation_id) {
 	}	
 	
 	var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
+	return mongoClient.connect(uri, connectOptions).then(database => {
 	  return database
 		.db(options.database)
 		.collection(options.collection)

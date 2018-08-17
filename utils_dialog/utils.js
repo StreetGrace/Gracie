@@ -90,7 +90,8 @@ const priceTable = {
 	'45min': '100',
 	'1 hour': '120',
     '2 hours': '240',
-    'overnight': '1000'
+	'overnight': '1000',
+	'addon': '50'
 }
 
 exports.priceTable = priceTable;

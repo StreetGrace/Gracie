@@ -31,19 +31,22 @@ var connector = new builder.ChatConnector({
 });
 
 server.post('/api/messages', [
-    // filteruser(), 
+    filteruser(), 
     // filterOngoinguser(), 
     // concatMsg(), 
 	connector.listen()]);
 	
 const mongoOptions = config.stateConn;
-// Set State Data Storage to MongoDB
-var mongoStorage = botbuilder_mongo.GetMongoDBLayer(mongoOptions)
 
-// var memoryStorage = new builder.MemoryBotStorage();
 var bot = new builder.UniversalBot(connector, {});
-// bot.set('storage', memoryStorage);
-bot.set('storage', mongoStorage);
+
+//Set State Data Storage to memory
+bot.set('storage', memoryStorage);
+var memoryStorage = new builder.MemoryBotStorage();
+
+// Set State Data Storage to MongoDB
+// var mongoStorage = botbuilder_mongo.GetMongoDBLayer(mongoOptions)
+// bot.set('storage', mongoStorage);
 
 bot.use({
 	botbuilder: function (session, next) {
@@ -56,17 +59,53 @@ bot.use({
 
 bot.dialog('/', [
 	function (session, args, next){
-		var test = config.initialProfile;
-		session.send('%j', test);
-		// utils.endConversation(session, 'complete',botLogger);
-		
+		var msg = session.message;
+		if (msg.attachments && msg.attachments.length > 0) {
+		 // Echo back attachment
+		 var attachment = msg.attachments[0];
+			session.send({
+				text: "You sent:",
+				attachments: [
+					{
+						contentType: attachment.contentType,
+						contentUrl: attachment.contentUrl,
+						name: attachment.name
+					}
+				]
+			});
+		} 
+		if (msg.text) {
+			session.send("You said: %s", session.message.text);
+		}
 	}
 ]);
 
 
-//When the server posts to /api/messages, make the connector listen to it.
-// server.post('/api/messages', connector.listen())
+function filteruser () {
+    return function (req, res, next) {
+        if (req.body) {
+            // botLogger.info('filterUser: found body', {body: req.body});
+            next();
+        }
+        else {
+            var requestData = '';
+            req.on('data', function (chunk) {
+                requestData += chunk;
+            });
+            req.on('end', function () {
+				res.send(202);                
+				req.body = JSON.parse(requestData);
+				if (req.body.attachments && req.body.attachments.length > 0) {
+					req.body.text = 'Default: Image Received';
+				}
+				console.log('=================')
+				console.log('%j', req.body)
+				console.log('=================')
+				next();
+            });
+        }
+    };
+}
 
-// var inMemoryStorage = new builder.MemoryBotStorage();
-// var bot = new builder.UniversalBot(connector, {});
-// bot.set('storage', inMemoryStorage);
+//no "text"; no "textFormat"; has "attachments"
+//{}

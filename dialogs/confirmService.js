@@ -30,7 +30,12 @@ lib.dialog('/', [
 
                 db.queryDB('confirmService:/', 0, 1)
 				.then( res=> {
-                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                    if (args.reply) {
+                        var reply = args.reply;
+                    }
+                    else {
+                        var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                    }
                     session.replaceDialog('main:/', {reply: reply, complete_open: 1}); 
 				}, err => {
 					utils.throwErr(err);
@@ -39,7 +44,7 @@ lib.dialog('/', [
 					var errInfo = utils.getErrorInfo(err);
 					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
 					
-					utils.endConversation(session, 'error', botLogger);						
+					utils.endConversation(session, 'error', botLogger);					
                 })
             }
             else if (args.reprompt >= 2) {
@@ -52,6 +57,9 @@ lib.dialog('/', [
                 if (args.data.addon == 'raw') {
                     db.queryDB('confirmService:/', 0, 2)
                     .then( res=> {
+                        if (args.reply) {
+                            session.send(args.reply);
+                        }
                         var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`').replace('14', '16');
                         session.beginDialog('/confirmRaw', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
                     }, err => {
@@ -67,6 +75,9 @@ lib.dialog('/', [
                 else if (args.data.addon == 'bdsm') {
                     db.queryDB('confirmService:/', 0, 3)
                     .then( res=> {
+                        if (args.reply) {
+                            session.send(args.reply);
+                        }
                         var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
                         session.beginDialog('/confirmBDSM', {data: args.data, reply: reply, stored_reprompt: args.reprompt, reprompt: 0});
                     }, err => {
@@ -82,6 +93,9 @@ lib.dialog('/', [
                 else if (args.data.addon == 'girlfriend experience') {
                     db.queryDB('confirmService:/', 0, 4)
                     .then( res=> {
+                        if (args.reply) {
+                            session.send(args.reply);
+                        }
                         var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
                         session.dialogData.givenService.flag_addon = 0;
                         builder.Prompts.text(session, reply); 
@@ -98,6 +112,9 @@ lib.dialog('/', [
                 else {
                     db.queryDB('confirmService:/', 0, 5)
                     .then( res=> {
+                        if (args.reply) {
+                            session.send(args.reply);
+                        }
                         var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
                         session.dialogData.givenService.flag_addon = 0;
                         builder.Prompts.text(session, reply); 
@@ -115,7 +132,7 @@ lib.dialog('/', [
             else if (args.data.has_inout && !args.data.has_duration) {
                 db.queryDB('confirmService:/', 0, 6)
                 .then( res=> {
-                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                    var reply = (args.reply ? args.reply + '. ' : '') + eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
                     builder.Prompts.text(session, reply); 
                 }, err => {
                     utils.throwErr(err);
@@ -371,54 +388,145 @@ lib.dialog('/givePrice', [
             else {
                 var reply = '';
                 if (inquiryService) {
-                    if (!session.userData.profile.confirmation.price.priceListGiven) {
-                        reply += 'donations are 80 for HH, 120 for H. ';
-                        session.userData.profile.confirmation.price.priceListGiven = 1;
-                        session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
-                        session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
+                    db.queryDB('confirmService:/givePrice', 0, 0)
+                        .then( res => {
+                            if (!session.userData.profile.confirmation.price.priceListGiven) {
+                                var price_30 = utils.priceTable['30min'];
+                                var price_60 = utils.priceTable['1 hour'];
+                                var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+
+                                reply += (reply ? '. ' : '') + msg;                            
+
+                                session.userData.profile.confirmation.price.priceListGiven = 1;
+                                session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
+                                session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
+                            }
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .then( () => {
+                            if (inquiryService.has_duration && inquiryService.duration != '30min' && inquiryService.duration != '1 hour') {
+                                return db.queryDB('confirmService:/givePrice', 0, 1)
+                                    .then( res => {
+                                        var duration = inquiryService.duration;
+                                        var price = utils.priceTable[duration];
+                                        var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                                        reply += (reply ? ', ' : '') + msg;
+                                        session.userData.profile.confirmation.price.priceGiven[inquiryService.duration] = 1;
+                                    }, err => {
+                                        utils.throwErr(err);
+                                    })
+                            }
+                        })
+                        .then( () => {
+                            if (inquiryService.has_inout && inquiryService.inout == 'outcall') {
+                                return db.queryDB('confirmService:/givePrice', 0, 2)
+                                    .then( res => {
+                                        var duration = inquiryService.duration;
+                                        var price = utils.priceTable[duration];
+                                        var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                                        reply += (reply ? ', ' : '') + msg;
+                                        session.userData.profile.confirmation.price.priceGiven[inquiryService.duration] = 1;
+                                    }, err => {
+                                        utils.throwErr(err);
+                                    })
+                            }
+                        })
+                        .then( () => {
+                            if (inquiryService.has_addon && inquiryService.addon != 'raw') {
+                                return db.queryDB('confirmService:/givePrice', 0, 3)
+                                    .then( res => {
+                                        var price = utils.priceTable['addon'];
+                                        var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                                        reply += (reply ? ', ' : '') + msg;
+                                        session.userData.profile.confirmation.price.priceGiven.addon = 1;
+                                    }, err => {
+                                        utils.throwErr(err);
+                                    })
+                            }
+                        })
+                        .then( () => {
+                            if (inquiryService.has_addon && inquiryService.addon == 'raw') {
+                                return db.queryDB('confirmService:/givePrice', 0, 4)
+                                    .then( res => {
+                                        var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                                        reply += (reply ? ', ' : '') + msg;
+                                        session.userData.profile.confirmation.price.priceGiven.bare = 1;
+                                    }, err => {
+                                        utils.throwErr(err);
+                                    })
+                            }
+                        })
+                        .then( () => {
+                            if (!reply) {
+                                return db.queryDB('confirmService:/givePrice', 0, 5)
+                                    .then( res => {
+                                        var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                                        reply += (reply ? ', ' : '') + msg;
+                                        session.userData.profile.confirmation.price.priceGiven.bare = 1;  
+                                    }, err => {
+                                        utils.throwErr(err);
+                                    })
+                            }
+                        })
+                        .then( () => {
+                            builder.Prompts.text(session, reply); 
+                        })
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error', botLogger);						
+                        })
                     }
-                    if (inquiryService.has_duration && inquiryService.duration != '30min' && inquiryService.duration != '1 hour') {
-                        reply += utils.priceTable[inquiryService.duration] + ' for ' + inquiryService.duration + '.';
-                        session.userData.profile.confirmation.price.priceGiven[inquiryService.duration] = 1;
-                    }
-                    if (inquiryService.has_inout && inquiryService.inout == 'outcall') {
-                        reply += "you'll need to call uber or lift to pick me. ";
-                        session.userData.profile.confirmation.price.priceGiven.inout = 1;
-                        session.dialogData.givenService.flag_rejectOut = 0;
-                    }
-                    if (inquiryService.has_addon && inquiryService.addon != 'raw') {
-                        reply += 'any fetish thing is 50 extra..';
-                        session.userData.profile.confirmation.price.priceGiven.addon = 1;
-                    }
-                    if (inquiryService.has_addon && inquiryService.addon == 'raw') {
-                        reply += 'no extra $$ for raw but you need to bring paln b pills.'
-                        session.userData.profile.confirmation.price.priceGiven.bare = 1;
-                    }
-                    else {
-                        if (!reply) {
-                            reply += 'You happy with the price then?';
-                        }
-                    }
-                }
                 else {
                     if (args.reply) {
                         reply = args.reply;
+                        builder.Prompts.text(session, reply);   
                     }
                     else {
-                        if (!session.userData.profile.confirmation.price.priceListGiven) {
-                            reply += 'donations are 80 for HH, 120 for H. ';
-                            session.userData.profile.confirmation.price.priceListGiven = 1;
-                            session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
-                            session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
-                        }
-                        else {
-                            reply += '80 for HH, 120 for H, fetish things 50 extra. didnt i tell you already';
-                            session.userData.profile.confirmation.price.priceGiven.addon = 1;
-                        }
-            
+                        db.queryDB('confirmService:/givePrice', 0, 0)
+                        .then( res => {
+                            if (!session.userData.profile.confirmation.price.priceListGiven) {
+                                console.log('%j', res.rows)
+                                var price_30 = utils.priceTable['30min'];
+                                var price_60 = utils.priceTable['1 hour'];
+                                var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+
+                                reply += (reply ? '. ' : '') + msg;                            
+                                session.userData.profile.confirmation.price.priceListGiven = 1;
+                                session.userData.profile.confirmation.price.priceGiven['30min'] = 1;
+                                session.userData.profile.confirmation.price.priceGiven['1 hour'] = 1;
+                            }
+                            else {
+                                return db.queryDB('confirmService:/givePrice', 0, 6)
+                                    .then( res => {
+                                        var price_30 = utils.priceTable['30min'];
+                                        var price_60 = utils.priceTable['1 hour'];
+                                        var price_addon = utils.priceTable['addon'];
+
+                                        var msg = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
+                                        reply += (reply ? '. ' : '') + msg;                            
+
+                                        session.userData.profile.confirmation.price.priceGiven.addon = 1;            
+                                    }, err => {
+                                        utils.throwErr(err);            
+                                    })
+                            }
+                        }, err => {
+                            utils.throwErr(err);
+                        })
+                        .then( () => {
+                            builder.Prompts.text(session, reply);   
+                        } )
+                        .catch( err => {
+                            var errInfo = utils.getErrorInfo(err);
+                            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                            
+                            utils.endConversation(session, 'error', botLogger);						
+                        })                          
                     }
                 }
-                builder.Prompts.text(session, reply);
             }
         }
         catch (err) {
@@ -493,8 +601,13 @@ lib.dialog('/givePrice', [
                                     if ((givenService_new.has_duration && priceGiven[givenService_new.duration]) ||
                                     (givenService_new.has_inout && priceGiven.inout) || 
                                     (givenService_new.addon && priceGiven.addon)) {
-                                        var reply = 'good..';
-                                        session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})                            
+                                        return db.queryDB('confirmService:/givePrice', 1, 0)
+                                            .then( res => {
+                                                var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');  
+                                                session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.stored_reprompt})                            
+                                            }, err => {
+                                                utils.throwErr(err);
+                                            })
                                     }
                                     else {
                                         var reply = '';
@@ -506,11 +619,16 @@ lib.dialog('/givePrice', [
                                 }
                             }
                             else {
-                                var reply = 'you fine with price then?';
-                                session.replaceDialog('/givePrice', 
-                                {data: givenService, data_inquiry: '', reply: reply, 
-                                stored_reprompt: session.dialogData.stored_reprompt, 
-                                reprompt: session.dialogData.reprompt+1, defaultCount: session.dialogData.defaultCount});
+                                return db.queryDB('confirmService:/givePrice', 1, 2)
+                                .then( res => {
+                                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`'); 
+                                    session.replaceDialog('/givePrice', 
+                                        {data: givenService, data_inquiry: '', reply: reply, 
+                                        stored_reprompt: session.dialogData.stored_reprompt, 
+                                        reprompt: session.dialogData.reprompt+1, defaultCount: session.dialogData.defaultCount});
+                                }, err => {
+                                    utils.throwErr(err);
+                                })
                             }                           
                         })
                 })

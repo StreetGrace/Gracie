@@ -73,6 +73,15 @@ const config = {
 		password: 'Bbdoatl1',
 		queryString: db	
 	},
+	chatConnAttm: {
+		ip: '18.234.8.122',
+		port: '27017',
+		database: db,
+		collection: 'attm_logging',
+		username: 'adclaimsuser@bbdo.com',
+		password: 'Bbdoatl1',
+		queryString: db	
+	},
 	resultConn: {
 		ip: '18.234.8.122',
 		port: '27017',
