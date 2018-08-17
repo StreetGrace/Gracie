@@ -102,20 +102,23 @@ function concatMsg () {
                 var time_received = new Date().getTime();    
                 // botLogger.info('concatMsg: message', {req: req, time_received: time_received});
                 buffer.find(req.body.conversation.id, function (result) {
+                    if (req.body.attachments && req.body.attachments.length > 0) {
+                        req.body.text = ''
+                    }
+                    else {
+                        req.body.attachments = []
+                    }
+
                     if (result) {
-                        if (req.body.attachments && req.body.attachments.length > 0) {
-                            var attm = req.body.attachments 
-                        }
-                        else {
-                            var attm = []
-                        }
-                        req.body.text = result.msg + ' ' + req.body.text;
+                        req.body.text = result.msg + req.body.text
                         req.body.attachments = result.attm.concat(req.body.attachments)
                     }
+                    
                     data = {
                         conversation_id: req.body.conversation.id,
                         msg: req.body.text,
-                        timestamp: time_received
+                        timestamp: time_received,
+                        attm: req.body.attachments
                     };
                     buffer.insert(data);
                 });     
@@ -130,7 +133,10 @@ function concatMsg () {
                             time_stored = time_received;
                         }
                         if (now - time_stored > bufferTime) {
-                            buffer.del_msg(req.body.conversation.id);                              
+                            buffer.del_msg(req.body.conversation.id);   
+                            if (req.body.attachments && req.body.attachments.length > 0 && !req.body.text) {
+                                req.body.text = 'Default: Attachment Received';
+                            }                       
                             next();
                         }
                         else {
@@ -167,7 +173,7 @@ function filteruser () {
                 setTimeout(function() {
                     req.body = JSON.parse(requestData);
                     if (req.body.attachments && req.body.attachments.length > 0) {
-                        req.body.text = 'Default: Attachment Received' + ' >>>' + JSON.stringify(req.body.attachments);
+                        req.body.text = 'Default: Attachment Received' + ' >>>';
                     }    
                     blacklist.find(req.body.from.id)
                     .then( result => {

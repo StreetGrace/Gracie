@@ -133,9 +133,8 @@ module.exports = {
 		if (req.body.attachments && req.body.attachments.length > 0) {
 			var db = insert(entry, true);
 		}
-		else {
-			var db = insert(entry, false);
-		}
+		
+		var db = insert(entry, false);
 		
 		res.end();
 	}

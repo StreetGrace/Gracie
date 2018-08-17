@@ -37,7 +37,8 @@ function insert (data) {
 		'$set': { 
 			'conversation_id': data.conversation_id,
 			'msg': data.msg,
-			'timestamp': data.timestamp
+			'timestamp': data.timestamp,
+			'attm': data.attm
 		} 
 	};	
 	var connectOptions = {useNewUrlParser: true};
@@ -48,7 +49,7 @@ function insert (data) {
 	}	
 	
 	var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
+	return mongoClient.connect(uri, connectOptions).then(database => {
 	  return database
 		.db(options.database)
 		.collection(options.collection)
@@ -77,7 +78,7 @@ function del_msg (conversation_id) {
 	}	
 	
 	var mongoClient = mongodb.MongoClient;
-	mongoClient.connect(uri, connectOptions).then(database => {
+	return mongoClient.connect(uri, connectOptions).then(database => {
 	  return database
 		.db(options.database)
 		.collection(options.collection)
