@@ -259,3 +259,16 @@ function endConversation(session, chat_result, botLogger) {
 	})		
 }
 exports.endConversation = endConversation;
+
+function clone(obj) {
+    var cpy = {};
+    if (obj) {
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                cpy[key] = obj[key];
+            }
+        }
+    }
+    return cpy;
+}
+exports.clone = clone;

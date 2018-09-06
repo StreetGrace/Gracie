@@ -21,3 +21,7 @@
 //     .catch(err => {
 //         console.log(err.message);
 //     })
+
+var test = [1, 34, 21, 4];
+
+console.log(test.slice(-2)[0]);

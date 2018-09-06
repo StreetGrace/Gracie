@@ -47,6 +47,9 @@ var memoryStorage = new builder.MemoryBotStorage();
 // Set State Data Storage to MongoDB
 // var mongoStorage = botbuilder_mongo.GetMongoDBLayer(mongoOptions)
 // bot.set('storage', mongoStorage);
+bot.on(
+
+);
 
 bot.use({
 	botbuilder: function (session, next) {
