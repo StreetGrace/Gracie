@@ -116,6 +116,9 @@ const config = {
 		demographic: {
 			name: ''
 		},
+		topics: {
+			police: {complete: false, count: 0},
+		},
 		confirmation: {
 			time: {
 				hour: null, minute: null, date: null, complete: 0

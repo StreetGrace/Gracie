@@ -39,23 +39,16 @@ const mongoOptions = config.stateConn;
 
 var bot = new builder.UniversalBot(connector, {});
 
-//Set State Data Storage to memory
-// bot.set('storage', memoryStorage);
-// var memoryStorage = new builder.MemoryBotStorage();
-
 // Set State Data Storage to MongoDB
 var mongoStorage = botbuilder_mongo.GetMongoDBLayer(mongoOptions)
 bot.set('storage', mongoStorage);
 
-// bot.recognizer(apiai.recognizer);
-
-bot.on('routing', function (session) {
-	console.log('=============================')
-	console.log('On Routing: Dialog Data %j', session.dialogData);
-	console.log('On Routing: State Data %j', session.sessionState);
-	console.log('=============================')
-});
-
+// bot.on('routing', function (session) {
+// 	console.log('=============================')
+// 	console.log('On Routing: Dialog Data %j', session.dialogData);
+// 	console.log('On Routing: State Data %j', session.sessionState);
+// 	console.log('=============================')
+// });
 
 bot.use({
 	botbuilder: function (session, next) {
@@ -66,7 +59,15 @@ bot.use({
 	}
 });	
 
-var stopWords = ['police', 'law enforcement'];
+bot.recognizer(apiai.recognizer);
+
+//topIntent = intent_result
+// var intent_result = {
+//     score: 1,
+//     intent: res.metadata.intentName,
+//     entities: res.parameters                    
+// }
+
 bot.onFindRoutes(function (context, callback) {
 	var results = builder.Library.addRouteResult({ score: 0.0, libraryName: bot.name });
     bot.recognize(context, (err, topIntent) => {
@@ -74,27 +75,24 @@ bot.onFindRoutes(function (context, callback) {
             context.topIntent = topIntent && topIntent.score > 0 ? topIntent : null;
             context.libraryName = bot.name;
             async.parallel([
-                // >>>> BEGIN CUSTOM ROUTE
                 (cb) => {
-                    // Check users utterance for bad words
+                    var stack = context.dialogStack();
+                    var parentDialog = getParentDialog(stack, true);
+                    console.log('==========================');
+                    console.log('dialog stack %j', stack);
+                    console.log('Parent Stack %j', parentDialog);
+                    console.log('==========================');
                     var utterance = context.message.text.toLowerCase();
-                    for (var i = 0; i < stopWords.length; i++) {
-                        if (utterance.indexOf(stopWords[i]) >= 0) {
-                            // Route triggered
-                            results = builder.Library.addRouteResult({
-                                score: 1.0,
-                                libraryName: bot.name,
-                                routeType: 'LanguageFilter',
-                                routeData: {
-                                    badWord: stopWords[i]
-                                }
-                            }, results);
-                            break;
-                        }
+                    if (topIntent.intent == 'General.Police') {
+                        results = builder.Library.addRouteResult({
+                            score: 1.0,
+                            libraryName: bot.name,
+                            routeType: 'Global: Chichat',
+                            routeData: {test:'test'}
+                        }, results);
                     }
                     cb(null);
                 },
-                // <<<< END CUSTOM ROUTE
                 (cb) => {
                     // Check the active dialogs score
                     bot.findActiveDialogRoutes(context, (err, routes) => {
@@ -135,21 +133,81 @@ bot.onFindRoutes(function (context, callback) {
     });
 });
 
+function getParentDialog (session, isStack=false) {
+    if (!isStack) {
+        var ss = session.sessionState;
+    }
+    else {
+        var ss = {callstack: session};
+    }
+    var cur;
+    if (ss && ss.callstack && ss.callstack.length > 0) {
+        cur = ss.callstack[ss.callstack.length - 1];
+        console.log('finding parent %j', cur);
+        if (cur.id.indexOf('BotBuilder:prompt') >= 0 && ss.callstack.length > 1) {
+            cur = ss.callstack[ss.callstack.length - 2];
+        }
+    }
+    return cur;
+}
+
+function isPrompt (session) {
+    var ss = session.sessionState;
+    if (ss && ss.callstack && ss.callstack.length > 0) {
+        var cur = ss.callstack[ss.callstack.length - 1];
+        if (cur.id.indexOf('BotBuilder:prompt') >= 0) {
+            return true;
+        }
+    }
+    return false;
+}
 
 bot.onSelectRoute(function (session, route) {
+    console.log('*********************');
+    console.log('Route: %j', route);
+    console.log('*********************');
     switch (route.routeType || '') {
         // >>>> BEGIN CUSTOM ROUTE
-        case 'LanguageFilter':
-            session.send("You really shouldn't say words like '%s'...", route.routeData.badWord);
+        case 'Global: Chichat':
+            var frmDialog = getParentDialog(session);
+            // session.send('Route Custom');
+            // session.send('current lib: %j', Object.keys(session.library));
+            // session.send('current dialog: %j', session.curDialog());
+            // session.send('parent dialog %j', frmDialog);
+            if (isPrompt(session)) {
+                // session.sessionState.callstack.push({'id':'BotBuilder:Interruption'})
+                // session.dialogData = {'BotBuilder.Data.WaterfallStep':0};
+                // session.send('Call Stack: %j', session.sessionState.callstack);
+            }
+
+            if (frmDialog && frmDialog.id && frmDialog.id.indexOf('important') >= 0) {
+                session.beginDialog('*:continue_topic');
+            }
+            else {
+                session.beginDialog('*:chichat');
+            }
+
             break;
         // <<<< END CUSTOME ROUTE
         case builder.Library.RouteTypes.ActiveDialog:
+            // session.send('Route Active');
+            // session.send('current lib: %j', Object.keys(session.library));
+            // session.send('current dialog: %j', session.curDialog());
+            // session.send('route: %j', route);
             bot.selectActiveDialogRoute(session, route);
             break;
         case builder.Library.RouteTypes.StackAction:
+            // session.send('Route Stack');
+            // session.send('current lib: %j', Object.keys(session.library));
+            // session.send('current dialog: %j', session.curDialog());
+            // session.send('route: %j', route);
             bot.selectStackActionRoute(session, route);
             break;
         case builder.Library.RouteTypes.GlobalAction:
+            // session.send('Route Global');
+            // session.send('current lib: %j', Object.keys(session.library));
+            // session.send('current dialog: %j', session.curDialog());
+            // session.send('route: %j', route);
             bot.selectGlobalActionRoute(session, route);
             break;
         default:
@@ -160,47 +218,56 @@ bot.onSelectRoute(function (session, route) {
 
 bot.dialog('/', [
 	function (session, args, next){
-		var msg = session.message;
+        var msg = session.message;
 		// session.dialogData = {"BotBuilder.Data.WaterfallStep": 1};
-		session.dialogData.memory = 'mmm';
-		session.userData.isPolice = false;
-		session.send('dialog /, 0');
+		// session.dialogData.memory = 'mmm';
+		// session.userData.isPolice = false;
+        session.send('dialog /, 0');
+        session.send('args %j', args);
+        // var context = session.toRecognizeContext();
+        // session.send('context : %j', context);
 		// session.send('%j', session.conversationData);
-		session.send('%j', session.dialogData);
-		session.send('%j', session.sessionState);
-		var stack = session.dialogStack();
-		session.send('%j', stack);
-		// var context = session.toRecognizeContext();
-		// session.send('context 2: %j', context);
+		// session.send('Dialog Data: %j', session.dialogData);
+		// session.send('Session State: %j', session.sessionState);
+		// var stack = session.dialogStack();
+		// session.send('Stack: %j', stack);
+		
 
 		session.beginDialog('test');
-		// builder.Prompts.text(session, 'dialog /, 0, Prompt');
-		// next();
 	},
 
 	function (session, args, next) {
-		session.send('dialog /, 1');
+        session.send('dialog /, 1');
+        // var context = session.toRecognizeContext();
+        // session.send('context : %j', context);
 		// builder.Prompts.text(session, 'dialog /, 1, Prompt');
-		session.send('%j', session.dialogData);
-		session.send('%j', session.sessionState);
-		builder.Prompts.text(session, 'dialog /, 1, prompt');
+		// session.send('Dialog Data: %j', session.dialogData);
+		// session.send('Session State: %j', session.sessionState);
+		builder.Prompts.text(session, "dialog /, 1, prompt: what is current topic");
 	},
 
 	function (session, args, next) {
-		session.send('dialog /, 2')
-		session.send('%j', session.dialogData);
-		session.send('%j', session.sessionState);
+        session.send('dialog /, 2')
+        // var context = session.toRecognizeContext();
+        // session.send('context : %j', context);
+		// session.send('Dialog Data: %j', session.dialogData);
+		// session.send('Session State: %j', session.sessionState);
 	}
 ])
-.beginDialogAction('testAction:solo', 'solo', {matches: /solo/i});
+.beginDialogAction('testAction:casual', 'casual', {matches: /casual/i})
+.beginDialogAction('testAction:important', 'important', {matches: /important/i})
+.beginDialogAction('testAction:pause', 'pause', {matches: /pause/i})
+;
 
 bot.dialog('test', [
     function (session, args, next) {
-		session.send('dialog test');	
-		session.send('%j', session.dialogData);
-		session.send('%j', session.sessionState);
+        session.send('dialog test');	
+        // var context = session.toRecognizeContext();
+        // session.send('context : %j', context);
+		// session.send('Dialog Data: %j', session.dialogData);
+		// session.send('Session State: %j', session.sessionState);
 
-		var cstack = session.sessionState.callstack;
+		// var cstack = session.sessionState.callstack;
 		// cstack[cstack.length-2].id = ':virus';
 		// cstack[cstack.length-2].state = {"BotBuilder.Data.WaterfallStep": 0};
 		// session.cancelDialog('*:/');
@@ -209,35 +276,85 @@ bot.dialog('test', [
     }
 ])
 
-bot.dialog('virus', [
+bot.dialog('important', [
 	function (session, args, next) {
-		session.send('dialog virus 0');
-		session.send('%j', session.dialogData);
-		session.send('%j', session.sessionState);
+        session.send('dialog important 0');
+        session.send('args %j', args);
+        // var context = session.toRecognizeContext();
+        // session.send('context : %j', context);
+		// session.send('Dialog Data: %j', session.dialogData);
+		// session.send('Session State: %j', session.sessionState);
+        builder.Prompts.text(session, 'dialog /important, 0, prompt');
 	},
 
 	function (session, args, next) {
-		session.send('dialog virus 1');
+        session.send('dialog important 1');
+        // var context = session.toRecognizeContext();
+        // session.send('context : %j', context);
+        // session.send('Dialog Data: %j', session.dialogData);
+		// session.send('Session State: %j', session.sessionState);
+        session.endDialog();
 	}
 ])
 
-bot.dialog('solo', [
+bot.dialog('casual', [
 	function (session, args, next) {
-		session.send('dialog solo 0');
-		session.send('%j', session.dialogData);
-		session.send('%j', session.sessionState);
-
-		builder.Prompts.text(session, 'dialog /solo, 0, prompt');
+        session.send('dialog casual 0');
+        session.send('args %j', args);
+        // var context = session.toRecognizeContext();
+        // session.send('context : %j', context);
+		// session.send('Dialog Data: %j', session.dialogData);
+		// session.send('Session State: %j', session.sessionState);
+        builder.Prompts.text(session, 'dialog /casual, 0, prompt');
 	},
 
 	function (session, args, next) {
-		session.send('dialog solo 1');
+        session.send('dialog casual 1');
+        // var context = session.toRecognizeContext();
+        // session.send('context : %j', context);
+        // session.send('Dialog Data: %j', session.dialogData);
+		// session.send('Session State: %j', session.sessionState);
+        session.endDialog();
 	}
 ])
 
-bot.dialog('police', [
-	function (seesion, args, next) {
-		session.send('')
+
+bot.dialog('pause', [
+	function (session, args, next) {
+        session.send('dialog pause 0');
+        // var context = session.toRecognizeContext();
+        // session.send('context : %j', context);
+		// session.send('Dialog Data: %j', session.dialogData);
+		// session.send('Session State: %j', session.sessionState);
+        session.endDialog();
+	},
+])
+
+bot.dialog('chichat', [
+	function (session, args, next) {
+        session.send('dialog chichat 0');
+        session.send('args %j', args);
+        // var context = session.toRecognizeContext();
+        // session.send('context : %j', context);
+		// session.send('Dialog Data: %j', session.dialogData);
+        // session.send('Session State: %j', session.sessionState);
+        session.send('Chichating.....');
+        session.endDialog();
+    },
+    
+    
+]);
+
+bot.dialog('continue_topic', [
+	function (session, args, next) {
+        session.send('dialog continue_topic 0');
+        session.send('args %j', args);
+        var context = session.toRecognizeContext();
+        session.send('context : %j', context);
+		// session.send('Dialog Data: %j', session.dialogData);
+		// session.send('Session State: %j', session.sessionState);
+        session.send("no, this is important");
+        session.endDialog();
 	}
 ]);
 
