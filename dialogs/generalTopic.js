@@ -14,9 +14,11 @@ var lib = new builder.Library('generalTopic');
 
 lib.dialog('/police', [
     function (session, args, next) {
+        session.dialogData = {reprompt: args.reprompt, denied: args.denied};
         var topicPolice = session.userData.profile.topics.police;
-        var reply;
-        if (args.reprompt >= 2) {
+        var dialogStatus = session.dialogData;
+        var reply = '';
+        if (dialogStatus.reprompt >= 2) {
             utils.endConversation(session, 'boot', botLogger);
         }
         else if (topicPolice.complete && topicPolice.count > 1) {
@@ -37,14 +39,18 @@ lib.dialog('/police', [
                 utils.endConversation(session, 'error', botLogger);					
             })           
         }
+        else if (args.reply) {
+            builder.Prompts.text(args.reply);
+        }
         else {
             db.queryDB('generalTopic:/police', 0, 1)
             .then( res => {
                 reply += (reply ? ' ' : '') + eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');
-                if (args.denied) {
+                if (dialogStatus.denied) {
                     return '';
                 }
                 else {
+                    dialogStatus.denied = true;
                     return db.queryDB('generalTopic:/police', 0, 0);
                 }  
             }, err => {
@@ -68,48 +74,86 @@ lib.dialog('/police', [
     },
     function (session, args, next) {
         try {
+            var dialogStatus = session.dialogData;
+            var topicPolice = session.userData.profile.topics.police;
+            topicPolice.count += 1;
+
             var msg = args.response;
             var sessionInfo = utils.getSessionInfo(session);
-
+            // session.send('Police Args: %j', args);
             apiai.recognize({message: {text: msg}})
 				.then(res => {
                     var intent = res.intent;
                     var entities = res.entities;
                             
-                    botLogger.info('confirmService:/, Receive Response', Object.assign({}, sessionInfo, {intent: intent, entities: entities, givenService: givenService}));                
-                    //if response irrelevant
-                    if (intent == 'General.Price_Inquiry' || price) {
-                        var inquiryService = null;
-                        if (service) {
-                            inquiryService = utilsService.fillService(service)
-                        }
-                        session.replaceDialog('/givePrice', 
-                        {data: givenService, data_inquiry: inquiryService, 
-                        stored_reprompt: session.dialogData.reprompt, 
-                        reply: '', defaultCount: 0});
-                    }
-                    else if (intent == 'General.Service_Inquiry' || service) {
-                        var givenService_new = utilsService.fillService(service);    
-                        givenService = utilsService.updateService(givenService, givenService_new);
-                        
-                        var reply = 'i see....'; 
-                        session.replaceDialog('/', {data: givenService, reply: reply, reprompt: session.dialogData.reprompt+1});
-                    }
-                    else {
-                        return db.queryDB('confirmService:/', 1, 0)
-                            .then( res=> {
-                                var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');                                 
-                                session.replaceDialog('/', {data: session.dialogData.givenService, reprompt: session.dialogData.reprompt+1, reply: reply});
-                            }, err => {
-                                utils.throwErr(err);
-                            })	         
-                    }
-				})
-				.catch(err => {
-					var errInfo = utils.getErrorInfo(err);
-					botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
-					utils.endConversation(session, 'error', botLogger);					
-                })		        
-    }
+                    return apiai.recognize({message: {text: msg}, inputContexts: ['confirm']})
+                        .then( res => {
+                            var intent_c = res.intent;
 
+                            botLogger.info('generalTopic:/police, Receive Response', 
+                                Object.assign({}, sessionInfo, 
+                                {intent: intent, intent_c: intent_c, entities: entities})); 
+                            
+                            if (intent_c == 'Confirm.Confirmation_No' && !topicPolice.complete) {
+                                return db.queryDB('generalTopic:/police', 1, 0)
+                                .then( res=> {
+                                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');     
+                                    topicPolice.complete = true;
+                                    session.endDialogWithResult({reply: reply});
+                                }, err => {
+                                    utils.throwErr(err);
+                                })            		               
+                            }
+                            else if ((intent_c == 'Confirm.Confirmation_No' && topicPolice.complete) || intent_c == 'Confirm.Cancel') {
+                                utils.endConversation(session, 'complete_nopolice', botLogger);
+                            }
+                            else if (intent_c == 'Confirm.Confirmation_Yes' && topicPolice.complete) {
+                                return db.queryDB('generalTopic:/police', 1, 1)
+                                .then( res=> {
+                                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');     
+                                    session.endDialogWithResult({reply: reply});
+                                }, err => {
+                                    utils.throwErr(err);
+                                })            		               
+                            }
+                            else if (intent_c == 'Confirm.Confirmation_Yes' && !topicPolice.complete) {
+                                return db.queryDB('generalTopic:/police', 1, 2)
+                                .then( res=> {
+                                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');     
+                                    session.replaceDialog('/police', {reply: reply, repormpt: dialogStatus.reprompt+1, denied: dialogStatus.denied});
+                                }, err => {
+                                    utils.throwErr(err);
+                                })            		               
+                            }			
+                            else {
+                                return db.queryDB('generalTopic:/police', 1, 3)
+                                .then( res=> {
+                                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');     
+                                    session.replaceDialog('/police', {reply: reply, repormpt: dialogStatus.reprompt+1, denied: dialogStatus.denied});
+                                }, err => {
+                                    utils.throwErr(err);
+                                })   	
+                            }  							
+                        });
+            })
+            .catch(err => {
+                var errInfo = utils.getErrorInfo(err);
+                botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+                utils.endConversation(session, 'error', botLogger);					
+            })
+        }
+        catch (err) {
+            var errInfo = utils.getErrorInfo(err);
+            botLogger.error("Exception Caught", Object.assign({}, errInfo, sessionInfo));
+            utils.endConversation(session, 'error', botLogger);					
+        }
+    }		        
 ]);
+
+
+module.exports.createLibrary = function(){
+    return lib.clone();
+};
+
+					
+					

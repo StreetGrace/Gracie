@@ -59,7 +59,7 @@ bot.use({
 	}
 });	
 
-bot.recognizer(apiai.recognizer);
+// bot.recognizer(apiai.recognizer);
 
 //topIntent = intent_result
 // var intent_result = {
@@ -82,16 +82,25 @@ bot.onFindRoutes(function (context, callback) {
                     console.log('dialog stack %j', stack);
                     console.log('Parent Stack %j', parentDialog);
                     console.log('==========================');
-                    var utterance = context.message.text.toLowerCase();
-                    if (topIntent.intent == 'General.Police') {
-                        results = builder.Library.addRouteResult({
-                            score: 1.0,
-                            libraryName: bot.name,
-                            routeType: 'Global: Chichat',
-                            routeData: {test:'test'}
-                        }, results);
-                    }
-                    cb(null);
+                    var msg = context.message.text;
+                    apiai.recognize({message: {text: msg}})
+                        .then(res => {
+                            var intent = res.intent;
+                            var entities = res.entities;
+                            console.log('==========================');
+                            console.log('recognized intent %j', intent);
+                            console.log('==========================');                                                                
+                            if (intent == 'General.Police') {
+                                results = builder.Library.addRouteResult({
+                                    score: 1.0,
+                                    libraryName: bot.name,
+                                    routeType: 'General: Police',
+                                    routeData: {}
+                                }, results);        
+                            }
+
+                            cb(null);
+                        })
                 },
                 (cb) => {
                     // Check the active dialogs score
@@ -133,59 +142,35 @@ bot.onFindRoutes(function (context, callback) {
     });
 });
 
-function getParentDialog (session, isStack=false) {
-    if (!isStack) {
-        var ss = session.sessionState;
-    }
-    else {
-        var ss = {callstack: session};
-    }
-    var cur;
-    if (ss && ss.callstack && ss.callstack.length > 0) {
-        cur = ss.callstack[ss.callstack.length - 1];
-        console.log('finding parent %j', cur);
-        if (cur.id.indexOf('BotBuilder:prompt') >= 0 && ss.callstack.length > 1) {
-            cur = ss.callstack[ss.callstack.length - 2];
-        }
-    }
-    return cur;
-}
-
-function isPrompt (session) {
-    var ss = session.sessionState;
-    if (ss && ss.callstack && ss.callstack.length > 0) {
-        var cur = ss.callstack[ss.callstack.length - 1];
-        if (cur.id.indexOf('BotBuilder:prompt') >= 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bot.onSelectRoute(function (session, route) {
     console.log('*********************');
     console.log('Route: %j', route);
     console.log('*********************');
+    // session.send('********************');
+    // session.send('Route: %j', route);
+    // var ctx = session.toRecognizeContext();
+    // session.send('Context: %j', ctx);
+    // session.send('********************');
     switch (route.routeType || '') {
         // >>>> BEGIN CUSTOM ROUTE
-        case 'Global: Chichat':
+        case 'General: Police':
             var frmDialog = getParentDialog(session);
             // session.send('Route Custom');
             // session.send('current lib: %j', Object.keys(session.library));
             // session.send('current dialog: %j', session.curDialog());
             // session.send('parent dialog %j', frmDialog);
             if (isPrompt(session)) {
-                // session.sessionState.callstack.push({'id':'BotBuilder:Interruption'})
-                // session.dialogData = {'BotBuilder.Data.WaterfallStep':0};
+                session.sessionState.callstack.push({'id':'BotBuilder:Interruption'})
+                session.dialogData = {'BotBuilder.Data.WaterfallStep':0};
                 // session.send('Call Stack: %j', session.sessionState.callstack);
             }
-
-            if (frmDialog && frmDialog.id && frmDialog.id.indexOf('important') >= 0) {
-                session.beginDialog('*:continue_topic');
-            }
-            else {
-                session.beginDialog('*:chichat');
-            }
+            session.beginDialog('generalTopic:/police', {denied: false, reprompt: 0});
+            // if (frmDialog && frmDialog.id && frmDialog.id.indexOf('important') >= 0) {
+            //     session.beginDialog('*:continue_topic');
+            // }
+            // else {
+            //     session.beginDialog('*:chichat');
+            // }
 
             break;
         // <<<< END CUSTOME ROUTE
@@ -215,10 +200,16 @@ bot.onSelectRoute(function (session, route) {
     }
 });
 
+bot.library(require('./../dialogs/generalTopic').createLibrary());
 
 bot.dialog('/', [
 	function (session, args, next){
         var msg = session.message;
+        session.userData.profile = {
+            topics: {
+                police: {complete: false, count: 0}
+            }
+        };
 		// session.dialogData = {"BotBuilder.Data.WaterfallStep": 1};
 		// session.dialogData.memory = 'mmm';
 		// session.userData.isPolice = false;
@@ -231,9 +222,6 @@ bot.dialog('/', [
 		// session.send('Session State: %j', session.sessionState);
 		// var stack = session.dialogStack();
 		// session.send('Stack: %j', stack);
-		
-
-		session.beginDialog('test');
 	},
 
 	function (session, args, next) {
@@ -255,26 +243,9 @@ bot.dialog('/', [
 	}
 ])
 .beginDialogAction('testAction:casual', 'casual', {matches: /casual/i})
+.beginDialogAction('testAction:casual intent', 'casual', {matches: 'General.Greeting'})
 .beginDialogAction('testAction:important', 'important', {matches: /important/i})
-.beginDialogAction('testAction:pause', 'pause', {matches: /pause/i})
 ;
-
-bot.dialog('test', [
-    function (session, args, next) {
-        session.send('dialog test');	
-        // var context = session.toRecognizeContext();
-        // session.send('context : %j', context);
-		// session.send('Dialog Data: %j', session.dialogData);
-		// session.send('Session State: %j', session.sessionState);
-
-		// var cstack = session.sessionState.callstack;
-		// cstack[cstack.length-2].id = ':virus';
-		// cstack[cstack.length-2].state = {"BotBuilder.Data.WaterfallStep": 0};
-		// session.cancelDialog('*:/');
-		// session.send('After Cancel: %j', session.sessionState);
-		session.endDialog('test end');
-    }
-])
 
 bot.dialog('important', [
 	function (session, args, next) {
@@ -304,7 +275,8 @@ bot.dialog('casual', [
         // var context = session.toRecognizeContext();
         // session.send('context : %j', context);
 		// session.send('Dialog Data: %j', session.dialogData);
-		// session.send('Session State: %j', session.sessionState);
+        // session.send('Session State: %j', session.sessionState);
+        throw new Error('testing');
         builder.Prompts.text(session, 'dialog /casual, 0, prompt');
 	},
 
@@ -318,17 +290,6 @@ bot.dialog('casual', [
 	}
 ])
 
-
-bot.dialog('pause', [
-	function (session, args, next) {
-        session.send('dialog pause 0');
-        // var context = session.toRecognizeContext();
-        // session.send('context : %j', context);
-		// session.send('Dialog Data: %j', session.dialogData);
-		// session.send('Session State: %j', session.sessionState);
-        session.endDialog();
-	},
-])
 
 bot.dialog('chichat', [
 	function (session, args, next) {
@@ -357,6 +318,37 @@ bot.dialog('continue_topic', [
         session.endDialog();
 	}
 ]);
+
+
+function getParentDialog (session, isStack=false) {
+    if (!isStack) {
+        var ss = session.sessionState;
+    }
+    else {
+        var ss = {callstack: session};
+    }
+    var cur;
+    if (ss && ss.callstack && ss.callstack.length > 0) {
+        cur = ss.callstack[ss.callstack.length - 1];
+        console.log('finding parent %j', cur);
+        if (cur.id.indexOf('BotBuilder:prompt') >= 0 && ss.callstack.length > 1) {
+            cur = ss.callstack[ss.callstack.length - 2];
+        }
+    }
+    return cur;
+}
+
+function isPrompt (session) {
+    var ss = session.sessionState;
+    if (ss && ss.callstack && ss.callstack.length > 0) {
+        var cur = ss.callstack[ss.callstack.length - 1];
+        if (cur.id.indexOf('BotBuilder:prompt') >= 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 // function activeDialogStackEntry (stack) {
 // 	return stack && stack.length > 0 ? stack[stack.length - 1] : null;

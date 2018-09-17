@@ -211,6 +211,7 @@ function endConversation(session, chat_result, botLogger) {
 		'complete_n': {dialog: 'global', index:0, branch: 1},
 		'complete_noincall': {dialog: 'global', index:0, branch: 2},
 		'complete_noprice': {dialog: 'global', index:0, branch: 3},
+		'complete_nopolice': {dialog: 'global', index:0, branch: 4},
 		'boot': {dialog: 'confirmService:/', index:0, branch: 0}
 	};
 

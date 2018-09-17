@@ -18,7 +18,7 @@ function routeMessage(lib, session, done){
         }, function(err){
             if (!err) {
                 var disambiguateRoute = function (session, routes) {
-                    var route = bestRouteResult(results, session.dialogStack(), lib.name);
+                    var route = bestRouteResult(routes, session.dialogStack(), lib.name);
                     if (route) {
                         lib.library(route.libraryName).selectRoute(session, route);
                     }
