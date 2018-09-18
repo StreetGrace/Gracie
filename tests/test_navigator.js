@@ -69,39 +69,39 @@ bot.use({
 // }
 
 bot.onFindRoutes(function (context, callback) {
-	var results = builder.Library.addRouteResult({ score: 0.0, libraryName: bot.name });
+    var results = builder.Library.addRouteResult({ score: 0.0, libraryName: bot.name });
+    var stack = context.dialogStack();
+    var parentDialog = getParentDialog(stack, true);
+    console.log('==========================');
+    console.log('dialog stack %j', stack);
+    console.log('Parent Stack %j', parentDialog);
+    console.log('==========================');    
     bot.recognize(context, (err, topIntent) => {
         if (!err) {
             context.topIntent = topIntent && topIntent.score > 0 ? topIntent : null;
             context.libraryName = bot.name;
             async.parallel([
-                (cb) => {
-                    var stack = context.dialogStack();
-                    var parentDialog = getParentDialog(stack, true);
-                    console.log('==========================');
-                    console.log('dialog stack %j', stack);
-                    console.log('Parent Stack %j', parentDialog);
-                    console.log('==========================');
-                    var msg = context.message.text;
-                    apiai.recognize({message: {text: msg}})
-                        .then(res => {
-                            var intent = res.intent;
-                            var entities = res.entities;
-                            console.log('==========================');
-                            console.log('recognized intent %j', intent);
-                            console.log('==========================');                                                                
-                            if (intent == 'General.Police') {
-                                results = builder.Library.addRouteResult({
-                                    score: 1.0,
-                                    libraryName: bot.name,
-                                    routeType: 'General: Police',
-                                    routeData: {}
-                                }, results);        
-                            }
+                // (cb) => {
+                //     var msg = context.message.text;
+                //     apiai.recognize({message: {text: msg}})
+                //         .then(res => {
+                //             var intent = res.intent;
+                //             var entities = res.entities;
+                //             console.log('==========================');
+                //             console.log('recognized intent %j', intent);
+                //             console.log('==========================');                                                                
+                //             if (intent == 'General.Police') {
+                //                 results = builder.Library.addRouteResult({
+                //                     score: 1.0,
+                //                     libraryName: bot.name,
+                //                     routeType: 'General: Police',
+                //                     routeData: {}
+                //                 }, results);        
+                //             }
 
-                            cb(null);
-                        })
-                },
+                //             cb(null);
+                //         })
+                // },
                 (cb) => {
                     // Check the active dialogs score
                     bot.findActiveDialogRoutes(context, (err, routes) => {
@@ -153,26 +153,26 @@ bot.onSelectRoute(function (session, route) {
     // session.send('********************');
     switch (route.routeType || '') {
         // >>>> BEGIN CUSTOM ROUTE
-        case 'General: Police':
-            var frmDialog = getParentDialog(session);
-            // session.send('Route Custom');
-            // session.send('current lib: %j', Object.keys(session.library));
-            // session.send('current dialog: %j', session.curDialog());
-            // session.send('parent dialog %j', frmDialog);
-            if (isPrompt(session)) {
-                session.sessionState.callstack.push({'id':'BotBuilder:Interruption'})
-                session.dialogData = {'BotBuilder.Data.WaterfallStep':0};
-                // session.send('Call Stack: %j', session.sessionState.callstack);
-            }
-            session.beginDialog('generalTopic:/police', {denied: false, reprompt: 0});
-            // if (frmDialog && frmDialog.id && frmDialog.id.indexOf('important') >= 0) {
-            //     session.beginDialog('*:continue_topic');
-            // }
-            // else {
-            //     session.beginDialog('*:chichat');
-            // }
+        // case 'General: Police':
+        //     var frmDialog = getParentDialog(session);
+        //     session.send('Route Custom');
+        //     session.send('current lib: %j', Object.keys(session.library));
+        //     session.send('current dialog: %j', session.curDialog());
+        //     session.send('parent dialog %j', frmDialog);
+        //     if (isPrompt(session)) {
+        //         session.sessionState.callstack.push({'id':'BotBuilder:Interruption'})
+        //         session.dialogData = {'BotBuilder.Data.WaterfallStep':0};
+        //         session.send('Call Stack: %j', session.sessionState.callstack);
+        //     }
+        //     session.beginDialog('generalTopic:/police', {denied: false, reprompt: 0});
+        //     if (frmDialog && frmDialog.id && frmDialog.id.indexOf('important') >= 0) {
+        //         session.beginDialog('*:continue_topic');
+        //     }
+        //     else {
+        //         session.beginDialog('*:chichat');
+        //     }
 
-            break;
+        //     break;
         // <<<< END CUSTOME ROUTE
         case builder.Library.RouteTypes.ActiveDialog:
             // session.send('Route Active');
@@ -214,7 +214,9 @@ bot.dialog('/', [
 		// session.dialogData.memory = 'mmm';
 		// session.userData.isPolice = false;
         session.send('dialog /, 0');
-        session.send('args %j', args);
+        if (args) {
+            session.send('args %j', args.response);
+        }
         // var context = session.toRecognizeContext();
         // session.send('context : %j', context);
 		// session.send('%j', session.conversationData);
@@ -243,7 +245,6 @@ bot.dialog('/', [
 	}
 ])
 .beginDialogAction('testAction:casual', 'casual', {matches: /casual/i})
-.beginDialogAction('testAction:casual intent', 'casual', {matches: 'General.Greeting'})
 .beginDialogAction('testAction:important', 'important', {matches: /important/i})
 ;
 
@@ -276,48 +277,31 @@ bot.dialog('casual', [
         // session.send('context : %j', context);
 		// session.send('Dialog Data: %j', session.dialogData);
         // session.send('Session State: %j', session.sessionState);
-        throw new Error('testing');
-        builder.Prompts.text(session, 'dialog /casual, 0, prompt');
+        // session.endDialog();
+        // builder.Prompts.text(session, 'dialog /casual, 0, prompt');
+        // session.endDialog();
+        next();
 	},
 
 	function (session, args, next) {
         session.send('dialog casual 1');
-        // var context = session.toRecognizeContext();
-        // session.send('context : %j', context);
-        // session.send('Dialog Data: %j', session.dialogData);
-		// session.send('Session State: %j', session.sessionState);
-        session.endDialog();
-	}
+        var dData = session.dialogData;
+        var ss = session.sessionState;
+        console.log('XDXDXXDXDXDXDXDXD')
+        console.log('dialog casual state: %j', ss);
+        console.log('XDXDXXDXDXDXDXDXD')
+        
+    //     // var context = session.toRecognizeContext();
+    //     // session.send('context : %j', context);
+    //     // session.send('Dialog Data: %j', session.dialogData);
+    //     // session.send('Session State: %j', session.sessionState);
+    //     session.cancelDialog('*:casual');
+    // },
+    // function (session, args, next) {
+        session.endDialogWithResult({dd: dData});
+    }
 ])
 
-
-bot.dialog('chichat', [
-	function (session, args, next) {
-        session.send('dialog chichat 0');
-        session.send('args %j', args);
-        // var context = session.toRecognizeContext();
-        // session.send('context : %j', context);
-		// session.send('Dialog Data: %j', session.dialogData);
-        // session.send('Session State: %j', session.sessionState);
-        session.send('Chichating.....');
-        session.endDialog();
-    },
-    
-    
-]);
-
-bot.dialog('continue_topic', [
-	function (session, args, next) {
-        session.send('dialog continue_topic 0');
-        session.send('args %j', args);
-        var context = session.toRecognizeContext();
-        session.send('context : %j', context);
-		// session.send('Dialog Data: %j', session.dialogData);
-		// session.send('Session State: %j', session.sessionState);
-        session.send("no, this is important");
-        session.endDialog();
-	}
-]);
 
 
 function getParentDialog (session, isStack=false) {

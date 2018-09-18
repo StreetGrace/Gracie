@@ -14,6 +14,8 @@ var lib = new builder.Library('generalTopic');
 
 lib.dialog('/police', [
     function (session, args, next) {
+        session.send('Police Dialog Data: %j', session.dialogData);
+        session.send('Police Session State: %j', session.sessionState);
         session.dialogData = {reprompt: args.reprompt, denied: args.denied};
         var topicPolice = session.userData.profile.topics.police;
         var dialogStatus = session.dialogData;
@@ -74,10 +76,14 @@ lib.dialog('/police', [
     },
     function (session, args, next) {
         try {
+            console.log('=======================================');
+            console.log('Dialog Police, response received');
+            console.log('=======================================');
             var dialogStatus = session.dialogData;
             var topicPolice = session.userData.profile.topics.police;
             topicPolice.count += 1;
 
+            session.send('Police Dialog Data: %j', session.dialogData);
             var msg = args.response;
             var sessionInfo = utils.getSessionInfo(session);
             // session.send('Police Args: %j', args);
@@ -99,7 +105,9 @@ lib.dialog('/police', [
                                 .then( res=> {
                                     var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');     
                                     topicPolice.complete = true;
-                                    session.endDialogWithResult({reply: reply});
+                                    session.send(reply);
+                                    session.endDialog();
+                                    // session.endDialogWithResult({reply: reply});
                                 }, err => {
                                     utils.throwErr(err);
                                 })            		               
@@ -110,8 +118,10 @@ lib.dialog('/police', [
                             else if (intent_c == 'Confirm.Confirmation_Yes' && topicPolice.complete) {
                                 return db.queryDB('generalTopic:/police', 1, 1)
                                 .then( res=> {
-                                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');     
-                                    session.endDialogWithResult({reply: reply});
+                                    var reply = eval('`'+ utils.getMsg(res).replace(/`/g,'\\`') + '`');    
+                                    session.send(reply);
+                                    session.endDialog();
+                                    // session.endDialogWithResult({reply: reply});
                                 }, err => {
                                     utils.throwErr(err);
                                 })            		               
